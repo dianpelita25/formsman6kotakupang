@@ -58,30 +58,39 @@
           <ul id="q10-breakdown" class="q10-breakdown"></ul>
         </article>
 
-        <article class="chart-card">
+        <article class="chart-card adoption-card">
           <h3>Indeks Kesiapan Adopsi</h3>
-          <div class="adoption-score">
-            <div>
-              <p class="adoption-kicker">Skor Gabungan</p>
-              <h2 id="adoption-score">0.00</h2>
+          <div class="adoption-visual">
+            <div class="adoption-gauge" id="adoption-gauge" aria-label="Indeks Kesiapan Adopsi">
+              <div class="adoption-gauge-core">
+                <span id="adoption-score">0.00</span>
+                <small>/5</small>
+              </div>
             </div>
-            <div class="adoption-pill" id="adoption-label">Belum</div>
+            <div class="adoption-summary">
+              <div class="adoption-pill" id="adoption-label">Belum</div>
+              <p class="adoption-note">Gabungan Q7, Q8, Q9, Q11</p>
+            </div>
           </div>
           <div class="adoption-breakdown">
-            <div>
+            <div class="adoption-row">
               <span>Q7 Potensi HOTS</span>
+              <div class="adoption-bar"><span id="adoption-bar-q7"></span></div>
               <strong id="adoption-q7">0.00</strong>
             </div>
-            <div>
+            <div class="adoption-row">
               <span>Q8 Terbantu</span>
+              <div class="adoption-bar"><span id="adoption-bar-q8"></span></div>
               <strong id="adoption-q8">0.00</strong>
             </div>
-            <div>
+            <div class="adoption-row">
               <span>Q9 Siap Implementasi</span>
+              <div class="adoption-bar"><span id="adoption-bar-q9"></span></div>
               <strong id="adoption-q9">0.00</strong>
             </div>
-            <div>
+            <div class="adoption-row">
               <span>Q11 Rekomendasi</span>
+              <div class="adoption-bar"><span id="adoption-bar-q11"></span></div>
               <strong id="adoption-q11">0.00</strong>
             </div>
           </div>

@@ -124,25 +124,65 @@ body {
   font-size: 15px;
 }
 
-.adoption-score {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0 12px;
+.adoption-card {
+  display: grid;
+  gap: 14px;
 }
 
-.adoption-kicker {
-  margin: 0;
+.adoption-visual {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.adoption-gauge {
+  --progress: 0%;
+  --gauge-color: #34e3b9;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--gauge-color) var(--progress), rgba(106, 164, 255, 0.18) 0);
+  position: relative;
+}
+
+.adoption-gauge::after {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: rgba(4, 10, 24, 0.9);
+  border: 1px solid rgba(106, 164, 255, 0.18);
+}
+
+.adoption-gauge-core {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.adoption-gauge-core span {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.adoption-gauge-core small {
+  display: block;
   font-size: 12px;
   color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
-.adoption-score h2 {
-  margin: 6px 0 0;
-  font-size: 32px;
+.adoption-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.adoption-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .adoption-pill {
@@ -169,24 +209,36 @@ body {
 
 .adoption-breakdown {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
-.adoption-breakdown div {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(6, 14, 30, 0.6);
-  border: 1px solid rgba(106, 164, 255, 0.12);
+.adoption-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 54px;
+  gap: 10px;
+  align-items: center;
   font-size: 12px;
   color: var(--muted);
 }
 
-.adoption-breakdown strong {
+.adoption-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(106, 164, 255, 0.18);
+  overflow: hidden;
+}
+
+.adoption-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+}
+
+.adoption-row strong {
   color: var(--text);
+  text-align: right;
 }
 
 .q10-breakdown {

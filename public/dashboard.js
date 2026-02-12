@@ -12,10 +12,15 @@ const aiStatus = document.getElementById('ai-status');
 
 const adoptionScore = document.getElementById('adoption-score');
 const adoptionLabel = document.getElementById('adoption-label');
+const adoptionGauge = document.getElementById('adoption-gauge');
 const adoptionQ7 = document.getElementById('adoption-q7');
 const adoptionQ8 = document.getElementById('adoption-q8');
 const adoptionQ9 = document.getElementById('adoption-q9');
 const adoptionQ11 = document.getElementById('adoption-q11');
+const adoptionBarQ7 = document.getElementById('adoption-bar-q7');
+const adoptionBarQ8 = document.getElementById('adoption-bar-q8');
+const adoptionBarQ9 = document.getElementById('adoption-bar-q9');
+const adoptionBarQ11 = document.getElementById('adoption-bar-q11');
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -64,14 +69,33 @@ function renderAdoptionIndex(averages) {
   if (adoptionQ11) adoptionQ11.textContent = formatScore(q11);
 
   adoptionLabel.classList.remove('is-low', 'is-mid');
+  if (adoptionGauge) {
+    const pct = Math.max(0, Math.min(100, (index / 5) * 100));
+    adoptionGauge.style.setProperty('--progress', `${pct}%`);
+  }
+
+  const setBar = (el, value) => {
+    if (!el) return;
+    const pct = Math.max(0, Math.min(100, (Number(value) / 5) * 100));
+    el.style.width = `${pct}%`;
+  };
+
+  setBar(adoptionBarQ7, q7);
+  setBar(adoptionBarQ8, q8);
+  setBar(adoptionBarQ9, q9);
+  setBar(adoptionBarQ11, q11);
+
   if (index >= 4) {
     adoptionLabel.textContent = 'Siap';
+    if (adoptionGauge) adoptionGauge.style.setProperty('--gauge-color', '#34e3b9');
   } else if (index >= 2) {
     adoptionLabel.textContent = 'Cukup';
     adoptionLabel.classList.add('is-mid');
+    if (adoptionGauge) adoptionGauge.style.setProperty('--gauge-color', '#facc15');
   } else {
     adoptionLabel.textContent = 'Belum';
     adoptionLabel.classList.add('is-low');
+    if (adoptionGauge) adoptionGauge.style.setProperty('--gauge-color', '#f87171');
   }
 }
 
