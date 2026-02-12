@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Analytics Feedback</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <main class="dashboard-page">
+      <header class="dashboard-hero">
+        <div>
+          <p class="kicker">AITI ANALYTICS</p>
+          <h1>Dashboard Hasil Feedback</h1>
+          <p class="sub">Visual ringkas untuk evaluasi program dan adopsi AI Teaching Assistant.</p>
+        </div>
+        <div class="actions">
+          <a href="./index.html" class="btn ghost">Kembali ke Form</a>
+          <a href="./api/analytics/export.csv" class="btn">Export CSV</a>
+        </div>
+      </header>
+
+      <section class="kpi-grid" id="kpi-grid">
+        <article class="kpi-card">
+          <p>Total Responden</p>
+          <h2 id="kpi-total">0</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Rata-rata Kepuasan (Q12)</p>
+          <h2 id="kpi-q12">0.00</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Minat Pelatihan Lanjutan</p>
+          <h2 id="kpi-interest">0%</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Skor Adopsi AI</p>
+          <h2 id="kpi-ai">0.00</h2>
+        </article>
+      </section>
+
+      <section class="chart-grid">
+        <article class="chart-card wide">
+          <h3>Rata-rata Skor per Pertanyaan</h3>
+          <canvas id="avgChart" height="120"></canvas>
+        </article>
+
+        <article class="chart-card">
+          <h3>Distribusi Minat (Q10)</h3>
+          <canvas id="q10Chart" height="220"></canvas>
+        </article>
+
+        <article class="chart-card">
+          <h3>Trend Submission (30 Hari)</h3>
+          <canvas id="trendChart" height="220"></canvas>
+        </article>
+      </section>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+
+    <script type="module" src="./dashboard.js"></script>
+  </body>
+</html>
