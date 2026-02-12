@@ -7,6 +7,7 @@ const kpiAi = document.getElementById('kpi-ai');
 const kpiQ7 = document.getElementById('kpi-q7');
 const kpiQ8 = document.getElementById('kpi-q8');
 const kpiQ9 = document.getElementById('kpi-q9');
+const kpiQ11 = document.getElementById('kpi-q11');
 
 const q10Breakdown = document.getElementById('q10-breakdown');
 const aiRunBtn = document.getElementById('ai-run');
@@ -173,6 +174,7 @@ async function loadDashboard() {
     if (kpiQ7) kpiQ7.textContent = formatScore(distribution.questionAverages.q7);
     if (kpiQ8) kpiQ8.textContent = formatScore(distribution.questionAverages.q8);
     if (kpiQ9) kpiQ9.textContent = formatScore(distribution.questionAverages.q9);
+    if (kpiQ11) kpiQ11.textContent = formatScore(distribution.questionAverages.q11);
 
     buildAvgChart(distribution.questionAverages);
     buildQ10Chart(distribution.q10Distribution);
