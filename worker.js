@@ -64,6 +64,7 @@ export default {
     const subPath = url.pathname.slice(PREFIX.length) || '/';
     const isApi = subPath.startsWith('/api/');
     const isHealth = subPath === '/health';
+    const isAi = subPath.startsWith('/api/ai/');
 
     // Auth only for dashboard & /api/ai/*
     if (needsAuth(subPath)) {
@@ -75,11 +76,18 @@ export default {
     target.pathname = subPath;
     target.search = url.search;
 
-    const proxiedReq = buildProxyRequest(
-      request,
-      target.toString(),
-      isApi || isHealth ? { 'Cache-Control': 'no-store' } : {}
-    );
+    const extraHeaders = {};
+    if (isApi || isHealth) {
+      extraHeaders['Cache-Control'] = 'no-store';
+    }
+    if (isAi) {
+      if (!env.AI_ANALYZE_KEY) {
+        return new Response('AI key not configured', { status: 500 });
+      }
+      extraHeaders['X-AI-KEY'] = env.AI_ANALYZE_KEY;
+    }
+
+    const proxiedReq = buildProxyRequest(request, target.toString(), extraHeaders);
 
     return fetch(proxiedReq);
   },

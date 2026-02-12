@@ -46,6 +46,21 @@
         </article>
       </section>
 
+      <section class="kpi-grid adoption-grid">
+        <article class="kpi-card">
+          <p>Adopsi AI (Q7) Potensi HOTS</p>
+          <h2 id="kpi-q7">0.00</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Adopsi AI (Q8) Terbantu</p>
+          <h2 id="kpi-q8">0.00</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Adopsi AI (Q9) Siap Implementasi</p>
+          <h2 id="kpi-q9">0.00</h2>
+        </article>
+      </section>
+
       <section class="chart-grid">
         <article class="chart-card wide">
           <h3>Rata-rata Skor per Pertanyaan</h3>
@@ -55,11 +70,35 @@
         <article class="chart-card">
           <h3>Distribusi Minat (Q10)</h3>
           <canvas id="q10Chart" height="220"></canvas>
+          <ul id="q10-breakdown" class="q10-breakdown"></ul>
         </article>
 
         <article class="chart-card">
           <h3>Trend Submission (30 Hari)</h3>
           <canvas id="trendChart" height="220"></canvas>
+        </article>
+      </section>
+
+      <section class="chart-grid">
+        <article class="chart-card wide ai-panel">
+          <div class="ai-header">
+            <div>
+              <h3>Analisa AI</h3>
+              <p class="ai-sub">Ringkasan otomatis berbasis data untuk admin.</p>
+            </div>
+            <div class="ai-actions">
+              <label class="ai-label">
+                Periode
+                <select id="ai-days">
+                  <option value="7">7 hari</option>
+                  <option value="30" selected>30 hari</option>
+                </select>
+              </label>
+              <button id="ai-run" class="btn">Analisa</button>
+            </div>
+          </div>
+          <div id="ai-output" class="ai-output">Belum ada analisa.</div>
+          <p id="ai-status" class="status" aria-live="polite"></p>
         </article>
       </section>
 

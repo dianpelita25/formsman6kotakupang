@@ -233,7 +233,7 @@ feedbackForm.addEventListener('submit', async (event) => {
       return;
     }
 
-    setStatus('Terima kasih, feedback berhasil dikirim. Klik "Lihat Visual Dashboard" untuk melihat hasil terbaru.', 'success');
+    setStatus('Terima kasih, feedback berhasil dikirim.', 'success');
     setDashboardLinkEnabled(true);
     feedbackForm.reset();
   } catch (error) {

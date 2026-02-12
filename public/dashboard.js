@@ -4,10 +4,45 @@ const kpiTotal = document.getElementById('kpi-total');
 const kpiQ12 = document.getElementById('kpi-q12');
 const kpiInterest = document.getElementById('kpi-interest');
 const kpiAi = document.getElementById('kpi-ai');
+const kpiQ7 = document.getElementById('kpi-q7');
+const kpiQ8 = document.getElementById('kpi-q8');
+const kpiQ9 = document.getElementById('kpi-q9');
+
+const q10Breakdown = document.getElementById('q10-breakdown');
+const aiRunBtn = document.getElementById('ai-run');
+const aiDaysSelect = document.getElementById('ai-days');
+const aiOutput = document.getElementById('ai-output');
+const aiStatus = document.getElementById('ai-status');
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.className = `status${isError ? ' error' : ''}`;
+}
+
+function setAiStatus(message, isError = false) {
+  if (!aiStatus) return;
+  aiStatus.textContent = message;
+  aiStatus.className = `status${isError ? ' error' : ''}`;
+}
+
+function formatScore(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0.00';
+  return num.toFixed(2);
+}
+
+function renderQ10Breakdown(items, totalResponses) {
+  if (!q10Breakdown) return;
+
+  q10Breakdown.innerHTML = '';
+  const total = Number(totalResponses) || 0;
+
+  items.forEach((item) => {
+    const percent = total ? (item.total / total) * 100 : 0;
+    const row = document.createElement('li');
+    row.innerHTML = `<span>${item.label}</span><span>${item.total} (${percent.toFixed(1)}%)</span>`;
+    q10Breakdown.append(row);
+  });
 }
 
 function buildAvgChart(values) {
@@ -132,13 +167,17 @@ async function loadDashboard() {
     const trend = trendJson.data;
 
     kpiTotal.textContent = summary.totalResponses;
-    kpiQ12.textContent = summary.avgQ12.toFixed(2);
+    kpiQ12.textContent = formatScore(summary.avgQ12);
     kpiInterest.textContent = `${summary.interestedPct.toFixed(2)}%`;
-    kpiAi.textContent = summary.avgAiAdoption.toFixed(2);
+    kpiAi.textContent = formatScore(summary.avgAiAdoption);
+    if (kpiQ7) kpiQ7.textContent = formatScore(distribution.questionAverages.q7);
+    if (kpiQ8) kpiQ8.textContent = formatScore(distribution.questionAverages.q8);
+    if (kpiQ9) kpiQ9.textContent = formatScore(distribution.questionAverages.q9);
 
     buildAvgChart(distribution.questionAverages);
     buildQ10Chart(distribution.q10Distribution);
     buildTrendChart(trend.points);
+    renderQ10Breakdown(distribution.q10Distribution, summary.totalResponses);
 
     if (!summary.totalResponses) {
       setStatus('Belum ada data submission. Silakan kirim 1 feedback dari form untuk melihat visual.', false);
@@ -152,3 +191,42 @@ async function loadDashboard() {
 }
 
 loadDashboard();
+
+async function runAiAnalysis() {
+  if (!aiRunBtn) return;
+
+  const days = Number(aiDaysSelect?.value ?? 30) || 30;
+  aiRunBtn.disabled = true;
+  setAiStatus('Menjalankan analisa AI...');
+  if (aiOutput) aiOutput.textContent = 'Sedang memproses data...';
+
+  try {
+    const response = await fetch('./api/ai/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ days }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload?.message || 'Gagal menjalankan analisa AI.');
+    }
+
+    if (aiOutput) {
+      aiOutput.textContent = payload.analysis || 'Tidak ada hasil analisa.';
+    }
+    setAiStatus('Analisa selesai.');
+  } catch (error) {
+    if (aiOutput) aiOutput.textContent = 'Analisa gagal diproses.';
+    setAiStatus(error.message || 'Analisa gagal.', true);
+  } finally {
+    aiRunBtn.disabled = false;
+  }
+}
+
+if (aiRunBtn) {
+  aiRunBtn.addEventListener('click', runAiAnalysis);
+}
