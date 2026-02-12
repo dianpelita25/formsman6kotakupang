@@ -46,25 +46,6 @@
         </article>
       </section>
 
-      <section class="kpi-grid adoption-grid">
-        <article class="kpi-card">
-          <p>Adopsi AI (Q7) Potensi HOTS</p>
-          <h2 id="kpi-q7">0.00</h2>
-        </article>
-        <article class="kpi-card">
-          <p>Adopsi AI (Q8) Terbantu</p>
-          <h2 id="kpi-q8">0.00</h2>
-        </article>
-        <article class="kpi-card">
-          <p>Adopsi AI (Q9) Siap Implementasi</p>
-          <h2 id="kpi-q9">0.00</h2>
-        </article>
-        <article class="kpi-card">
-          <p>Rekomendasi Adopsi (Q11)</p>
-          <h2 id="kpi-q11">0.00</h2>
-        </article>
-      </section>
-
       <section class="chart-grid">
         <article class="chart-card wide">
           <h3>Rata-rata Skor per Pertanyaan</h3>
@@ -78,8 +59,32 @@
         </article>
 
         <article class="chart-card">
-          <h3>Trend Submission (30 Hari)</h3>
-          <canvas id="trendChart" height="220"></canvas>
+          <h3>Indeks Kesiapan Adopsi</h3>
+          <div class="adoption-score">
+            <div>
+              <p class="adoption-kicker">Skor Gabungan</p>
+              <h2 id="adoption-score">0.00</h2>
+            </div>
+            <div class="adoption-pill" id="adoption-label">Belum</div>
+          </div>
+          <div class="adoption-breakdown">
+            <div>
+              <span>Q7 Potensi HOTS</span>
+              <strong id="adoption-q7">0.00</strong>
+            </div>
+            <div>
+              <span>Q8 Terbantu</span>
+              <strong id="adoption-q8">0.00</strong>
+            </div>
+            <div>
+              <span>Q9 Siap Implementasi</span>
+              <strong id="adoption-q9">0.00</strong>
+            </div>
+            <div>
+              <span>Q11 Rekomendasi</span>
+              <strong id="adoption-q11">0.00</strong>
+            </div>
+          </div>
         </article>
       </section>
 
@@ -91,13 +96,6 @@
               <p class="ai-sub">Ringkasan otomatis berbasis data untuk admin.</p>
             </div>
             <div class="ai-actions">
-              <label class="ai-label">
-                Periode
-                <select id="ai-days">
-                  <option value="7">7 hari</option>
-                  <option value="30" selected>30 hari</option>
-                </select>
-              </label>
               <button id="ai-run" class="btn">Analisa</button>
             </div>
           </div>

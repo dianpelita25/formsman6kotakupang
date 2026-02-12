@@ -88,10 +88,6 @@ body {
   gap: 12px;
 }
 
-.adoption-grid {
-  grid-template-columns: repeat(4, 1fr);
-}
-
 .kpi-card,
 .chart-card {
   border: 1px solid var(--line);
@@ -126,6 +122,71 @@ body {
 .chart-card h3 {
   margin: 0 0 12px;
   font-size: 15px;
+}
+
+.adoption-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 12px;
+}
+
+.adoption-kicker {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adoption-score h2 {
+  margin: 6px 0 0;
+  font-size: 32px;
+}
+
+.adoption-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(52, 227, 185, 0.2);
+  color: var(--ok);
+  border: 1px solid rgba(52, 227, 185, 0.35);
+}
+
+.adoption-pill.is-mid {
+  background: rgba(251, 191, 36, 0.15);
+  color: #facc15;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.adoption-pill.is-low {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.adoption-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.adoption-breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(6, 14, 30, 0.6);
+  border: 1px solid rgba(106, 164, 255, 0.12);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.adoption-breakdown strong {
+  color: var(--text);
 }
 
 .q10-breakdown {
@@ -169,23 +230,6 @@ body {
   gap: 10px;
 }
 
-.ai-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.ai-label select {
-  border: 1px solid var(--line);
-  background: rgba(8, 15, 30, 0.9);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
-}
-
 .ai-output {
   border: 1px solid var(--line);
   background: rgba(4, 10, 24, 0.8);
@@ -213,10 +257,6 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .adoption-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .chart-grid {
     grid-template-columns: 1fr;
   }
@@ -232,10 +272,6 @@ body {
   }
 
   .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .adoption-grid {
     grid-template-columns: 1fr;
   }
 }

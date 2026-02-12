@@ -136,19 +136,31 @@ export async function getAllResponsesForCsv() {
   return rows;
 }
 
-export async function getResponsesForAi({ days = 30 } = {}) {
+export async function getResponsesForAi({ days } = {}) {
   const sql = getSqlClient();
 
-  const rows = await sql`
-    SELECT
-      TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
-      lama_mengajar,
-      mata_pelajaran,
-      q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12
-    FROM form_responses
-    WHERE created_at >= NOW() - (${days}::text || ' days')::interval
-    ORDER BY created_at DESC;
-  `;
+  const hasDays = Number.isFinite(Number(days));
+
+  const rows = hasDays
+    ? await sql`
+        SELECT
+          TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
+          lama_mengajar,
+          mata_pelajaran,
+          q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12
+        FROM form_responses
+        WHERE created_at >= NOW() - (${days}::text || ' days')::interval
+        ORDER BY created_at DESC;
+      `
+    : await sql`
+        SELECT
+          TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
+          lama_mengajar,
+          mata_pelajaran,
+          q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12
+        FROM form_responses
+        ORDER BY created_at DESC;
+      `;
 
   return rows;
 }

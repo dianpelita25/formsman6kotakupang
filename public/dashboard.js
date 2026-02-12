@@ -4,16 +4,18 @@ const kpiTotal = document.getElementById('kpi-total');
 const kpiQ12 = document.getElementById('kpi-q12');
 const kpiInterest = document.getElementById('kpi-interest');
 const kpiAi = document.getElementById('kpi-ai');
-const kpiQ7 = document.getElementById('kpi-q7');
-const kpiQ8 = document.getElementById('kpi-q8');
-const kpiQ9 = document.getElementById('kpi-q9');
-const kpiQ11 = document.getElementById('kpi-q11');
 
 const q10Breakdown = document.getElementById('q10-breakdown');
 const aiRunBtn = document.getElementById('ai-run');
-const aiDaysSelect = document.getElementById('ai-days');
 const aiOutput = document.getElementById('ai-output');
 const aiStatus = document.getElementById('ai-status');
+
+const adoptionScore = document.getElementById('adoption-score');
+const adoptionLabel = document.getElementById('adoption-label');
+const adoptionQ7 = document.getElementById('adoption-q7');
+const adoptionQ8 = document.getElementById('adoption-q8');
+const adoptionQ9 = document.getElementById('adoption-q9');
+const adoptionQ11 = document.getElementById('adoption-q11');
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -44,6 +46,33 @@ function renderQ10Breakdown(items, totalResponses) {
     row.innerHTML = `<span>${item.label}</span><span>${item.total} (${percent.toFixed(1)}%)</span>`;
     q10Breakdown.append(row);
   });
+}
+
+function renderAdoptionIndex(averages) {
+  if (!adoptionScore || !adoptionLabel) return;
+
+  const q7 = Number(averages?.q7 ?? 0);
+  const q8 = Number(averages?.q8 ?? 0);
+  const q9 = Number(averages?.q9 ?? 0);
+  const q11 = Number(averages?.q11 ?? 0);
+  const index = (q7 + q8 + q9 + q11) / 4;
+
+  adoptionScore.textContent = formatScore(index);
+  if (adoptionQ7) adoptionQ7.textContent = formatScore(q7);
+  if (adoptionQ8) adoptionQ8.textContent = formatScore(q8);
+  if (adoptionQ9) adoptionQ9.textContent = formatScore(q9);
+  if (adoptionQ11) adoptionQ11.textContent = formatScore(q11);
+
+  adoptionLabel.classList.remove('is-low', 'is-mid');
+  if (index >= 4) {
+    adoptionLabel.textContent = 'Siap';
+  } else if (index >= 2) {
+    adoptionLabel.textContent = 'Cukup';
+    adoptionLabel.classList.add('is-mid');
+  } else {
+    adoptionLabel.textContent = 'Belum';
+    adoptionLabel.classList.add('is-low');
+  }
 }
 
 function buildAvgChart(values) {
@@ -102,44 +131,13 @@ function buildQ10Chart(items) {
   });
 }
 
-function buildTrendChart(points) {
-  new Chart(document.getElementById('trendChart'), {
-    type: 'line',
-    data: {
-      labels: points.map((item) => item.day),
-      datasets: [
-        {
-          label: 'Submission / Hari',
-          data: points.map((item) => item.total),
-          borderColor: '#34d399',
-          backgroundColor: 'rgba(52, 211, 153, 0.2)',
-          fill: true,
-          tension: 0.3,
-          pointRadius: 3,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#b9d4ff' }, grid: { color: 'rgba(130,170,255,0.15)' } },
-        x: { ticks: { color: '#b9d4ff', maxRotation: 0, autoSkip: true }, grid: { display: false } },
-      },
-      plugins: {
-        legend: { labels: { color: '#cfe2ff' } },
-      },
-    },
-  });
-}
-
 async function loadDashboard() {
   setStatus('Memuat analytics...');
 
   try {
-    const [summaryRes, distributionRes, trendRes] = await Promise.all([
+    const [summaryRes, distributionRes] = await Promise.all([
       fetch('./api/analytics/summary'),
       fetch('./api/analytics/distribution'),
-      fetch('./api/analytics/trend?days=30'),
     ]);
 
     const parseOrNull = async (response) => {
@@ -152,34 +150,26 @@ async function loadDashboard() {
 
     const summaryJson = await parseOrNull(summaryRes);
     const distributionJson = await parseOrNull(distributionRes);
-    const trendJson = await parseOrNull(trendRes);
-
-    if (!summaryRes.ok || !distributionRes.ok || !trendRes.ok) {
+    if (!summaryRes.ok || !distributionRes.ok) {
       const errorMessage =
         summaryJson?.message ||
         distributionJson?.message ||
-        trendJson?.message ||
         'Sebagian data analytics gagal dimuat.';
       throw new Error(errorMessage);
     }
 
     const summary = summaryJson.data;
     const distribution = distributionJson.data;
-    const trend = trendJson.data;
 
     kpiTotal.textContent = summary.totalResponses;
     kpiQ12.textContent = formatScore(summary.avgQ12);
     kpiInterest.textContent = `${summary.interestedPct.toFixed(2)}%`;
     kpiAi.textContent = formatScore(summary.avgAiAdoption);
-    if (kpiQ7) kpiQ7.textContent = formatScore(distribution.questionAverages.q7);
-    if (kpiQ8) kpiQ8.textContent = formatScore(distribution.questionAverages.q8);
-    if (kpiQ9) kpiQ9.textContent = formatScore(distribution.questionAverages.q9);
-    if (kpiQ11) kpiQ11.textContent = formatScore(distribution.questionAverages.q11);
 
     buildAvgChart(distribution.questionAverages);
     buildQ10Chart(distribution.q10Distribution);
-    buildTrendChart(trend.points);
     renderQ10Breakdown(distribution.q10Distribution, summary.totalResponses);
+    renderAdoptionIndex(distribution.questionAverages);
 
     if (!summary.totalResponses) {
       setStatus('Belum ada data submission. Silakan kirim 1 feedback dari form untuk melihat visual.', false);
@@ -197,7 +187,6 @@ loadDashboard();
 async function runAiAnalysis() {
   if (!aiRunBtn) return;
 
-  const days = Number(aiDaysSelect?.value ?? 30) || 30;
   aiRunBtn.disabled = true;
   setAiStatus('Menjalankan analisa AI...');
   if (aiOutput) aiOutput.textContent = 'Sedang memproses data...';
@@ -208,7 +197,6 @@ async function runAiAnalysis() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ days }),
     });
 
     const payload = await response.json().catch(() => ({}));
