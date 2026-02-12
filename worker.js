@@ -7,7 +7,11 @@
 const PREFIX = '/formsman6kotakupang';
 
 function needsAuth(subPath) {
-  return subPath.startsWith('/dashboard') || subPath.startsWith('/api/ai/');
+  return (
+    subPath.startsWith('/dashboard') ||
+    subPath.startsWith('/api/ai/') ||
+    subPath.startsWith('/api/analytics/')
+  );
 }
 
 function unauthorized() {
@@ -25,9 +29,11 @@ function checkBasicAuth(request, env) {
   return user === env.ADMIN_USER && pass === env.ADMIN_PASS;
 }
 
-function buildProxyRequest(request, targetUrl) {
+function buildProxyRequest(request, targetUrl, extraHeaders = {}) {
   const headers = new Headers(request.headers);
-  headers.set('Host', new URL(targetUrl).host);
+  for (const [key, value] of Object.entries(extraHeaders)) {
+    headers.set(key, value);
+  }
 
   // Preserve body only for methods that allow it
   const method = request.method;
@@ -57,23 +63,23 @@ export default {
 
     const subPath = url.pathname.slice(PREFIX.length) || '/';
     const isApi = subPath.startsWith('/api/');
+    const isHealth = subPath === '/health';
 
     // Auth only for dashboard & /api/ai/*
     if (needsAuth(subPath)) {
       if (!checkBasicAuth(request, env)) return unauthorized();
     }
 
-    const upstreamBase = isApi ? env.API_ORIGIN : env.PAGES_ORIGIN;
+    const upstreamBase = isApi || isHealth ? env.API_ORIGIN : env.PAGES_ORIGIN;
     const target = new URL(upstreamBase);
     target.pathname = subPath;
     target.search = url.search;
 
-    const proxiedReq = buildProxyRequest(request, target.toString());
-
-    // Optional: prevent caching on API
-    if (isApi) {
-      proxiedReq.headers.set('Cache-Control', 'no-store');
-    }
+    const proxiedReq = buildProxyRequest(
+      request,
+      target.toString(),
+      isApi || isHealth ? { 'Cache-Control': 'no-store' } : {}
+    );
 
     return fetch(proxiedReq);
   },
