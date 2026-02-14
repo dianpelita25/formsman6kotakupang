@@ -1,3 +1,4 @@
+import { formFields } from '../form/schema.js';
 import { validateSubmission } from './validation.js';
 import {
   ensureSubmissionTable,
@@ -108,10 +109,20 @@ function escapeCsvValue(value) {
   return stringValue;
 }
 
+function buildQuestionLabelMap() {
+  return formFields
+    .filter((field) => field.name && field.name.startsWith('q') && field.label)
+    .reduce((map, field) => {
+      map[field.name] = field.label;
+      return map;
+    }, {});
+}
+
 export async function getAnalyticsCsv() {
   await ensureTableOnce();
 
   const rows = await getAllResponsesForCsv();
+  const questionLabels = buildQuestionLabelMap();
   const headers = [
     'id',
     'created_at',
@@ -132,7 +143,14 @@ export async function getAnalyticsCsv() {
     'q12',
   ];
 
-  const lines = [headers.join(',')];
+  const headerLabels = headers.map((key) => {
+    const label = questionLabels[key];
+    if (!label) return key;
+    const suffix = key.slice(1);
+    return `Q${suffix} - ${label}`;
+  });
+
+  const lines = [headerLabels.map((value) => escapeCsvValue(value)).join(',')];
 
   for (const row of rows) {
     const line = headers.map((header) => escapeCsvValue(row[header])).join(',');

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getFormSchema } from '../modules/form/controller.js';
-import { analyzeAiController } from '../modules/ai/controller.js';
+import { analyzeAiController, getLatestAiController } from '../modules/ai/controller.js';
 import {
   exportAnalyticsCsvController,
   getAnalyticsDistributionController,
@@ -18,5 +18,6 @@ router.get('/api/analytics/distribution', getAnalyticsDistributionController);
 router.get('/api/analytics/trend', getAnalyticsTrendController);
 router.get('/api/analytics/export.csv', exportAnalyticsCsvController);
 router.post('/api/ai/analyze', analyzeAiController);
+router.get('/api/ai/latest', getLatestAiController);
 
 export default router;

@@ -1,5 +1,18 @@
+import {
+  ensureAiAnalysisTable,
+  getLatestAiAnalysis,
+  insertAiAnalysis,
+} from './repository.js';
 import { getResponsesForAi } from '../submission/repository.js';
 import { getAnalyticsDistribution, getAnalyticsSummary } from '../submission/service.js';
+
+let aiTableEnsured = false;
+
+async function ensureAiTableOnce() {
+  if (aiTableEnsured) return;
+  await ensureAiAnalysisTable();
+  aiTableEnsured = true;
+}
 
 function requireEnv(key) {
   const value = process.env[key];
@@ -71,12 +84,33 @@ export async function analyzeAi() {
     json?.candidates?.[0]?.content?.parts?.map((part) => part.text).join('') ??
     'Tidak ada hasil analisis.';
 
-  return {
+  const result = {
     analysis,
     meta: {
       totalResponses: Number(summary?.totalResponses ?? 0),
       summary,
       distribution,
     },
+  };
+
+  await ensureAiTableOnce();
+  const saved = await insertAiAnalysis(result);
+
+  return {
+    ...result,
+    createdAt: saved?.created_at ?? null,
+  };
+}
+
+export async function getLatestAi() {
+  await ensureAiTableOnce();
+  const row = await getLatestAiAnalysis();
+
+  if (!row) return null;
+
+  return {
+    analysis: row.analysis,
+    meta: row.meta,
+    createdAt: row.created_at,
   };
 }

@@ -10,8 +10,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./dashboard.css" />
+    <link rel="stylesheet" href="./dashboard.css?v=20260214" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   </head>
   <body>
     <main class="dashboard-page">
@@ -72,6 +73,7 @@
               <p class="adoption-note">Gabungan Q7, Q8, Q9, Q11</p>
             </div>
           </div>
+          <canvas id="adoptionRadar" height="180"></canvas>
           <div class="adoption-breakdown">
             <div class="adoption-row">
               <span>Q7 Potensi HOTS</span>
@@ -106,6 +108,7 @@
             </div>
             <div class="ai-actions">
               <button id="ai-run" class="btn">Analisa</button>
+              <button id="ai-download-pdf" class="btn ghost" type="button" disabled>PDF Analisa</button>
             </div>
           </div>
           <div id="ai-output" class="ai-output">Belum ada analisa.</div>
@@ -116,6 +119,6 @@
       <p id="status" class="status" aria-live="polite"></p>
     </main>
 
-    <script type="module" src="./dashboard.js?v=20260212"></script>
+    <script type="module" src="./dashboard.js?v=20260214"></script>
   </body>
 </html>
