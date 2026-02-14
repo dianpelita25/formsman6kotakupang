@@ -47,6 +47,28 @@ DEV_LOCAL_AI_BYPASS=false
 
 Production harus tetap `false`.
 
+## 1.2 Production Environment (Render + Worker)
+
+Gunakan secret hanya di platform deploy, jangan simpan key asli di repo.
+
+- `Render` (backend):
+  - `DATABASE_URL`
+  - `GEMINI_API_KEY`
+  - `GEMINI_MODEL=gemini-2.5-flash`
+  - `AI_ANALYZE_KEY`
+  - `DEV_LOCAL_AI_BYPASS=false`
+- `Cloudflare Worker` (router/admin gate):
+  - `PAGES_ORIGIN` (opsional jika frontend dari Pages)
+  - `API_ORIGIN` (URL backend Render)
+  - `ADMIN_USER`
+  - `ADMIN_PASS`
+
+Aturan keamanan produksi:
+
+- Jangan commit `.env`; hanya commit `.env.example`.
+- Jangan taruh `GEMINI_API_KEY` di frontend/browser.
+- Jika key pernah terekspos, segera rotate lalu update di Render/Worker.
+
 ## 2) Jalankan aplikasi
 
 ```bash
