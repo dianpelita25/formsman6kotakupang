@@ -10,6 +10,12 @@ const aiRunBtn = document.getElementById('ai-run');
 const aiOutput = document.getElementById('ai-output');
 const aiStatus = document.getElementById('ai-status');
 const aiDownloadPdfBtn = document.getElementById('ai-download-pdf');
+const aiSubtitle = document.getElementById('ai-subtitle');
+const aiGroupInternalBtn = document.getElementById('ai-group-internal');
+const aiGroupExternalBtn = document.getElementById('ai-group-external');
+const aiGroupLiveBtn = document.getElementById('ai-group-live');
+const aiExternalLabel = document.getElementById('ai-external-label');
+const aiExternalAudienceSelect = document.getElementById('ai-external-audience');
 
 const adoptionScore = document.getElementById('adoption-score');
 const adoptionLabel = document.getElementById('adoption-label');
@@ -25,11 +31,21 @@ const adoptionBarQ9 = document.getElementById('adoption-bar-q9');
 const adoptionBarQ11 = document.getElementById('adoption-bar-q11');
 
 let adoptionRadarChart;
+let activeAnalysisGroup = 'internal';
+let activeExternalAudience = 'pemerintah';
 let latestAnalysisState = {
+  mode: 'internal',
   analysis: '',
   meta: null,
   createdAt: null,
 };
+
+const AI_MODES = Object.freeze({
+  internal: 'internal',
+  external_pemerintah: 'external_pemerintah',
+  external_mitra: 'external_mitra',
+  live_guru: 'live_guru',
+});
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -65,13 +81,64 @@ function hasAnalysisText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function getActiveAnalysisMode() {
+  if (activeAnalysisGroup === 'external') {
+    return activeExternalAudience === 'mitra'
+      ? AI_MODES.external_mitra
+      : AI_MODES.external_pemerintah;
+  }
+  if (activeAnalysisGroup === 'live') return AI_MODES.live_guru;
+  return AI_MODES.internal;
+}
+
+function getModeLabel(mode = getActiveAnalysisMode()) {
+  if (mode === AI_MODES.external_pemerintah) return 'External - Pemerintah';
+  if (mode === AI_MODES.external_mitra) return 'External - Mitra';
+  if (mode === AI_MODES.live_guru) return 'Live Guru';
+  return 'Internal';
+}
+
+function getModeSubtitle(mode = getActiveAnalysisMode()) {
+  if (mode === AI_MODES.external_pemerintah) {
+    return 'Laporan formal untuk Dinas/Pemda berbasis data terbaru.';
+  }
+  if (mode === AI_MODES.external_mitra) {
+    return 'Memo business impact untuk mitra/sponsor/investor.';
+  }
+  if (mode === AI_MODES.live_guru) {
+    return 'Ringkasan live untuk diproyeksikan di akhir kegiatan.';
+  }
+  return 'Ringkasan otomatis berbasis data untuk kebutuhan internal tim.';
+}
+
+function getModeCacheKey(mode = getActiveAnalysisMode()) {
+  return `ai-latest-analysis-${mode}`;
+}
+
+function refreshModeControls() {
+  const mode = getActiveAnalysisMode();
+  aiGroupInternalBtn?.classList.toggle('active', activeAnalysisGroup === 'internal');
+  aiGroupExternalBtn?.classList.toggle('active', activeAnalysisGroup === 'external');
+  aiGroupLiveBtn?.classList.toggle('active', activeAnalysisGroup === 'live');
+
+  if (aiExternalLabel) {
+    aiExternalLabel.classList.toggle('is-hidden', activeAnalysisGroup !== 'external');
+  }
+
+  if (aiSubtitle) {
+    aiSubtitle.textContent = getModeSubtitle(mode);
+  }
+}
+
 function refreshAiPdfButtonState() {
   if (!aiDownloadPdfBtn) return;
   aiDownloadPdfBtn.disabled = !hasAnalysisText(latestAnalysisState.analysis);
 }
 
 function applyLatestAnalysisState(nextState) {
+  const activeMode = getActiveAnalysisMode();
   latestAnalysisState = {
+    mode: nextState?.mode || activeMode,
     analysis: nextState?.analysis || '',
     meta: nextState?.meta || null,
     createdAt: nextState?.createdAt || null,
@@ -305,9 +372,11 @@ async function runAiAnalysis() {
   if (!aiRunBtn) return;
 
   const previousState = { ...latestAnalysisState };
+  const activeMode = getActiveAnalysisMode();
+  const modeLabel = getModeLabel(activeMode);
   aiRunBtn.disabled = true;
   if (aiDownloadPdfBtn) aiDownloadPdfBtn.disabled = true;
-  setAiStatus('Menjalankan analisa AI...');
+  setAiStatus(`Menjalankan analisa AI (${modeLabel})...`);
   if (aiOutput) aiOutput.textContent = 'Sedang memproses data...';
 
   try {
@@ -316,6 +385,7 @@ async function runAiAnalysis() {
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ mode: activeMode }),
     });
 
     const payload = await response.json().catch(() => ({}));
@@ -326,8 +396,8 @@ async function runAiAnalysis() {
 
     applyLatestAnalysisState(payload);
     const analyzedAt = formatDateTime(payload?.createdAt);
-    setAiStatus(`Analisa selesai. Tersimpan pada ${analyzedAt}.`);
-    localStorage.setItem('ai-latest-analysis', payload.analysis || '');
+    setAiStatus(`Analisa ${getModeLabel(payload?.mode || activeMode)} selesai. Tersimpan pada ${analyzedAt}.`);
+    localStorage.setItem(getModeCacheKey(payload?.mode || activeMode), payload.analysis || '');
   } catch (error) {
     applyLatestAnalysisState(previousState);
     setAiStatus(error.message || 'Analisa gagal.', true);
@@ -341,14 +411,49 @@ if (aiRunBtn) {
   aiRunBtn.addEventListener('click', runAiAnalysis);
 }
 
+function switchAnalysisGroup(nextGroup) {
+  activeAnalysisGroup = nextGroup;
+  refreshModeControls();
+  loadLatestAi();
+}
+
+if (aiGroupInternalBtn) {
+  aiGroupInternalBtn.addEventListener('click', () => switchAnalysisGroup('internal'));
+}
+
+if (aiGroupExternalBtn) {
+  aiGroupExternalBtn.addEventListener('click', () => switchAnalysisGroup('external'));
+}
+
+if (aiGroupLiveBtn) {
+  aiGroupLiveBtn.addEventListener('click', () => switchAnalysisGroup('live'));
+}
+
+if (aiExternalAudienceSelect) {
+  aiExternalAudienceSelect.addEventListener('change', (event) => {
+    activeExternalAudience = event.target.value === 'mitra' ? 'mitra' : 'pemerintah';
+    refreshModeControls();
+    loadLatestAi();
+  });
+}
+
 async function loadLatestAi() {
   if (!aiOutput) return;
+  const activeMode = getActiveAnalysisMode();
+  const modeLabel = getModeLabel(activeMode);
 
   try {
-    const response = await fetch('./api/ai/latest');
+    const response = await fetch(`./api/ai/latest?mode=${encodeURIComponent(activeMode)}`);
     if (response.status === 401) {
-      applyLatestAnalysisState({ analysis: '', meta: null, createdAt: null });
-      setAiStatus('Analisa terakhir tidak bisa dimuat (Unauthorized).', true);
+      applyLatestAnalysisState({ mode: activeMode, analysis: '', meta: null, createdAt: null });
+      setAiStatus(`Analisa ${modeLabel} tidak bisa dimuat (Unauthorized).`, true);
+      return;
+    }
+
+    if (response.status === 400) {
+      const payload = await response.json().catch(() => ({}));
+      applyLatestAnalysisState({ mode: activeMode, analysis: '', meta: null, createdAt: null });
+      setAiStatus(payload?.message || 'Mode analisa tidak valid.', true);
       return;
     }
 
@@ -356,10 +461,12 @@ async function loadLatestAi() {
       const payload = await response.json().catch(() => ({}));
       applyLatestAnalysisState(payload);
       if (payload?.analysis) {
-        localStorage.setItem('ai-latest-analysis', payload.analysis);
-        setAiStatus(`Menampilkan analisa terakhir (${formatDateTime(payload?.createdAt)}).`);
+        localStorage.setItem(getModeCacheKey(payload?.mode || activeMode), payload.analysis);
+        setAiStatus(
+          `Menampilkan analisa ${getModeLabel(payload?.mode || activeMode)} terakhir (${formatDateTime(payload?.createdAt)}).`
+        );
       } else {
-        setAiStatus('Belum ada analisa tersimpan.');
+        setAiStatus(`Belum ada analisa ${modeLabel} tersimpan.`);
       }
       return;
     }
@@ -367,16 +474,23 @@ async function loadLatestAi() {
     // ignore and fallback to local storage
   }
 
-  const cached = localStorage.getItem('ai-latest-analysis');
+  let cached = localStorage.getItem(getModeCacheKey(activeMode));
+  if (!cached && activeMode === AI_MODES.internal) {
+    cached = localStorage.getItem('ai-latest-analysis');
+  }
   if (cached) {
-    applyLatestAnalysisState({ analysis: cached, meta: null, createdAt: null });
-    setAiStatus('Menampilkan analisa cache lokal (offline).');
+    applyLatestAnalysisState({ mode: activeMode, analysis: cached, meta: null, createdAt: null });
+    setAiStatus(`Menampilkan cache lokal untuk mode ${modeLabel}.`);
     return;
   }
 
-  applyLatestAnalysisState({ analysis: '', meta: null, createdAt: null });
+  applyLatestAnalysisState({ mode: activeMode, analysis: '', meta: null, createdAt: null });
 }
 
+if (aiExternalAudienceSelect) {
+  aiExternalAudienceSelect.value = activeExternalAudience;
+}
+refreshModeControls();
 loadLatestAi();
 
 function buildAiMetadataLines(meta) {
@@ -394,18 +508,532 @@ function buildAiMetadataLines(meta) {
   ];
 }
 
+function sanitizeMarkdownInline(value) {
+  return String(value ?? '')
+    .replaceAll('**', '')
+    .replaceAll('__', '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+    .trim();
+}
+
+function parseTableRow(row) {
+  let cleaned = String(row ?? '').trim();
+  if (cleaned.startsWith('|')) cleaned = cleaned.slice(1);
+  if (cleaned.endsWith('|')) cleaned = cleaned.slice(0, -1);
+  return cleaned.split('|').map((cell) => sanitizeMarkdownInline(cell));
+}
+
+function isMarkdownTableSeparator(row) {
+  const compact = String(row ?? '').replace(/\s/g, '');
+  return /^[|:-]+$/.test(compact) && compact.includes('-');
+}
+
+function isBulletListLine(line) {
+  return /^(?:[-*]|\u2022)\s+/.test(String(line ?? '').trim());
+}
+
+function extractMarkdownTables(lines, startIndex) {
+  const headerLine = lines[startIndex]?.trim() || '';
+  const separatorLine = lines[startIndex + 1]?.trim() || '';
+  if (!headerLine.includes('|') || !isMarkdownTableSeparator(separatorLine)) return null;
+
+  const header = parseTableRow(headerLine);
+  const rows = [];
+  let i = startIndex + 2;
+
+  while (i < lines.length) {
+    const tableLine = lines[i].trim();
+    if (!tableLine || !tableLine.includes('|')) break;
+    if (isMarkdownTableSeparator(tableLine)) {
+      i += 1;
+      continue;
+    }
+    rows.push(parseTableRow(tableLine));
+    i += 1;
+  }
+
+  return {
+    block: { type: 'table', header, rows },
+    nextIndex: i - 1,
+  };
+}
+
+function isNumericLike(value) {
+  const compact = String(value ?? '').replace(/\s/g, '').replace(',', '.');
+  return /^-?\d+(\.\d+)?%?$/.test(compact);
+}
+
+function detectHeadingBlock(line, nextLine) {
+  const markdownHeading = line.match(/^(#{1,6})\s+(.+)$/);
+  if (markdownHeading) {
+    const hashCount = markdownHeading[1].length;
+    const level = hashCount === 1 ? 1 : hashCount === 2 ? 2 : 3;
+    return { level, text: sanitizeMarkdownInline(markdownHeading[2]) };
+  }
+
+  if (/^slide\s+\d+/i.test(line)) {
+    return { level: 1, text: sanitizeMarkdownInline(line) };
+  }
+
+  if (/^\d+\.\d+\s+/.test(line)) {
+    return { level: 3, text: sanitizeMarkdownInline(line) };
+  }
+
+  if (/^[A-Z]\.\s+/.test(line)) {
+    return { level: 2, text: sanitizeMarkdownInline(line) };
+  }
+
+  if (/^\d+[.)]\s+/.test(line) && !/^\d+[.)]\s+/.test(nextLine)) {
+    return { level: 1, text: sanitizeMarkdownInline(line) };
+  }
+
+  if (line.endsWith(':') && line.length <= 120) {
+    return { level: 3, text: sanitizeMarkdownInline(line.replace(/:$/, '')) };
+  }
+
+  return null;
+}
+
+function parseAnalysisToBlocks(text) {
+  const lines = String(text ?? '')
+    .replace(/\r\n/g, '\n')
+    .split('\n');
+  const blocks = [];
+  let paragraphBuffer = [];
+
+  const flushParagraph = () => {
+    if (!paragraphBuffer.length) return;
+    const paragraph = sanitizeMarkdownInline(paragraphBuffer.join(' '));
+    if (paragraph) blocks.push({ type: 'paragraph', text: paragraph });
+    paragraphBuffer = [];
+  };
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = (lines[i] || '').trim();
+
+    if (!line) {
+      flushParagraph();
+      continue;
+    }
+
+    const nextLine = (lines[i + 1] || '').trim();
+    const tableExtraction = extractMarkdownTables(lines, i);
+    if (tableExtraction) {
+      flushParagraph();
+      blocks.push(tableExtraction.block);
+      i = tableExtraction.nextIndex;
+      continue;
+    }
+
+    if (/^[-*_]{3,}$/.test(line)) {
+      flushParagraph();
+      continue;
+    }
+
+    const headingBlock = detectHeadingBlock(line, nextLine);
+    if (headingBlock) {
+      flushParagraph();
+      blocks.push({ type: 'heading', level: headingBlock.level, text: headingBlock.text });
+      continue;
+    }
+
+    if (isBulletListLine(line)) {
+      flushParagraph();
+      const items = [];
+      let j = i;
+      while (j < lines.length) {
+        const listLine = (lines[j] || '').trim();
+        if (!isBulletListLine(listLine)) break;
+        items.push(sanitizeMarkdownInline(listLine.replace(/^(?:[-*]|\u2022)\s+/, '')));
+        j += 1;
+      }
+      blocks.push({ type: 'bullet-list', items });
+      i = j - 1;
+      continue;
+    }
+
+    if (/^\d+[.\)]\s+/.test(line)) {
+      flushParagraph();
+      const items = [];
+      let j = i;
+      while (j < lines.length) {
+        const listLine = (lines[j] || '').trim();
+        if (!/^\d+[.\)]\s+/.test(listLine)) break;
+        items.push(sanitizeMarkdownInline(listLine.replace(/^\d+[.\)]\s+/, '')));
+        j += 1;
+      }
+      blocks.push({ type: 'numbered-list', items });
+      i = j - 1;
+      continue;
+    }
+
+    paragraphBuffer.push(line);
+  }
+
+  flushParagraph();
+  return blocks;
+}
+
+function buildPdfContext() {
+  const activeMode = latestAnalysisState.mode || getActiveAnalysisMode();
+  const modeLabel = getModeLabel(activeMode);
+  const analysisText = (latestAnalysisState.analysis || '').trim();
+
+  return {
+    mode: activeMode,
+    modeLabel,
+    title: `Laporan Analisa AI - ${modeLabel}`,
+    subtitle: 'Program AI Teaching Assistant | Dashboard Internal',
+    analyzedAt: formatDateTime(latestAnalysisState.createdAt),
+    metadataLines: buildAiMetadataLines(latestAnalysisState.meta),
+    analysisText,
+    blocks: parseAnalysisToBlocks(analysisText),
+    filename: `analisa-${activeMode}-${new Date().toISOString().slice(0, 10)}.pdf`,
+  };
+}
+
+const PDF_LAYOUT = Object.freeze({
+  marginLeft: 20,
+  marginRight: 20,
+  marginTop: 20,
+  marginBottom: 20,
+  footerTopOffset: 10,
+  footerTextOffset: 5.2,
+  listIndent: 7,
+  listMarkerGap: 2,
+  font: Object.freeze({
+    title: 17,
+    section: 12.5,
+    headingLevel2: 11.5,
+    headingLevel3: 11,
+    body: 10.5,
+    footer: 8.5,
+    table: 9.2,
+  }),
+  lineHeight: Object.freeze({
+    body: 5.6,
+    metadata: 5.4,
+    heading: 6,
+    list: 5.4,
+  }),
+  gap: Object.freeze({
+    afterParagraph: 2,
+    afterList: 2,
+    afterTable: 5,
+    afterTableImmediate: 1,
+    beforeSectionTitle: 6,
+    afterSectionTitle: 2,
+    beforeSubheading: 3,
+    afterSubheading: 1.5,
+    tableToHeadingExtra: 1,
+  }),
+  table: Object.freeze({
+    cellPadding: 1.9,
+  }),
+});
+
+function renderFooterAllPages(doc) {
+  const { marginLeft, marginRight, footerTopOffset, footerTextOffset, font } = PDF_LAYOUT;
+  const pageCount = doc.getNumberOfPages();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const footerTopY = pageHeight - footerTopOffset;
+  const footerTextY = pageHeight - footerTextOffset;
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(220, 227, 238);
+    doc.line(marginLeft, footerTopY, pageWidth - marginRight, footerTopY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(font.footer);
+    doc.setTextColor(100, 116, 139);
+    doc.text('PT. AITI GLOBAL NEXUS', marginLeft, footerTextY);
+    doc.text(`Halaman ${page}/${pageCount}`, pageWidth - marginRight, footerTextY, {
+      align: 'right',
+    });
+  }
+}
+
+function renderPdfDocument(doc, context) {
+  const { marginLeft, marginRight, marginTop, marginBottom, font, lineHeight, gap, listIndent, listMarkerGap } =
+    PDF_LAYOUT;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - marginLeft - marginRight;
+  let y = marginTop;
+
+  const ensureSpace = (required = lineHeight.body) => {
+    if (y + required <= pageHeight - marginBottom) return;
+    doc.addPage();
+    y = marginTop;
+  };
+
+  const drawWrappedText = (text, options = {}) => {
+    const {
+      font = 'helvetica',
+      style = 'normal',
+      size = PDF_LAYOUT.font.body,
+      color = [15, 23, 42],
+      lineHeight = PDF_LAYOUT.lineHeight.body,
+      x = marginLeft,
+      maxWidth = contentWidth,
+    } = options;
+
+    const safeText = sanitizeMarkdownInline(text);
+    if (!safeText) return;
+    doc.setFont(font, style);
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    const wrapped = doc.splitTextToSize(safeText, maxWidth);
+    wrapped.forEach((line) => {
+      ensureSpace(lineHeight);
+      doc.text(line, x, y);
+      y += lineHeight;
+    });
+  };
+
+  const drawSectionTitle = (text, sectionNumber) => {
+    ensureSpace(gap.beforeSectionTitle + lineHeight.heading + gap.afterSectionTitle);
+    y += gap.beforeSectionTitle;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(font.section);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${sectionNumber}. ${text}`, marginLeft, y);
+    y += lineHeight.heading + gap.afterSectionTitle;
+  };
+
+  const drawHangingList = (items, ordered = false) => {
+    if (!items.length) return;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(font.body);
+    doc.setTextColor(15, 23, 42);
+
+    const baseMarkerX = marginLeft;
+    const maxLabelWidth = ordered
+      ? Math.max(...items.map((_, index) => doc.getTextWidth(`${index + 1}.`)))
+      : doc.getTextWidth('-');
+    const markerTextX = baseMarkerX;
+    const contentX = marginLeft + Math.max(listIndent, maxLabelWidth + listMarkerGap);
+    const availableWidth = pageWidth - marginRight - contentX;
+
+    items.forEach((item, index) => {
+      const marker = ordered ? `${index + 1}.` : '-';
+      const safeItem = sanitizeMarkdownInline(item);
+      if (!safeItem) return;
+      const wrapped = doc.splitTextToSize(safeItem, availableWidth);
+      wrapped.forEach((line, lineIndex) => {
+        ensureSpace(lineHeight.list);
+        if (lineIndex === 0) {
+          doc.text(marker, markerTextX, y);
+        }
+        doc.text(line, contentX, y);
+        y += lineHeight.list;
+      });
+    });
+  };
+
+  const getHeadingStyle = (level) => {
+    if (level === 1) {
+      return { size: font.section, lineHeight: lineHeight.heading };
+    }
+    if (level === 2) {
+      return { size: font.headingLevel2, lineHeight: lineHeight.heading };
+    }
+    return { size: font.headingLevel3, lineHeight: lineHeight.heading };
+  };
+
+  const applyBlockGap = (previousBlock, nextType) => {
+    if (!previousBlock) return;
+
+    if (previousBlock.type === 'table') {
+      y += gap.afterTable;
+      if (nextType === 'heading') y += gap.tableToHeadingExtra;
+      return;
+    }
+
+    if (previousBlock.type === 'paragraph') {
+      y += gap.afterParagraph;
+      if (nextType === 'heading') y += gap.beforeSubheading;
+      return;
+    }
+
+    if (previousBlock.type === 'bullet-list' || previousBlock.type === 'numbered-list') {
+      y += gap.afterList;
+      if (nextType === 'heading') y += gap.beforeSubheading;
+      return;
+    }
+
+    if (previousBlock.type === 'heading') {
+      if (nextType === 'heading') {
+        y += gap.beforeSubheading;
+        return;
+      }
+      y += previousBlock.level === 1 ? gap.afterSectionTitle : gap.afterSubheading;
+    }
+  };
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(font.title);
+  doc.setTextColor(15, 23, 42);
+  doc.text(context.title, marginLeft, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(font.body);
+  doc.setTextColor(71, 85, 105);
+  doc.text(context.subtitle, marginLeft, y);
+  y += 6;
+
+  doc.setDrawColor(210, 220, 234);
+  doc.line(marginLeft, y, pageWidth - marginRight, y);
+  y += 6;
+
+  drawSectionTitle('Informasi Dokumen', 1);
+  drawWrappedText(`Mode Analisa: ${context.modeLabel}`, {
+    style: 'bold',
+    size: font.body,
+    lineHeight: lineHeight.metadata,
+  });
+  drawWrappedText(`Tanggal Analisa: ${context.analyzedAt}`, {
+    size: font.body,
+    lineHeight: lineHeight.metadata,
+  });
+  context.metadataLines.forEach((line) => {
+    drawWrappedText(`- ${line}`, {
+      size: font.body,
+      lineHeight: lineHeight.metadata,
+    });
+  });
+
+  drawSectionTitle('Hasil Analisa', 2);
+
+  if (!context.blocks.length) {
+    drawWrappedText('Data analisa belum tersedia.', { size: font.body, lineHeight: lineHeight.body });
+    return;
+  }
+
+  let previousBlock = null;
+  context.blocks.forEach((block) => {
+    applyBlockGap(previousBlock, block.type);
+
+    if (block.type === 'heading') {
+      const headingLevel = Number(block.level) || 3;
+      const headingStyle = getHeadingStyle(headingLevel);
+      drawWrappedText(block.text, {
+        style: 'bold',
+        size: headingStyle.size,
+        color: [30, 41, 59],
+        lineHeight: headingStyle.lineHeight,
+      });
+      previousBlock = { type: 'heading', level: headingLevel };
+      return;
+    }
+
+    if (block.type === 'paragraph') {
+      drawWrappedText(block.text, {
+        size: font.body,
+        lineHeight: lineHeight.body,
+      });
+      previousBlock = { type: 'paragraph' };
+      return;
+    }
+
+    if (block.type === 'bullet-list') {
+      drawHangingList(block.items, false);
+      previousBlock = { type: 'bullet-list' };
+      return;
+    }
+
+    if (block.type === 'numbered-list') {
+      drawHangingList(block.items, true);
+      previousBlock = { type: 'numbered-list' };
+      return;
+    }
+
+    if (block.type === 'table') {
+      const header = (block.header || []).map((cell) => sanitizeMarkdownInline(cell));
+      const rows = (block.rows || [])
+        .map((row) => row.map((cell) => sanitizeMarkdownInline(cell)))
+        .filter((row) => row.some((cell) => cell));
+
+      if (!header.length || !rows.length || typeof doc.autoTable !== 'function') {
+        if (rows.length) {
+          rows.forEach((row) => {
+            drawWrappedText(row.join(' | '), {
+              size: font.body,
+              lineHeight: lineHeight.body,
+            });
+          });
+        }
+        previousBlock = { type: 'table' };
+        return;
+      }
+
+      const columnCount = header.length;
+      const normalizedRows = rows.map((row) => {
+        const cloned = [...row];
+        while (cloned.length < columnCount) cloned.push('');
+        return cloned.slice(0, columnCount);
+      });
+
+      const columnStyles = {};
+      for (let col = 0; col < columnCount; col += 1) {
+        const allNumeric = normalizedRows.every((row) => {
+          const value = row[col];
+          return !value || isNumericLike(value);
+        });
+        if (allNumeric) {
+          columnStyles[col] = { halign: 'right' };
+        }
+      }
+
+      ensureSpace(18);
+      doc.autoTable({
+        startY: y,
+        margin: { left: marginLeft, right: marginRight },
+        head: [header],
+        body: normalizedRows,
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontSize: font.table,
+          cellPadding: PDF_LAYOUT.table.cellPadding,
+          lineColor: [214, 224, 238],
+          lineWidth: 0.2,
+          textColor: [15, 23, 42],
+          overflow: 'linebreak',
+        },
+        headStyles: {
+          fillColor: [237, 242, 248],
+          textColor: [30, 41, 59],
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [250, 252, 255],
+        },
+        columnStyles,
+      });
+
+      y = doc.lastAutoTable.finalY + gap.afterTableImmediate;
+      previousBlock = { type: 'table' };
+    }
+  });
+}
+
 async function downloadAiPdf() {
   if (!aiDownloadPdfBtn) return;
 
-  const analysisText = latestAnalysisState.analysis?.trim();
-  if (!analysisText) {
+  const context = buildPdfContext();
+  if (!context.analysisText) {
     setAiStatus('Belum ada analisa untuk diunduh.', true);
     refreshAiPdfButtonState();
     return;
   }
 
   const { jsPDF } = window.jspdf || {};
-  if (!jsPDF) {
+  if (!jsPDF || typeof jsPDF !== 'function') {
     setAiStatus('Library PDF belum siap.', true);
     return;
   }
@@ -414,55 +1042,9 @@ async function downloadAiPdf() {
 
   try {
     const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const margin = 14;
-    const lineHeight = 7;
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
-
-    const ensureSpace = (neededHeight = lineHeight) => {
-      if (y + neededHeight <= pageHeight - margin) return;
-      pdf.addPage();
-      y = margin;
-    };
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(15);
-    pdf.text('Laporan Analisa AI', margin, y);
-    y += lineHeight + 1;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    const analyzedAt = formatDateTime(latestAnalysisState.createdAt);
-    pdf.text(`Waktu Analisa: ${analyzedAt}`, margin, y);
-    y += lineHeight + 1;
-
-    const metaLines = buildAiMetadataLines(latestAnalysisState.meta);
-    metaLines.forEach((line) => {
-      ensureSpace(lineHeight);
-      pdf.text(line, margin, y);
-      y += lineHeight;
-    });
-
-    y += 2;
-    ensureSpace(lineHeight);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(12);
-    pdf.text('Hasil Analisa', margin, y);
-    y += lineHeight;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
-    const wrapped = pdf.splitTextToSize(analysisText, contentWidth);
-    wrapped.forEach((line) => {
-      ensureSpace(lineHeight);
-      pdf.text(line, margin, y);
-      y += lineHeight;
-    });
-
-    const filename = `analisa-ai-${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(filename);
+    renderPdfDocument(pdf, context);
+    renderFooterAllPages(pdf);
+    pdf.save(context.filename);
     setAiStatus('PDF analisa berhasil diunduh.');
   } catch (error) {
     setAiStatus(error?.message || 'Gagal membuat PDF analisa.', true);

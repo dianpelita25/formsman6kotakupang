@@ -25,7 +25,27 @@ Isi `.env`:
 ```env
 PORT=3000
 DATABASE_URL=postgres://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-2.5-flash
+AI_ANALYZE_KEY=your-ai-shared-secret
+DEV_LOCAL_AI_BYPASS=false
 ```
+
+## 1.1 Testing AI di localhost (dev only)
+
+Jika ingin klik tombol Analisa langsung dari `localhost` tanpa Worker inject header:
+
+```env
+DEV_LOCAL_AI_BYPASS=true
+```
+
+Setelah selesai testing lokal, kembalikan lagi ke:
+
+```env
+DEV_LOCAL_AI_BYPASS=false
+```
+
+Production harus tetap `false`.
 
 ## 2) Jalankan aplikasi
 

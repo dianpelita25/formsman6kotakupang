@@ -10,9 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./dashboard.css?v=20260214" />
+    <link rel="stylesheet" href="./dashboard.css?v=20260215" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   </head>
   <body>
     <main class="dashboard-page">
@@ -104,7 +105,27 @@
           <div class="ai-header">
             <div>
               <h3>Analisa AI</h3>
-              <p class="ai-sub">Ringkasan otomatis berbasis data untuk admin.</p>
+              <p class="ai-sub" id="ai-subtitle">Ringkasan otomatis berbasis data untuk admin.</p>
+              <div class="ai-mode-controls">
+                <div class="ai-segmented" role="tablist" aria-label="Mode Analisa">
+                  <button id="ai-group-internal" type="button" class="ai-segment active" data-group="internal">
+                    Internal
+                  </button>
+                  <button id="ai-group-external" type="button" class="ai-segment" data-group="external">
+                    External
+                  </button>
+                  <button id="ai-group-live" type="button" class="ai-segment" data-group="live">
+                    Live Guru
+                  </button>
+                </div>
+                <label id="ai-external-label" class="ai-external-select is-hidden" for="ai-external-audience">
+                  Audiens:
+                  <select id="ai-external-audience">
+                    <option value="pemerintah">Pemerintah</option>
+                    <option value="mitra">Mitra</option>
+                  </select>
+                </label>
+              </div>
             </div>
             <div class="ai-actions">
               <button id="ai-run" class="btn">Analisa</button>
@@ -119,6 +140,6 @@
       <p id="status" class="status" aria-live="polite"></p>
     </main>
 
-    <script type="module" src="./dashboard.js?v=20260214"></script>
+    <script type="module" src="./dashboard.js?v=20260215"></script>
   </body>
 </html>
