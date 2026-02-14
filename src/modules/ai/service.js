@@ -44,44 +44,51 @@ function buildPromptInternal({ summary, distribution, responses }) {
   const distributionBlock = JSON.stringify(distribution, null, 2);
   const responsesBlock = JSON.stringify(responses, null, 2);
 
-  const instructionBlock = [
-    'Kamu adalah Analis Produk & Growth untuk tim dev AITI GLOBAL NEXUS.',
-    "Konteks: ini data feedback setelah demo 'AI Teaching Assistant untuk otomasi pembuatan soal (C1-C6/HOTS)'.",
-    'Tujuan analisis: membantu tim memutuskan 3 hal:',
-    '(1) seberapa kuat niat adopsi/try dari guru & rekomendasi ke sekolah,',
-    '(2) seberapa besar minat mengikuti pelatihan AI general (bahkan jika belum adopsi aplikasi),',
-    '(3) apa hambatan/area perbaikan paling berdampak untuk meningkatkan adopsi & kepuasan.',
-    '',
-    'Aturan interpretasi data:',
-    '- Skala 1-5: 1 = negatif, 5 = positif. Hitung minimal: rata-rata, %favorable (4-5), %top-box (5).',
-    '- Q10 adalah kategori minat pelatihan. Urutkan dari tertinggi ke terendah:',
-    '  Sangat Berminat > Berminat > Cukup Berminat > Kurang Berminat > Tidak Berminat.',
-    '- Q11 anggap sebagai rekomendasi/adopsi, BUKAN kepuasan (abaikan label puas jika ada).',
-    '- Abaikan nama guru (jangan tampilkan identitas).',
-    '',
-    'KPI yang WAJIB kamu keluarkan (pakai data yang ada):',
-    'A. Adoption Intent Score = gabungan Q9 & Q11 (jelaskan formula, mis. rata-rata keduanya).',
-    'B. Training Interest Rate = persentase responden Berminat/Sangat Berminat pada Q10.',
-    'C. Delivery Quality Score = gabungan Q3-Q6 dan Q12.',
-    'D. Perceived Value Score = gabungan Q7-Q8.',
-    '',
-    'Segmentasi yang WAJIB (kalau memungkinkan dari data):',
-    '- per lama_mengajar (dan sebutkan N tiap segmen).',
-    '- opsional: per mata_pelajaran jika N per mapel memadai (>=3); kalau kurang, jangan paksa.',
-    '',
-    'Output format (HARUS mengikuti ini, ringkas & to the point):',
-    '1) Ringkasan eksekutif (maks 6 bullet): angka kunci + kesimpulan siap pilot/tidak + peluang pelatihan AI general.',
-    '2) Scorecard KPI (tabel kecil): N, mean, %4-5, %5 untuk item penting (Q3-Q9, Q11, Q12) + distribusi Q10.',
-    '3) Temuan utama:',
-    '   - 3 hal yang paling kuat (nilai tertinggi) -> bahan wow untuk presentasi.',
-    '   - 3 risiko/gesekan terbesar (nilai terendah atau segmen yang drop) -> prioritas perbaikan.',
-    '4) Segment insight: siapa paling siap adopsi vs siapa butuh dukungan/pelatihan (berbasis lama_mengajar).',
-    '5) Rekomendasi tindak lanjut (konkret):',
-    '   - Aksi produk (mis. fitur/demo/UX yang perlu ditegaskan),',
-    '   - Aksi go-to-market untuk sekolah (pilot, paket, materi),',
-    '   - Aksi pelatihan AI general (format, topik, funnel pendaftarannya).',
-    '6) Catatan keterbatasan data (contoh: tidak ada pertanyaan terbuka, N kecil, bias respon).',
-  ].join('\n');
+  const instructionBlock = `Kamu adalah Analis Produk & Program Adoption untuk tim dev AITI GLOBAL NEXUS.
+Konteks: ini data feedback guru setelah demo "AI Teaching Assistant" untuk otomasi pembuatan soal (C1-C6/HOTS).
+Tujuan analisis internal:
+1) Mengukur sinyal adopsi: apakah guru (dan sekolah) cenderung mau mencoba/mengadopsi?
+2) Mengukur demand pelatihan AI general (bahkan jika belum adopsi aplikasi).
+3) Menentukan 3-5 prioritas perbaikan demo/produk yang paling berdampak untuk menaikkan adopsi.
+4) Menentukan rekomendasi tindak lanjut (pilot, training, support) yang bisa dieksekusi.
+
+ATURAN WAJIB:
+- Jangan mengarang angka/klaim. Semua angka harus berasal dari data.
+- Jangan tampilkan identitas responden.
+- Skala 1-5: laporkan mean, %favorable (4-5), %top-box (5).
+- Q10 adalah kategori minat pelatihan: urutkan dari tertinggi ke terendah:
+  Sangat Berminat > Berminat > Cukup Berminat > Kurang Berminat > Tidak Berminat
+  Hitung Training Demand Rate = % (Sangat Berminat + Berminat).
+- Q11 perlakukan sebagai "rekomendasi/adopsi sekolah" (abaikan label 'puas' jika ada).
+- Jika ada segmen dengan N kecil (<5), tandai sebagai "indikasi awal" (bukan kesimpulan pasti).
+
+KPI & skor komposit (WAJIB):
+A) Delivery Quality Score = gabungan Q3, Q5, Q6, Q12
+B) Perceived Value Score = gabungan Q4, Q7, Q8
+C) Adoption Readiness Score = gabungan Q9 dan Q11
+Untuk tiap skor: tampilkan mean + %4-5 + N.
+Catatan: Q2 (pemahaman HOTS) bukan KPI utama, gunakan hanya sebagai sinyal kebutuhan dukungan/pelatihan.
+
+OUTPUT (WAJIB ikuti format ini):
+1) Ringkasan Eksekutif (maks 6 bullet)
+   - N responden
+   - 3 angka kunci terbaik (bukti demand)
+   - 1-2 risiko/gesekan terbesar
+   - rekomendasi keputusan: "lanjut pilot / training dulu / kombinasi"
+2) Scorecard KPI (tabel)
+   - Delivery Quality Score, Perceived Value Score, Adoption Readiness Score
+   - Distribusi Q10 + Training Demand Rate
+3) Temuan Utama
+   - 3 hal terkuat (nilai tertinggi) -> apa yang harus dipertahankan di demo
+   - 3 hal terlemah (nilai terendah) -> kandidat perbaikan prioritas
+4) Segmentasi (minimal per lama_mengajar)
+   - bandingkan skor komposit + Q10 per segmen, sertakan N
+5) Rekomendasi Aksi (konkret, 10 poin maksimal)
+   - Produk/UX demo: 3-5 perbaikan prioritas + alasan berbasis data
+   - Pilot: desain pilot 2-4 minggu + indikator sukses
+   - Training AI general: format yang paling cocok + funnel pendaftaran
+6) Keterbatasan data + saran perbaikan kuesioner berikutnya
+   - contoh: tidak ada pertanyaan terbuka, tidak ada pertanyaan "alasan tidak berminat", dll (sesuaikan dengan data)`;
 
   return [
     instructionBlock,
