@@ -1028,6 +1028,12 @@ pre {
   min-height: 42px;
 }
 
+.questionnaire-dashboard-page input,
+.questionnaire-dashboard-page select {
+  width: 100%;
+  max-width: 100%;
+}
+
 .questionnaire-dashboard-page .dashboard-inline-status {
   position: sticky;
   top: 72px;
@@ -1164,6 +1170,10 @@ pre {
   gap: 10px;
 }
 
+.questionnaire-dashboard-page .criteria-summary-note {
+  margin: 0 0 10px;
+}
+
 .questionnaire-dashboard-page .criteria-summary-item {
   grid-column: span 4;
   border: 1px solid rgba(106, 164, 255, 0.3);
@@ -1207,12 +1217,35 @@ pre {
   background: rgba(16, 31, 63, 0.86);
 }
 
+.questionnaire-dashboard-page .criteria-question-chip.is-active {
+  border-color: rgba(48, 228, 255, 0.85);
+  background: rgba(26, 62, 112, 0.86);
+  color: #ffffff;
+}
+
 .questionnaire-dashboard-page .question-detail-panel {
   margin-top: 12px;
   border: 1px solid rgba(48, 228, 255, 0.35);
   border-radius: 10px;
   padding: 10px;
   background: rgba(8, 30, 48, 0.5);
+}
+
+.questionnaire-dashboard-page .question-detail-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.questionnaire-dashboard-page .question-detail-panel__head p {
+  margin: 0;
+}
+
+.questionnaire-dashboard-page #question-detail-close-btn {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
 .questionnaire-dashboard-page .question-detail-panel h4 {
@@ -1226,6 +1259,11 @@ pre {
 
 .questionnaire-dashboard-page .dashboard-responses-wrap {
   margin-top: 6px;
+}
+
+.questionnaire-dashboard-page .dashboard-responses-wrap .table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .questionnaire-dashboard-page .dashboard-responses-table {
@@ -1329,5 +1367,37 @@ pre {
 
   .questionnaire-dashboard-page .criteria-summary-item {
     grid-column: span 12;
+  }
+
+  .questionnaire-dashboard-page .criteria-question-chip {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .questionnaire-dashboard-page .dashboard-chart-card canvas {
+    max-height: 200px;
+  }
+
+  .questionnaire-dashboard-page .dashboard-responses-table {
+    min-width: 680px;
+  }
+
+  .questionnaire-dashboard-page .question-detail-panel__head {
+    flex-wrap: wrap;
+  }
+
+  .questionnaire-dashboard-page .section-head .row {
+    width: 100%;
+  }
+
+  .questionnaire-dashboard-page .section-head .row input {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+
+  .questionnaire-dashboard-page .section-head .row button,
+  .questionnaire-dashboard-page .section-head .row a {
+    min-height: 40px;
   }
 }

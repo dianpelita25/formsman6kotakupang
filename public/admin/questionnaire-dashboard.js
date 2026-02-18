@@ -37,6 +37,7 @@ const radioQuestionHelpEl = document.getElementById('radio-question-help');
 const criteriaSummaryHelpEl = document.getElementById('criteria-summary-help');
 const criteriaSummaryListEl = document.getElementById('criteria-summary-list');
 const questionDetailPanelEl = document.getElementById('question-detail-panel');
+const questionDetailCloseBtnEl = document.getElementById('question-detail-close-btn');
 const questionDetailCodeEl = document.getElementById('question-detail-code');
 const questionDetailCriterionEl = document.getElementById('question-detail-criterion');
 const questionDetailLabelEl = document.getElementById('question-detail-label');
@@ -68,6 +69,7 @@ const state = {
   latestAi: null,
   criteriaSummary: [],
   questionLookup: new Map(),
+  selectedQuestionCode: '',
   radioQuestions: [],
   selectedRadioQuestion: '',
   availableVersions: [],
@@ -310,22 +312,37 @@ function findQuestionByCode(questionCode) {
   return state.questionLookup.get(key) || null;
 }
 
+function syncCriteriaChipStates() {
+  const activeCode = String(state.selectedQuestionCode || '').trim().toUpperCase();
+  const chips = criteriaSummaryListEl?.querySelectorAll('.criteria-question-chip') || [];
+  chips.forEach((chip) => {
+    const code = String(chip.dataset.questionCode || '').trim().toUpperCase();
+    const isActive = Boolean(activeCode) && code === activeCode;
+    chip.classList.toggle('is-active', isActive);
+    chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
 function renderQuestionDetail(question) {
   if (!questionDetailPanelEl || !questionDetailCodeEl || !questionDetailCriterionEl || !questionDetailLabelEl) return;
   if (!question) {
+    state.selectedQuestionCode = '';
     questionDetailPanelEl.hidden = true;
     questionDetailCodeEl.textContent = '-';
     questionDetailCriterionEl.textContent = '-';
     questionDetailLabelEl.textContent = '-';
+    syncCriteriaChipStates();
     return;
   }
 
   const questionCode = normalizeQuestionCode(question);
+  state.selectedQuestionCode = String(questionCode || '').trim().toUpperCase();
   const criterion = normalizeQuestionCriterion(question);
   questionDetailCodeEl.textContent = questionCode;
   questionDetailCriterionEl.textContent = criterion ? `Kriteria ${criterion}` : 'Tanpa Kriteria';
   questionDetailLabelEl.textContent = String(question.label || '-');
   questionDetailPanelEl.hidden = false;
+  syncCriteriaChipStates();
 }
 
 function renderCriteriaSummary() {
@@ -376,6 +393,8 @@ function renderCriteriaSummary() {
       chip.className = 'criteria-question-chip';
       chip.dataset.questionCode = String(questionCode);
       chip.textContent = String(questionCode);
+      chip.setAttribute('aria-pressed', 'false');
+      chip.setAttribute('aria-label', `Tampilkan detail ${String(questionCode)}`);
       chip.title = question?.label || String(questionCode);
       chips.append(chip);
     });
@@ -383,6 +402,15 @@ function renderCriteriaSummary() {
     card.append(title, infoQuestions, infoScale, chips);
     criteriaSummaryListEl.append(card);
   });
+
+  if (state.selectedQuestionCode) {
+    const selectedQuestion = findQuestionByCode(state.selectedQuestionCode);
+    if (selectedQuestion) {
+      renderQuestionDetail(selectedQuestion);
+      return;
+    }
+  }
+  renderQuestionDetail(null);
 }
 
 function destroyChart(chartKey) {
@@ -763,6 +791,7 @@ async function runAiAnalysis() {
   await runWithButtonLoading(aiRunBtn, 'Menganalisis...', async () => {
     aiPdfBtn.disabled = true;
     setAiOutput('Sedang memproses analisis AI...');
+    setStatus('Sedang memproses analisis AI...', 'warning');
     const payload = await api(
       `${baseApiPath()}/ai/analyze`,
       {
@@ -1476,9 +1505,18 @@ function bindEvents() {
     if (!chip) return;
     const questionCode = String(chip.dataset.questionCode || '').trim();
     if (!questionCode) return;
+    const normalizedCode = questionCode.toUpperCase();
+    if (state.selectedQuestionCode === normalizedCode) {
+      renderQuestionDetail(null);
+      return;
+    }
     const question = findQuestionByCode(questionCode);
     if (!question) return;
     renderQuestionDetail(question);
+  });
+
+  questionDetailCloseBtnEl?.addEventListener('click', () => {
+    renderQuestionDetail(null);
   });
 
   aiLoadBtn.addEventListener('click', async () => {
