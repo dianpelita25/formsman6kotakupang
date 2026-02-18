@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Kuesioner</title>
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-8" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-9" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -115,12 +115,28 @@
           <summary>Atur Visual yang Ditampilkan</summary>
           <div class="dashboard-visibility-settings__body">
             <p class="small">Semua visual tampil default. Anda bisa sembunyikan panel yang belum dibutuhkan.</p>
+            <div class="dashboard-visibility-preset">
+              <label class="field">
+                <span>Preset Tampilan</span>
+                <select id="visual-layout-preset">
+                  <option value="">Pilih preset...</option>
+                  <option value="full">Lengkap (Default)</option>
+                  <option value="compact">Ringkas</option>
+                  <option value="monitoring">Monitoring Tren</option>
+                </select>
+              </label>
+              <button id="visual-layout-apply-btn" type="button" class="ghost">Terapkan Preset</button>
+            </div>
             <div class="dashboard-visibility-grid">
               <label><input type="checkbox" data-visual-card="scaleAverage" checked /> Rata-rata Pertanyaan Skala</label>
               <label><input type="checkbox" data-visual-card="radioDistribution" checked /> Pertanyaan Pilihan</label>
               <label><input type="checkbox" data-visual-card="trend" checked /> Tren Respons Harian</label>
               <label><input type="checkbox" data-visual-card="criteriaSummary" checked /> Analisis per Kriteria</label>
               <label><input type="checkbox" data-visual-card="advancedViz" checked /> Visual Lanjutan</label>
+            </div>
+            <div class="dashboard-visual-order-block">
+              <p class="small">Urutkan posisi panel visual (atas ke bawah).</p>
+              <div id="visual-order-list" class="dashboard-visual-order-list"></div>
             </div>
             <div class="dashboard-visibility-actions">
               <button id="visual-visibility-reset-btn" type="button" class="ghost">Reset Tampilan Default</button>
@@ -269,6 +285,6 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
-    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-11"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-12"></script>
   </body>
 </html>

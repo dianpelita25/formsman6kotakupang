@@ -50,6 +50,9 @@ const advancedVizTabButtons = Array.from(document.querySelectorAll('.dashboard-v
 const visualVisibilitySettingsEl = document.getElementById('visual-visibility-settings');
 const visualVisibilityResetBtnEl = document.getElementById('visual-visibility-reset-btn');
 const visualVisibilityInputEls = Array.from(document.querySelectorAll('input[data-visual-card]'));
+const visualLayoutPresetEl = document.getElementById('visual-layout-preset');
+const visualLayoutApplyBtnEl = document.getElementById('visual-layout-apply-btn');
+const visualOrderListEl = document.getElementById('visual-order-list');
 const responsesBodyEl = document.getElementById('responses-body');
 const responsesPageInfoEl = document.getElementById('responses-page-info');
 const responsesPrevBtn = document.getElementById('responses-prev-btn');
@@ -97,6 +100,45 @@ const VISUAL_CARD_CONFIG = Object.freeze({
 
 const VISUAL_CARD_KEYS = Object.keys(VISUAL_CARD_CONFIG);
 
+const VISUAL_PRESET_CONFIG = Object.freeze({
+  full: Object.freeze({
+    label: 'Lengkap',
+    visibility: Object.freeze({
+      scaleAverage: true,
+      radioDistribution: true,
+      trend: true,
+      criteriaSummary: true,
+      advancedViz: true,
+    }),
+    order: Object.freeze(['scaleAverage', 'radioDistribution', 'trend', 'criteriaSummary', 'advancedViz']),
+    advancedVizMode: 'criteria',
+  }),
+  compact: Object.freeze({
+    label: 'Ringkas',
+    visibility: Object.freeze({
+      scaleAverage: true,
+      radioDistribution: false,
+      trend: false,
+      criteriaSummary: true,
+      advancedViz: true,
+    }),
+    order: Object.freeze(['advancedViz', 'criteriaSummary', 'scaleAverage', 'radioDistribution', 'trend']),
+    advancedVizMode: 'criteria',
+  }),
+  monitoring: Object.freeze({
+    label: 'Monitoring Tren',
+    visibility: Object.freeze({
+      scaleAverage: false,
+      radioDistribution: false,
+      trend: true,
+      criteriaSummary: true,
+      advancedViz: true,
+    }),
+    order: Object.freeze(['trend', 'advancedViz', 'criteriaSummary', 'scaleAverage', 'radioDistribution']),
+    advancedVizMode: 'period',
+  }),
+});
+
 const state = {
   tenantSlug: '',
   questionnaireSlug: '',
@@ -118,6 +160,8 @@ const state = {
   advancedVizMode: 'criteria',
   visualCardVisibility: {},
   visualVisibilityStorageKey: '',
+  visualOrderStorageKey: '',
+  visualCardOrder: [],
   availableVersions: [],
   selectedVersionId: '',
   questionTypeStats: {
@@ -158,10 +202,36 @@ function createDefaultVisualCardVisibility() {
   }, {});
 }
 
+function createDefaultVisualCardOrder() {
+  return [...VISUAL_CARD_KEYS];
+}
+
 function getVisualVisibilityStorageKey() {
   const tenant = String(state.tenantSlug || '').trim().toLowerCase();
   const questionnaire = String(state.questionnaireSlug || '').trim().toLowerCase();
   return `aiti:dashboard:visual-visibility:${tenant}:${questionnaire}`;
+}
+
+function getVisualOrderStorageKey() {
+  const tenant = String(state.tenantSlug || '').trim().toLowerCase();
+  const questionnaire = String(state.questionnaireSlug || '').trim().toLowerCase();
+  return `aiti:dashboard:visual-order:${tenant}:${questionnaire}`;
+}
+
+function normalizeVisualCardOrder(candidateOrder = []) {
+  const source = Array.isArray(candidateOrder) ? candidateOrder : [];
+  const normalized = [];
+  source.forEach((key) => {
+    const value = String(key || '').trim();
+    if (!VISUAL_CARD_CONFIG[value]) return;
+    if (normalized.includes(value)) return;
+    normalized.push(value);
+  });
+  VISUAL_CARD_KEYS.forEach((key) => {
+    if (normalized.includes(key)) return;
+    normalized.push(key);
+  });
+  return normalized;
 }
 
 function loadVisualCardVisibility() {
@@ -183,6 +253,20 @@ function loadVisualCardVisibility() {
   }
 }
 
+function loadVisualCardOrder() {
+  const defaults = createDefaultVisualCardOrder();
+  const storageKey = String(state.visualOrderStorageKey || '').trim();
+  if (!storageKey) return defaults;
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw);
+    return normalizeVisualCardOrder(parsed);
+  } catch {
+    return defaults;
+  }
+}
+
 function saveVisualCardVisibility() {
   const storageKey = String(state.visualVisibilityStorageKey || '').trim();
   if (!storageKey) return;
@@ -193,8 +277,41 @@ function saveVisualCardVisibility() {
   }
 }
 
+function saveVisualCardOrder() {
+  const storageKey = String(state.visualOrderStorageKey || '').trim();
+  if (!storageKey) return;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(state.visualCardOrder || []));
+  } catch {
+    // ignore write error (private mode / blocked storage)
+  }
+}
+
 function countVisibleVisualCards(visibility = {}) {
   return VISUAL_CARD_KEYS.reduce((total, key) => total + (visibility[key] ? 1 : 0), 0);
+}
+
+function setVisualLayoutPresetSelection(value = '') {
+  if (!visualLayoutPresetEl) return;
+  visualLayoutPresetEl.value = String(value || '').trim();
+}
+
+function resolveMatchingVisualPresetId() {
+  const currentVisibility = state.visualCardVisibility || {};
+  const currentOrder = normalizeVisualCardOrder(state.visualCardOrder || []);
+  const currentMode = String(state.advancedVizMode || '').trim();
+  const presetEntries = Object.entries(VISUAL_PRESET_CONFIG);
+  for (const [presetId, preset] of presetEntries) {
+    const presetVisibility = { ...createDefaultVisualCardVisibility(), ...(preset.visibility || {}) };
+    const sameVisibility = VISUAL_CARD_KEYS.every((key) => Boolean(currentVisibility[key]) === Boolean(presetVisibility[key]));
+    if (!sameVisibility) continue;
+    const presetOrder = normalizeVisualCardOrder(preset.order || createDefaultVisualCardOrder());
+    const sameOrder = presetOrder.every((key, index) => currentOrder[index] === key);
+    if (!sameOrder) continue;
+    if (preset.advancedVizMode && String(preset.advancedVizMode).trim() !== currentMode) continue;
+    return presetId;
+  }
+  return '';
 }
 
 function syncVisualVisibilityInputs() {
@@ -214,6 +331,60 @@ function resizeVisibleCharts() {
   });
 }
 
+function applyVisualCardOrder() {
+  const grid = document.querySelector('.dashboard-chart-grid');
+  if (!grid) return;
+  const order = normalizeVisualCardOrder(state.visualCardOrder);
+  state.visualCardOrder = order;
+  order.forEach((key) => {
+    const config = VISUAL_CARD_CONFIG[key];
+    if (!config) return;
+    const card = document.getElementById(config.cardId);
+    if (!card) return;
+    grid.append(card);
+  });
+  window.setTimeout(resizeVisibleCharts, 100);
+}
+
+function renderVisualOrderList() {
+  if (!visualOrderListEl) return;
+  const order = normalizeVisualCardOrder(state.visualCardOrder);
+  state.visualCardOrder = order;
+  visualOrderListEl.innerHTML = '';
+  order.forEach((key, index) => {
+    const config = VISUAL_CARD_CONFIG[key];
+    if (!config) return;
+    const row = document.createElement('div');
+    row.className = 'dashboard-visual-order-item';
+
+    const label = document.createElement('p');
+    label.textContent = `${index + 1}. ${config.label}`;
+
+    const actions = document.createElement('div');
+    actions.className = 'dashboard-visual-order-item__actions';
+
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.className = 'ghost';
+    upBtn.dataset.orderKey = key;
+    upBtn.dataset.orderMove = 'up';
+    upBtn.textContent = 'Naik';
+    upBtn.disabled = index === 0;
+
+    const downBtn = document.createElement('button');
+    downBtn.type = 'button';
+    downBtn.className = 'ghost';
+    downBtn.dataset.orderKey = key;
+    downBtn.dataset.orderMove = 'down';
+    downBtn.textContent = 'Turun';
+    downBtn.disabled = index === order.length - 1;
+
+    actions.append(upBtn, downBtn);
+    row.append(label, actions);
+    visualOrderListEl.append(row);
+  });
+}
+
 function applyVisualCardVisibility() {
   VISUAL_CARD_KEYS.forEach((key) => {
     const config = VISUAL_CARD_CONFIG[key];
@@ -224,9 +395,52 @@ function applyVisualCardVisibility() {
   window.setTimeout(resizeVisibleCharts, 90);
 }
 
+function moveVisualCardOrder(key, direction) {
+  const targetKey = String(key || '').trim();
+  if (!targetKey || !VISUAL_CARD_CONFIG[targetKey]) return false;
+  const order = normalizeVisualCardOrder(state.visualCardOrder);
+  const currentIndex = order.indexOf(targetKey);
+  if (currentIndex < 0) return false;
+  const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+  if (nextIndex < 0 || nextIndex >= order.length) return false;
+  [order[currentIndex], order[nextIndex]] = [order[nextIndex], order[currentIndex]];
+  state.visualCardOrder = order;
+  saveVisualCardOrder();
+  applyVisualCardOrder();
+  renderVisualOrderList();
+  return true;
+}
+
+function applyVisualPreset(presetId) {
+  const normalizedPresetId = String(presetId || '').trim();
+  const preset = VISUAL_PRESET_CONFIG[normalizedPresetId];
+  if (!preset) return false;
+
+  const nextVisibility = { ...createDefaultVisualCardVisibility(), ...(preset.visibility || {}) };
+  if (countVisibleVisualCards(nextVisibility) < 1) return false;
+  state.visualCardVisibility = nextVisibility;
+  state.visualCardOrder = normalizeVisualCardOrder(preset.order || createDefaultVisualCardOrder());
+  if (preset.advancedVizMode) {
+    state.advancedVizMode = String(preset.advancedVizMode).trim();
+  }
+
+  saveVisualCardVisibility();
+  saveVisualCardOrder();
+  syncVisualVisibilityInputs();
+  renderVisualOrderList();
+  applyVisualCardOrder();
+  applyVisualCardVisibility();
+  renderAdvancedVizChart();
+  setVisualLayoutPresetSelection(normalizedPresetId);
+  if (visualVisibilitySettingsEl) visualVisibilitySettingsEl.open = false;
+  return true;
+}
+
 function initializeVisualCardVisibility() {
   state.visualVisibilityStorageKey = getVisualVisibilityStorageKey();
+  state.visualOrderStorageKey = getVisualOrderStorageKey();
   state.visualCardVisibility = loadVisualCardVisibility();
+  state.visualCardOrder = loadVisualCardOrder();
   if (countVisibleVisualCards(state.visualCardVisibility) < 1) {
     state.visualCardVisibility = createDefaultVisualCardVisibility();
     saveVisualCardVisibility();
@@ -234,7 +448,10 @@ function initializeVisualCardVisibility() {
   if (visualVisibilitySettingsEl) {
     visualVisibilitySettingsEl.open = countVisibleVisualCards(state.visualCardVisibility) < VISUAL_CARD_KEYS.length;
   }
+  setVisualLayoutPresetSelection(resolveMatchingVisualPresetId());
   syncVisualVisibilityInputs();
+  renderVisualOrderList();
+  applyVisualCardOrder();
   applyVisualCardVisibility();
 }
 
@@ -2301,16 +2518,51 @@ function bindEvents() {
       }
       state.visualCardVisibility = nextVisibility;
       saveVisualCardVisibility();
+      setVisualLayoutPresetSelection(resolveMatchingVisualPresetId());
       applyVisualCardVisibility();
       setStatus(`Tampilan visual diperbarui (${VISUAL_CARD_CONFIG[key].label}).`, 'success');
     });
   });
 
+  visualLayoutApplyBtnEl?.addEventListener('click', () => {
+    const presetId = String(visualLayoutPresetEl?.value || '').trim();
+    if (!presetId) {
+      setStatus('Pilih preset tampilan dulu.', 'warning');
+      return;
+    }
+    const applied = applyVisualPreset(presetId);
+    if (!applied) {
+      setStatus('Preset gagal diterapkan. Coba lagi.', 'error');
+      return;
+    }
+    const label = VISUAL_PRESET_CONFIG[presetId]?.label || 'Preset';
+    setStatus(`Preset tampilan diterapkan: ${label}.`, 'success');
+  });
+
+  visualOrderListEl?.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-order-key][data-order-move]');
+    if (!button) return;
+    const orderKey = String(button.dataset.orderKey || '').trim();
+    const direction = String(button.dataset.orderMove || '').trim().toLowerCase();
+    if (!orderKey || (direction !== 'up' && direction !== 'down')) return;
+    const moved = moveVisualCardOrder(orderKey, direction);
+    if (!moved) return;
+    setVisualLayoutPresetSelection(resolveMatchingVisualPresetId());
+    setStatus(`Urutan visual diperbarui (${VISUAL_CARD_CONFIG[orderKey]?.label || orderKey}).`, 'success');
+  });
+
   visualVisibilityResetBtnEl?.addEventListener('click', () => {
     state.visualCardVisibility = createDefaultVisualCardVisibility();
+    state.visualCardOrder = createDefaultVisualCardOrder();
+    state.advancedVizMode = 'criteria';
     saveVisualCardVisibility();
+    saveVisualCardOrder();
     syncVisualVisibilityInputs();
+    renderVisualOrderList();
+    applyVisualCardOrder();
     applyVisualCardVisibility();
+    renderAdvancedVizChart();
+    setVisualLayoutPresetSelection('full');
     if (visualVisibilitySettingsEl) visualVisibilitySettingsEl.open = false;
     setStatus('Tampilan visual dikembalikan ke default.', 'success');
   });

@@ -1214,6 +1214,31 @@ pre {
   margin: 0 0 8px;
 }
 
+.questionnaire-dashboard-page .dashboard-visibility-preset {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-preset .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-preset .field span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-preset button {
+  min-height: 42px;
+  padding: 8px 12px;
+}
+
 .questionnaire-dashboard-page .dashboard-visibility-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1247,6 +1272,43 @@ pre {
 .questionnaire-dashboard-page .dashboard-visibility-actions button {
   min-height: 34px;
   padding: 6px 12px;
+  font-size: 12px;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-block {
+  margin-top: 8px;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-list {
+  display: grid;
+  gap: 6px;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(106, 164, 255, 0.25);
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: rgba(10, 22, 44, 0.55);
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item p {
+  margin: 0;
+  color: #d8e7ff;
+  font-size: 13px;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item__actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item__actions button {
+  min-height: 30px;
+  padding: 4px 10px;
   font-size: 12px;
 }
 
@@ -1627,8 +1689,28 @@ pre {
     grid-column: span 12;
   }
 
+  .questionnaire-dashboard-page .dashboard-visibility-preset {
+    grid-template-columns: 1fr;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visibility-preset button {
+    width: 100%;
+  }
+
   .questionnaire-dashboard-page .dashboard-visibility-actions button {
     width: 100%;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visual-order-item {
+    flex-wrap: wrap;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visual-order-item__actions {
+    width: 100%;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visual-order-item__actions button {
+    flex: 1 1 120px;
   }
 
   .questionnaire-dashboard-page .dashboard-chart-card,
