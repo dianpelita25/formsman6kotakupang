@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Kuesioner</title>
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-6" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-7" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -147,6 +147,27 @@
               <p id="question-detail-label">-</p>
             </div>
           </article>
+          <article class="dashboard-chart-card dashboard-chart-card--wide">
+            <div class="dashboard-viz-head">
+              <h3>Visual Lanjutan</h3>
+              <div class="dashboard-viz-tabs" role="tablist" aria-label="Pilih jenis visual">
+                <button type="button" class="dashboard-viz-tab is-active" data-viz-mode="criteria" role="tab" aria-selected="true">
+                  Performa Kriteria
+                </button>
+                <button type="button" class="dashboard-viz-tab" data-viz-mode="likert" role="tab" aria-selected="false">
+                  Sebaran Skor
+                </button>
+                <button type="button" class="dashboard-viz-tab" data-viz-mode="weekly" role="tab" aria-selected="false">
+                  Pola Mingguan
+                </button>
+              </div>
+            </div>
+            <p id="advanced-viz-help" class="small">
+              Panel ini menyajikan visual tambahan berbasis data yang sama, agar pembacaan hasil lebih cepat dan tidak panjang.
+            </p>
+            <canvas id="advanced-viz-chart" height="190"></canvas>
+            <div id="advanced-viz-insights" class="advanced-viz-insights"></div>
+          </article>
         </div>
       </section>
 
@@ -229,6 +250,6 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
-    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-9"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-10"></script>
   </body>
 </html>

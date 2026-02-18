@@ -43,6 +43,10 @@ const questionDetailCloseBtnEl = document.getElementById('question-detail-close-
 const questionDetailCodeEl = document.getElementById('question-detail-code');
 const questionDetailCriterionEl = document.getElementById('question-detail-criterion');
 const questionDetailLabelEl = document.getElementById('question-detail-label');
+const advancedVizHelpEl = document.getElementById('advanced-viz-help');
+const advancedVizInsightsEl = document.getElementById('advanced-viz-insights');
+const advancedVizTabsContainerEl = document.querySelector('.dashboard-viz-tabs');
+const advancedVizTabButtons = Array.from(document.querySelectorAll('.dashboard-viz-tab'));
 const responsesBodyEl = document.getElementById('responses-body');
 const responsesPageInfoEl = document.getElementById('responses-page-info');
 const responsesPrevBtn = document.getElementById('responses-prev-btn');
@@ -83,6 +87,7 @@ const state = {
   selectedQuestionCode: '',
   radioQuestions: [],
   selectedRadioQuestion: '',
+  advancedVizMode: 'criteria',
   availableVersions: [],
   selectedVersionId: '',
   questionTypeStats: {
@@ -96,6 +101,7 @@ const state = {
     scaleAverage: null,
     radioDistribution: null,
     trend: null,
+    advancedViz: null,
   },
 };
 
@@ -333,6 +339,374 @@ function truncateText(value, maxLength = 72) {
   if (!text) return '-';
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength - 3)}...`;
+}
+
+function normalizeCriterionLabel(value) {
+  const raw = String(value || '').trim();
+  if (!raw || raw.toLowerCase() === 'tanpa kriteria') return 'Tanpa Kriteria';
+  return raw.toLowerCase().startsWith('kriteria ') ? raw : `Kriteria ${raw}`;
+}
+
+function setAdvancedVizTabs(mode) {
+  const normalizedMode = String(mode || '').trim();
+  advancedVizTabButtons.forEach((button) => {
+    const buttonMode = String(button.dataset.vizMode || '').trim();
+    const isActive = buttonMode === normalizedMode;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+}
+
+function renderAdvancedVizInsights(items = []) {
+  if (!advancedVizInsightsEl) return;
+  advancedVizInsightsEl.innerHTML = '';
+  const normalizedItems = Array.isArray(items) ? items.filter((item) => item && item.title) : [];
+  if (!normalizedItems.length) {
+    const fallback = document.createElement('article');
+    fallback.className = 'advanced-viz-insight-card';
+    fallback.innerHTML = '<h4>Insight belum tersedia</h4><p>Tambah respons agar insight visual bisa dihitung otomatis.</p>';
+    advancedVizInsightsEl.append(fallback);
+    return;
+  }
+
+  normalizedItems.forEach((item) => {
+    const card = document.createElement('article');
+    card.className = 'advanced-viz-insight-card';
+    const tone = String(item.tone || '').trim();
+    if (tone) card.classList.add(`is-${tone}`);
+
+    const title = document.createElement('h4');
+    title.textContent = item.title;
+    const value = document.createElement('strong');
+    value.textContent = item.value || '-';
+    const note = document.createElement('p');
+    note.textContent = item.note || '-';
+    card.append(title, value, note);
+    advancedVizInsightsEl.append(card);
+  });
+}
+
+function renderEmptyAdvancedVizChart(canvas, message = 'Belum ada data untuk visual ini.') {
+  state.charts.advancedViz = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['Data'],
+      datasets: [
+        {
+          label: 'Nilai',
+          data: [0],
+          borderRadius: 8,
+          backgroundColor: 'rgba(88, 157, 255, 0.45)',
+          borderColor: 'rgba(88, 157, 255, 0.95)',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          enabled: false,
+        },
+        legend: {
+          display: false,
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: 5,
+        },
+      },
+    },
+  });
+  if (advancedVizHelpEl) advancedVizHelpEl.textContent = message;
+  renderAdvancedVizInsights([]);
+}
+
+function buildCriteriaVizRows() {
+  const rawItems = Array.isArray(state.criteriaSummary) ? state.criteriaSummary : [];
+  if (!rawItems.length) return [];
+  return rawItems
+    .filter((item) => Number(item?.totalQuestions || 0) > 0)
+    .map((item) => ({
+      label: normalizeCriterionLabel(item.criterion),
+      avgScale: Number(item.avgScale || 0),
+      totalQuestions: Number(item.totalQuestions || 0),
+      totalScaleQuestions: Number(item.totalScaleQuestions || 0),
+      totalScaleAnswered: Number(item.totalScaleAnswered || 0),
+    }))
+    .sort((a, b) => b.avgScale - a.avgScale);
+}
+
+function buildLikertTotals() {
+  const totals = [0, 0, 0, 0, 0];
+  const questions = Array.isArray(state.distribution?.questions) ? state.distribution.questions : [];
+  questions
+    .filter((question) => question?.type === 'scale')
+    .forEach((question) => {
+      const counts = Array.isArray(question.counts) ? question.counts : [];
+      counts.forEach((entry) => {
+        const index = Number(entry?.label || 0) - 1;
+        if (index < 0 || index > 4) return;
+        totals[index] += Number(entry?.total || 0);
+      });
+    });
+  const totalAnswers = totals.reduce((sum, value) => sum + value, 0);
+  return { totals, totalAnswers };
+}
+
+function buildWeeklyPattern(points = []) {
+  const labels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const totals = new Array(7).fill(0);
+  const samples = new Array(7).fill(0);
+
+  (Array.isArray(points) ? points : []).forEach((point) => {
+    const dayRaw = String(point?.day || '').trim();
+    if (!dayRaw) return;
+    const date = new Date(dayRaw);
+    if (Number.isNaN(date.getTime())) return;
+    const dayIndex = date.getDay();
+    totals[dayIndex] += Number(point?.total || 0);
+    samples[dayIndex] += 1;
+  });
+
+  const averages = order.map((dayIndex) => {
+    if (samples[dayIndex] <= 0) return 0;
+    return Number((totals[dayIndex] / samples[dayIndex]).toFixed(2));
+  });
+  const totalResponses = totals.reduce((sum, value) => sum + value, 0);
+  return { labels, averages, totals, samples, order, totalResponses };
+}
+
+function renderAdvancedVizChart() {
+  destroyChart('advancedViz');
+  const canvas = document.getElementById('advanced-viz-chart');
+  if (!canvas) return;
+
+  const mode = String(state.advancedVizMode || 'criteria').trim();
+  setAdvancedVizTabs(mode);
+
+  if (mode === 'criteria') {
+    const rows = buildCriteriaVizRows();
+    if (!rows.length) {
+      renderEmptyAdvancedVizChart(canvas, 'Belum ada data kriteria untuk divisualkan pada filter ini.');
+      return;
+    }
+
+    const labels = rows.map((item) => truncateText(item.label, 26));
+    state.charts.advancedViz = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Rata-rata Skala',
+            yAxisID: 'y',
+            data: rows.map((item) => item.avgScale),
+            borderRadius: 8,
+            backgroundColor: 'rgba(47, 198, 229, 0.62)',
+            borderColor: 'rgba(47, 198, 229, 1)',
+            borderWidth: 1,
+          },
+          {
+            type: 'line',
+            label: 'Jumlah Soal',
+            yAxisID: 'y1',
+            data: rows.map((item) => item.totalQuestions),
+            borderColor: '#8b8cff',
+            backgroundColor: 'rgba(139, 140, 255, 0.18)',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.22,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: (items) => {
+                const first = Array.isArray(items) && items.length ? items[0] : null;
+                return first ? rows[first.dataIndex]?.label || '-' : '-';
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 5,
+            title: { display: true, text: 'Skor rata-rata' },
+          },
+          y1: {
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Jumlah soal' },
+          },
+        },
+      },
+    });
+
+    const highest = rows[0];
+    const lowest = rows[rows.length - 1];
+    const avgGlobal = rows.reduce((sum, item) => sum + item.avgScale, 0) / rows.length;
+    if (advancedVizHelpEl) {
+      advancedVizHelpEl.textContent = `${rows.length} kelompok kriteria divisualkan untuk membandingkan kualitas (skor) dan cakupan (jumlah soal).`;
+    }
+    renderAdvancedVizInsights([
+      {
+        title: 'Kriteria Tertinggi',
+        value: `${highest.label} (${formatNumber(highest.avgScale, 2)})`,
+        note: `Soal: ${formatNumber(highest.totalQuestions)} | Respons skala: ${formatNumber(highest.totalScaleAnswered)}`,
+        tone: 'good',
+      },
+      {
+        title: 'Kriteria Terendah',
+        value: `${lowest.label} (${formatNumber(lowest.avgScale, 2)})`,
+        note: `Prioritas evaluasi berikutnya bisa dimulai dari kelompok ini.`,
+        tone: 'warn',
+      },
+      {
+        title: 'Rata-rata Global Kriteria',
+        value: formatNumber(avgGlobal, 2),
+        note: `Dihitung dari ${formatNumber(rows.length)} kelompok kriteria pada filter aktif.`,
+      },
+    ]);
+    return;
+  }
+
+  if (mode === 'likert') {
+    const likert = buildLikertTotals();
+    if (likert.totalAnswers <= 0) {
+      renderEmptyAdvancedVizChart(canvas, 'Belum ada jawaban skala (1-5) untuk filter ini.');
+      return;
+    }
+
+    const labels = ['Skor 1', 'Skor 2', 'Skor 3', 'Skor 4', 'Skor 5'];
+    state.charts.advancedViz = new Chart(canvas, {
+      type: 'polarArea',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Total jawaban',
+            data: likert.totals,
+            backgroundColor: ['#1f6feb', '#2276f5', '#2d9bff', '#2bd4f6', '#2ce3a8'],
+            borderColor: 'rgba(8, 18, 36, 0.6)',
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+
+    const dominantIndex = likert.totals.reduce(
+      (best, value, index) => (value > likert.totals[best] ? index : best),
+      0
+    );
+    const dominantTotal = likert.totals[dominantIndex] || 0;
+    const dominantPercent = likert.totalAnswers > 0 ? (dominantTotal / likert.totalAnswers) * 100 : 0;
+    if (advancedVizHelpEl) {
+      advancedVizHelpEl.textContent = `Sebaran seluruh jawaban skala 1-5. Total terbaca: ${formatNumber(likert.totalAnswers)} jawaban.`;
+    }
+    renderAdvancedVizInsights([
+      {
+        title: 'Skor Dominan',
+        value: `${labels[dominantIndex]} (${formatNumber(dominantTotal)})`,
+        note: `Kontribusi ${formatNumber(dominantPercent, 1)}% dari total jawaban skala.`,
+        tone: dominantIndex >= 3 ? 'good' : 'warn',
+      },
+      {
+        title: 'Skor Tinggi (4-5)',
+        value: formatNumber((likert.totals[3] || 0) + (likert.totals[4] || 0)),
+        note: `Akumulasi respon positif untuk membaca kepuasan umum.`,
+        tone: 'good',
+      },
+      {
+        title: 'Skor Rendah (1-2)',
+        value: formatNumber((likert.totals[0] || 0) + (likert.totals[1] || 0)),
+        note: `Gunakan untuk menentukan area perbaikan prioritas.`,
+        tone: 'warn',
+      },
+    ]);
+    return;
+  }
+
+  const weekly = buildWeeklyPattern(state.trend?.points || []);
+  if (weekly.totalResponses <= 0) {
+    renderEmptyAdvancedVizChart(canvas, 'Belum ada respons harian untuk membentuk pola mingguan.');
+    return;
+  }
+
+  state.charts.advancedViz = new Chart(canvas, {
+    type: 'radar',
+    data: {
+      labels: weekly.labels,
+      datasets: [
+        {
+          label: 'Rata-rata respons per hari',
+          data: weekly.averages,
+          borderColor: '#33d9ff',
+          backgroundColor: 'rgba(51, 217, 255, 0.2)',
+          pointBackgroundColor: '#82f7ff',
+          pointBorderColor: '#082039',
+          pointRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          beginAtZero: true,
+          ticks: {
+            backdropColor: 'transparent',
+          },
+        },
+      },
+    },
+  });
+
+  const peakValue = Math.max(...weekly.averages);
+  const peakIndex = weekly.averages.findIndex((value) => value === peakValue);
+  const activeDays = weekly.totals.filter((value) => value > 0).length;
+  const totalDays = weekly.samples.reduce((sum, value) => sum + value, 0);
+  if (advancedVizHelpEl) {
+    advancedVizHelpEl.textContent = `Radar menunjukkan rata-rata respons per hari (berdasarkan rentang tren ${formatNumber(totalDays)} hari).`;
+  }
+  renderAdvancedVizInsights([
+    {
+      title: 'Hari Paling Aktif',
+      value: `${weekly.labels[Math.max(0, peakIndex)]} (${formatNumber(peakValue, 2)})`,
+      note: 'Nilai adalah rata-rata respons pada hari tersebut.',
+      tone: 'good',
+    },
+    {
+      title: 'Hari Aktif',
+      value: `${formatNumber(activeDays)} / 7`,
+      note: 'Jumlah hari yang memiliki respons lebih dari 0.',
+    },
+    {
+      title: 'Total Respons Tren',
+      value: formatNumber(weekly.totalResponses),
+      note: 'Akumulasi respons pada rentang tren yang sedang ditampilkan.',
+    },
+  ]);
 }
 
 function normalizeQuestionCode(question, index = 0) {
@@ -845,6 +1219,7 @@ async function loadSummaryAndCharts() {
   renderRadioDistributionChart();
   renderCriteriaSummary();
   renderTrendChart(trendPayload.data?.points || []);
+  renderAdvancedVizChart();
   renderContextInfo();
   updateCsvLink();
 }
@@ -1678,6 +2053,15 @@ function bindEvents() {
   radioQuestionSelectEl.addEventListener('change', () => {
     state.selectedRadioQuestion = String(radioQuestionSelectEl.value || '').trim();
     renderRadioDistributionChart();
+  });
+
+  advancedVizTabsContainerEl?.addEventListener('click', (event) => {
+    const tab = event.target.closest('.dashboard-viz-tab');
+    if (!tab) return;
+    const mode = String(tab.dataset.vizMode || '').trim();
+    if (!mode || mode === state.advancedVizMode) return;
+    state.advancedVizMode = mode;
+    renderAdvancedVizChart();
   });
 
   criteriaSummaryListEl?.addEventListener('click', (event) => {
