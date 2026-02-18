@@ -55,6 +55,15 @@ const aiOutputEl = document.getElementById('ai-output');
 const aiLoadBtn = document.getElementById('ai-load-btn');
 const aiRunBtn = document.getElementById('ai-run-btn');
 const aiPdfBtn = document.getElementById('ai-pdf-btn');
+const aiProgressEl = document.getElementById('ai-progress');
+const aiProgressTitleEl = document.getElementById('ai-progress-title');
+const aiProgressElapsedEl = document.getElementById('ai-progress-elapsed');
+const aiProgressNoteEl = document.getElementById('ai-progress-note');
+
+const aiProgressState = {
+  startedAt: 0,
+  timerId: null,
+};
 
 const state = {
   tenantSlug: '',
@@ -174,6 +183,7 @@ function canRetryFromError(normalized = {}) {
 }
 
 function presentError(error, fallbackMessage = 'Terjadi kesalahan.') {
+  stopAiProgressIndicator();
   const normalized = normalizeUiError(error, fallbackMessage);
   setStatus(toActionableErrorMessage(normalized), 'error', {
     retry: canRetryFromError(normalized),
@@ -870,7 +880,57 @@ function setAiOutput(message) {
   aiOutputEl.textContent = message || 'Belum ada analisis.';
 }
 
+function formatElapsedLabel(totalSeconds) {
+  const safeSeconds = Number.isFinite(totalSeconds) ? Math.max(0, Math.floor(totalSeconds)) : 0;
+  if (safeSeconds < 60) return `${safeSeconds} dtk`;
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${minutes}m ${seconds} dtk`;
+}
+
+function resolveAiProgressNote(elapsedSeconds) {
+  if (elapsedSeconds < 8) return 'Mengumpulkan respons sesuai mode dan filter...';
+  if (elapsedSeconds < 18) return 'Menyusun ringkasan KPI dan temuan utama...';
+  if (elapsedSeconds < 30) return 'Merapikan rekomendasi agar siap dibaca admin...';
+  return 'Proses masih berjalan. Jika melewati 60 detik, cek koneksi lalu coba lagi.';
+}
+
+function setAiProgressVisibility(visible = false) {
+  if (!aiProgressEl) return;
+  aiProgressEl.hidden = !visible;
+}
+
+function stopAiProgressIndicator() {
+  if (aiProgressState.timerId) {
+    window.clearInterval(aiProgressState.timerId);
+    aiProgressState.timerId = null;
+  }
+  aiProgressState.startedAt = 0;
+  aiOutputEl.removeAttribute('aria-busy');
+  setAiProgressVisibility(false);
+}
+
+function updateAiProgressIndicator() {
+  if (!aiProgressElapsedEl || !aiProgressNoteEl || !aiProgressState.startedAt) return;
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - aiProgressState.startedAt) / 1000));
+  aiProgressElapsedEl.textContent = `Berjalan ${formatElapsedLabel(elapsedSeconds)}`;
+  aiProgressNoteEl.textContent = resolveAiProgressNote(elapsedSeconds);
+}
+
+function startAiProgressIndicator() {
+  stopAiProgressIndicator();
+  aiProgressState.startedAt = Date.now();
+  aiOutputEl.setAttribute('aria-busy', 'true');
+  if (aiProgressTitleEl) {
+    aiProgressTitleEl.textContent = `Menjalankan analisis ${getModeLabel(getActiveMode())}...`;
+  }
+  setAiProgressVisibility(true);
+  updateAiProgressIndicator();
+  aiProgressState.timerId = window.setInterval(updateAiProgressIndicator, 1000);
+}
+
 async function loadAiLatest() {
+  stopAiProgressIndicator();
   const params = new URLSearchParams();
   params.set('mode', getActiveMode());
   if (state.questionnaireVersionId) params.set('questionnaireVersionId', state.questionnaireVersionId);
@@ -887,29 +947,34 @@ async function loadAiLatest() {
 async function runAiAnalysis() {
   await runWithButtonLoading(aiRunBtn, 'Menganalisis...', async () => {
     aiPdfBtn.disabled = true;
-    setAiOutput('Sedang memproses analisis AI...');
-    setStatus('Sedang memproses analisis AI...', 'warning');
-    const payload = await api(
-      `${baseApiPath()}/ai/analyze`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    startAiProgressIndicator();
+    setAiOutput('Sedang memproses analisis AI. Mohon tunggu...');
+    setStatus('Analisis AI dimulai. Estimasi 10-45 detik.', 'warning');
+    try {
+      const payload = await api(
+        `${baseApiPath()}/ai/analyze`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mode: getActiveMode(),
+            questionnaireVersionId: state.questionnaireVersionId || undefined,
+            from: String(filterFromEl.value || '').trim() || undefined,
+            to: String(filterToEl.value || '').trim() || undefined,
+          }),
         },
-        body: JSON.stringify({
-          mode: getActiveMode(),
-          questionnaireVersionId: state.questionnaireVersionId || undefined,
-          from: String(filterFromEl.value || '').trim() || undefined,
-          to: String(filterToEl.value || '').trim() || undefined,
-        }),
-      },
-      'Gagal menjalankan analisis AI.'
-    );
-    state.latestAi = payload.data || null;
-    setAiOutput(payload.data?.analysis || 'Analisis kosong.');
-    aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
-    setStatus('Analisis AI selesai diproses.', 'success');
-    setError(null);
+        'Gagal menjalankan analisis AI.'
+      );
+      state.latestAi = payload.data || null;
+      setAiOutput(payload.data?.analysis || 'Analisis kosong.');
+      aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
+      setStatus('Analisis AI selesai diproses.', 'success');
+      setError(null);
+    } finally {
+      stopAiProgressIndicator();
+    }
   }, [aiLoadBtn]);
 }
 
@@ -1645,8 +1710,9 @@ function bindEvents() {
   });
 
   aiModeEl.addEventListener('change', () => {
+    stopAiProgressIndicator();
     aiPdfBtn.disabled = true;
-    setAiOutput('Pilih "Muat Terakhir" atau "Jalankan Analisis" untuk mode ini.');
+    setAiOutput('Mode diganti. Klik "Muat Terakhir" atau "Jalankan Analisis" untuk mode ini.');
   });
 
   filterVersionEl.addEventListener('change', async () => {

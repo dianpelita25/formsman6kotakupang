@@ -998,6 +998,27 @@ pre {
   }
 }
 
+@keyframes ai-progress-pulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-progress-bar {
+  0% {
+    transform: translateX(-140%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
 .builder-page .builder-advanced-summary {
   cursor: pointer;
   font-weight: 700;
@@ -1284,6 +1305,65 @@ pre {
 
 .questionnaire-dashboard-page .dashboard-responses-table {
   min-width: 760px;
+}
+
+.questionnaire-dashboard-page .ai-progress {
+  margin: 10px 0 10px;
+  border: 1px solid rgba(48, 228, 255, 0.38);
+  border-radius: 10px;
+  background: rgba(8, 30, 48, 0.45);
+  padding: 10px 12px;
+}
+
+.questionnaire-dashboard-page .ai-progress[hidden] {
+  display: none !important;
+}
+
+.questionnaire-dashboard-page .ai-progress__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.questionnaire-dashboard-page .ai-progress__lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #dff3ff;
+}
+
+.questionnaire-dashboard-page .ai-progress__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #30e4ff;
+  box-shadow: 0 0 0 4px rgba(48, 228, 255, 0.2);
+  animation: ai-progress-pulse 1.2s ease-in-out infinite;
+}
+
+.questionnaire-dashboard-page .ai-progress__bar {
+  margin-top: 8px;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(129, 170, 219, 0.25);
+  overflow: hidden;
+}
+
+.questionnaire-dashboard-page .ai-progress__bar::before {
+  content: '';
+  display: block;
+  width: 36%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(48, 228, 255, 0), rgba(48, 228, 255, 0.92), rgba(48, 228, 255, 0));
+  animation: ai-progress-bar 1.15s linear infinite;
+}
+
+.questionnaire-dashboard-page .ai-progress p {
+  margin: 6px 0 0;
 }
 
 .questionnaire-dashboard-page #ai-output {
