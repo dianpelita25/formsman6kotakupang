@@ -1173,6 +1173,83 @@ pre {
   font-size: 30px;
 }
 
+.questionnaire-dashboard-page .dashboard-visibility-settings {
+  margin: 0 0 10px;
+  border: 1px solid rgba(106, 164, 255, 0.28);
+  border-radius: 12px;
+  background: rgba(8, 18, 36, 0.45);
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: #d8e8ff;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings summary::-webkit-details-marker {
+  display: none;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings summary::after {
+  content: 'Buka';
+  float: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9fc2ef;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings[open] summary::after {
+  content: 'Tutup';
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings__body {
+  border-top: 1px solid rgba(106, 164, 255, 0.22);
+  padding: 10px 12px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-settings__body p {
+  margin: 0 0 8px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-grid label {
+  grid-column: span 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid rgba(106, 164, 255, 0.25);
+  border-radius: 9px;
+  padding: 6px 10px;
+  background: rgba(10, 22, 44, 0.55);
+  color: #d8e7ff;
+  font-size: 13px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-grid input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2ce3ff;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-actions {
+  margin-top: 8px;
+}
+
+.questionnaire-dashboard-page .dashboard-visibility-actions button {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 .questionnaire-dashboard-page .dashboard-chart-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1544,6 +1621,14 @@ pre {
   .questionnaire-dashboard-page .dashboard-inline-actions {
     justify-content: flex-start;
     margin-top: -2px;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visibility-grid label {
+    grid-column: span 12;
+  }
+
+  .questionnaire-dashboard-page .dashboard-visibility-actions button {
+    width: 100%;
   }
 
   .questionnaire-dashboard-page .dashboard-chart-card,

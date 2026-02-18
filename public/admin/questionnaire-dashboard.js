@@ -47,6 +47,9 @@ const advancedVizHelpEl = document.getElementById('advanced-viz-help');
 const advancedVizInsightsEl = document.getElementById('advanced-viz-insights');
 const advancedVizTabsContainerEl = document.querySelector('.dashboard-viz-tabs');
 const advancedVizTabButtons = Array.from(document.querySelectorAll('.dashboard-viz-tab'));
+const visualVisibilitySettingsEl = document.getElementById('visual-visibility-settings');
+const visualVisibilityResetBtnEl = document.getElementById('visual-visibility-reset-btn');
+const visualVisibilityInputEls = Array.from(document.querySelectorAll('input[data-visual-card]'));
 const responsesBodyEl = document.getElementById('responses-body');
 const responsesPageInfoEl = document.getElementById('responses-page-info');
 const responsesPrevBtn = document.getElementById('responses-prev-btn');
@@ -69,6 +72,31 @@ const aiProgressState = {
   timerId: null,
 };
 
+const VISUAL_CARD_CONFIG = Object.freeze({
+  scaleAverage: Object.freeze({
+    cardId: 'card-scale-average',
+    label: 'Rata-rata Pertanyaan Skala',
+  }),
+  radioDistribution: Object.freeze({
+    cardId: 'card-radio-distribution',
+    label: 'Pertanyaan Pilihan',
+  }),
+  trend: Object.freeze({
+    cardId: 'card-trend',
+    label: 'Tren Respons Harian',
+  }),
+  criteriaSummary: Object.freeze({
+    cardId: 'card-criteria-summary',
+    label: 'Analisis per Kriteria',
+  }),
+  advancedViz: Object.freeze({
+    cardId: 'card-advanced-viz',
+    label: 'Visual Lanjutan',
+  }),
+});
+
+const VISUAL_CARD_KEYS = Object.keys(VISUAL_CARD_CONFIG);
+
 const state = {
   tenantSlug: '',
   questionnaireSlug: '',
@@ -88,6 +116,8 @@ const state = {
   radioQuestions: [],
   selectedRadioQuestion: '',
   advancedVizMode: 'criteria',
+  visualCardVisibility: {},
+  visualVisibilityStorageKey: '',
   availableVersions: [],
   selectedVersionId: '',
   questionTypeStats: {
@@ -119,6 +149,93 @@ function parseRouteContext() {
 
 function baseApiPath() {
   return `/forms/${encodeURIComponent(state.tenantSlug)}/admin/api/questionnaires/${encodeURIComponent(state.questionnaireSlug)}`;
+}
+
+function createDefaultVisualCardVisibility() {
+  return VISUAL_CARD_KEYS.reduce((accumulator, key) => {
+    accumulator[key] = true;
+    return accumulator;
+  }, {});
+}
+
+function getVisualVisibilityStorageKey() {
+  const tenant = String(state.tenantSlug || '').trim().toLowerCase();
+  const questionnaire = String(state.questionnaireSlug || '').trim().toLowerCase();
+  return `aiti:dashboard:visual-visibility:${tenant}:${questionnaire}`;
+}
+
+function loadVisualCardVisibility() {
+  const defaults = createDefaultVisualCardVisibility();
+  const storageKey = String(state.visualVisibilityStorageKey || '').trim();
+  if (!storageKey) return defaults;
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return defaults;
+    return VISUAL_CARD_KEYS.reduce((accumulator, key) => {
+      const value = parsed[key];
+      accumulator[key] = typeof value === 'boolean' ? value : true;
+      return accumulator;
+    }, {});
+  } catch {
+    return defaults;
+  }
+}
+
+function saveVisualCardVisibility() {
+  const storageKey = String(state.visualVisibilityStorageKey || '').trim();
+  if (!storageKey) return;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(state.visualCardVisibility || {}));
+  } catch {
+    // ignore write error (private mode / blocked storage)
+  }
+}
+
+function countVisibleVisualCards(visibility = {}) {
+  return VISUAL_CARD_KEYS.reduce((total, key) => total + (visibility[key] ? 1 : 0), 0);
+}
+
+function syncVisualVisibilityInputs() {
+  visualVisibilityInputEls.forEach((input) => {
+    const key = String(input.dataset.visualCard || '').trim();
+    if (!key || !VISUAL_CARD_CONFIG[key]) return;
+    input.checked = Boolean(state.visualCardVisibility[key]);
+  });
+}
+
+function resizeVisibleCharts() {
+  Object.values(state.charts || {}).forEach((chart) => {
+    if (!chart || typeof chart.resize !== 'function') return;
+    const card = chart.canvas?.closest('.dashboard-chart-card');
+    if (card && card.hidden) return;
+    chart.resize();
+  });
+}
+
+function applyVisualCardVisibility() {
+  VISUAL_CARD_KEYS.forEach((key) => {
+    const config = VISUAL_CARD_CONFIG[key];
+    const card = document.getElementById(config.cardId);
+    if (!card) return;
+    card.hidden = !Boolean(state.visualCardVisibility[key]);
+  });
+  window.setTimeout(resizeVisibleCharts, 90);
+}
+
+function initializeVisualCardVisibility() {
+  state.visualVisibilityStorageKey = getVisualVisibilityStorageKey();
+  state.visualCardVisibility = loadVisualCardVisibility();
+  if (countVisibleVisualCards(state.visualCardVisibility) < 1) {
+    state.visualCardVisibility = createDefaultVisualCardVisibility();
+    saveVisualCardVisibility();
+  }
+  if (visualVisibilitySettingsEl) {
+    visualVisibilitySettingsEl.open = countVisibleVisualCards(state.visualCardVisibility) < VISUAL_CARD_KEYS.length;
+  }
+  syncVisualVisibilityInputs();
+  applyVisualCardVisibility();
 }
 
 function setRetryActionVisibility(visible = false) {
@@ -480,6 +597,41 @@ function buildWeeklyPattern(points = []) {
   return { labels, averages, totals, samples, order, totalResponses };
 }
 
+function buildPeriodComparison(points = []) {
+  const normalizedPoints = (Array.isArray(points) ? points : [])
+    .map((point) => ({
+      day: String(point?.day || '').trim(),
+      total: Number(point?.total || 0),
+    }))
+    .filter((point) => point.day);
+
+  if (normalizedPoints.length < 2) return null;
+
+  const splitIndex = Math.floor(normalizedPoints.length / 2);
+  const previousPoints = normalizedPoints.slice(0, splitIndex);
+  const currentPoints = normalizedPoints.slice(splitIndex);
+  if (!previousPoints.length || !currentPoints.length) return null;
+
+  const sumTotals = (items) => items.reduce((sum, item) => sum + Number(item.total || 0), 0);
+  const previousTotal = sumTotals(previousPoints);
+  const currentTotal = sumTotals(currentPoints);
+  const previousAvgDaily = previousPoints.length > 0 ? previousTotal / previousPoints.length : 0;
+  const currentAvgDaily = currentPoints.length > 0 ? currentTotal / currentPoints.length : 0;
+  const deltaTotal = currentTotal - previousTotal;
+  const deltaPct = previousTotal > 0 ? (deltaTotal / previousTotal) * 100 : currentTotal > 0 ? 100 : 0;
+
+  return {
+    previousCount: previousPoints.length,
+    currentCount: currentPoints.length,
+    previousTotal,
+    currentTotal,
+    previousAvgDaily: Number(previousAvgDaily.toFixed(2)),
+    currentAvgDaily: Number(currentAvgDaily.toFixed(2)),
+    deltaTotal,
+    deltaPct: Number(deltaPct.toFixed(2)),
+  };
+}
+
 function renderAdvancedVizChart() {
   destroyChart('advancedViz');
   const canvas = document.getElementById('advanced-viz-chart');
@@ -641,6 +793,75 @@ function renderAdvancedVizChart() {
         value: formatNumber((likert.totals[0] || 0) + (likert.totals[1] || 0)),
         note: `Gunakan untuk menentukan area perbaikan prioritas.`,
         tone: 'warn',
+      },
+    ]);
+    return;
+  }
+
+  if (mode === 'period') {
+    const comparison = buildPeriodComparison(state.trend?.points || []);
+    if (!comparison) {
+      renderEmptyAdvancedVizChart(
+        canvas,
+        'Perbandingan periode membutuhkan minimal 2 hari data pada rentang tren aktif.'
+      );
+      return;
+    }
+
+    const previousLabel = `Periode Sebelumnya (${comparison.previousCount} hari)`;
+    const currentLabel = `Periode Saat Ini (${comparison.currentCount} hari)`;
+    state.charts.advancedViz = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: [previousLabel, currentLabel],
+        datasets: [
+          {
+            label: 'Total Respons',
+            data: [comparison.previousTotal, comparison.currentTotal],
+            borderRadius: 10,
+            backgroundColor: ['rgba(126, 155, 255, 0.58)', 'rgba(47, 198, 229, 0.68)'],
+            borderColor: ['rgba(126, 155, 255, 1)', 'rgba(47, 198, 229, 1)'],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+            },
+          },
+        },
+      },
+    });
+
+    const directionLabel =
+      comparison.deltaPct > 0 ? 'Naik' : comparison.deltaPct < 0 ? 'Turun' : 'Stabil (0%)';
+    if (advancedVizHelpEl) {
+      advancedVizHelpEl.textContent =
+        'Perbandingan otomatis antara setengah awal dan setengah akhir dari rentang tren aktif.';
+    }
+    renderAdvancedVizInsights([
+      {
+        title: 'Perubahan Total Respons',
+        value: `${directionLabel} ${formatNumber(Math.abs(comparison.deltaPct), 2)}%`,
+        note: `${formatNumber(comparison.previousTotal)} -> ${formatNumber(comparison.currentTotal)} respons`,
+        tone: comparison.deltaPct >= 0 ? 'good' : 'warn',
+      },
+      {
+        title: 'Rata-rata Harian Sebelumnya',
+        value: formatNumber(comparison.previousAvgDaily, 2),
+        note: `Dari ${formatNumber(comparison.previousCount)} hari awal pada rentang tren.`,
+      },
+      {
+        title: 'Rata-rata Harian Saat Ini',
+        value: formatNumber(comparison.currentAvgDaily, 2),
+        note: `Dari ${formatNumber(comparison.currentCount)} hari akhir pada rentang tren.`,
+        tone: comparison.currentAvgDaily >= comparison.previousAvgDaily ? 'good' : 'warn',
       },
     ]);
     return;
@@ -1222,6 +1443,7 @@ async function loadSummaryAndCharts() {
   renderAdvancedVizChart();
   renderContextInfo();
   updateCsvLink();
+  applyVisualCardVisibility();
 }
 
 async function loadResponses() {
@@ -2064,6 +2286,35 @@ function bindEvents() {
     renderAdvancedVizChart();
   });
 
+  visualVisibilityInputEls.forEach((input) => {
+    input.addEventListener('change', () => {
+      const key = String(input.dataset.visualCard || '').trim();
+      if (!key || !VISUAL_CARD_CONFIG[key]) return;
+      const nextVisibility = {
+        ...state.visualCardVisibility,
+        [key]: Boolean(input.checked),
+      };
+      if (countVisibleVisualCards(nextVisibility) < 1) {
+        input.checked = true;
+        setStatus('Minimal 1 panel visual harus tetap ditampilkan.', 'warning');
+        return;
+      }
+      state.visualCardVisibility = nextVisibility;
+      saveVisualCardVisibility();
+      applyVisualCardVisibility();
+      setStatus(`Tampilan visual diperbarui (${VISUAL_CARD_CONFIG[key].label}).`, 'success');
+    });
+  });
+
+  visualVisibilityResetBtnEl?.addEventListener('click', () => {
+    state.visualCardVisibility = createDefaultVisualCardVisibility();
+    saveVisualCardVisibility();
+    syncVisualVisibilityInputs();
+    applyVisualCardVisibility();
+    if (visualVisibilitySettingsEl) visualVisibilitySettingsEl.open = false;
+    setStatus('Tampilan visual dikembalikan ke default.', 'success');
+  });
+
   criteriaSummaryListEl?.addEventListener('click', (event) => {
     const chip = event.target.closest('.criteria-question-chip');
     if (!chip) return;
@@ -2130,6 +2381,7 @@ async function init() {
   backBuilderLink.href = `/forms/${state.tenantSlug}/admin/questionnaires/${state.questionnaireSlug}/builder/`;
   openFormLink.href = `/forms/${state.tenantSlug}/${state.questionnaireSlug}/`;
 
+  initializeVisualCardVisibility();
   bindEvents();
   setStatus('Memuat dashboard...', 'warning');
   await loadVersionOptions();

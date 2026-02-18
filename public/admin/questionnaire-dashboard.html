@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Kuesioner</title>
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-7" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-8" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -111,13 +111,29 @@
         <p class="small dashboard-context-note">
           Grafik hanya ditampilkan untuk pertanyaan tipe <strong>Skala</strong>, <strong>Pilihan</strong>, dan <strong>Pilihan Ganda</strong>. Pertanyaan teks masuk ke tabel respons dan analisis AI.
         </p>
+        <details id="visual-visibility-settings" class="dashboard-visibility-settings">
+          <summary>Atur Visual yang Ditampilkan</summary>
+          <div class="dashboard-visibility-settings__body">
+            <p class="small">Semua visual tampil default. Anda bisa sembunyikan panel yang belum dibutuhkan.</p>
+            <div class="dashboard-visibility-grid">
+              <label><input type="checkbox" data-visual-card="scaleAverage" checked /> Rata-rata Pertanyaan Skala</label>
+              <label><input type="checkbox" data-visual-card="radioDistribution" checked /> Pertanyaan Pilihan</label>
+              <label><input type="checkbox" data-visual-card="trend" checked /> Tren Respons Harian</label>
+              <label><input type="checkbox" data-visual-card="criteriaSummary" checked /> Analisis per Kriteria</label>
+              <label><input type="checkbox" data-visual-card="advancedViz" checked /> Visual Lanjutan</label>
+            </div>
+            <div class="dashboard-visibility-actions">
+              <button id="visual-visibility-reset-btn" type="button" class="ghost">Reset Tampilan Default</button>
+            </div>
+          </div>
+        </details>
         <div class="dashboard-chart-grid">
-          <article class="dashboard-chart-card">
+          <article id="card-scale-average" class="dashboard-chart-card">
             <h3>Rata-rata Pertanyaan Skala</h3>
             <p id="scale-question-help" class="small"></p>
             <canvas id="scale-average-chart" height="160"></canvas>
           </article>
-          <article class="dashboard-chart-card">
+          <article id="card-radio-distribution" class="dashboard-chart-card">
             <h3>Pertanyaan Pilihan (Terpilih)</h3>
             <label class="field">
               <span>Pilih pertanyaan pilihan</span>
@@ -126,11 +142,11 @@
             <p id="radio-question-help" class="small"></p>
             <canvas id="radio-distribution-chart" height="180"></canvas>
           </article>
-          <article class="dashboard-chart-card dashboard-chart-card--wide">
+          <article id="card-trend" class="dashboard-chart-card dashboard-chart-card--wide">
             <h3>Tren Respons Harian</h3>
             <canvas id="trend-chart" height="160"></canvas>
           </article>
-          <article class="dashboard-chart-card dashboard-chart-card--wide">
+          <article id="card-criteria-summary" class="dashboard-chart-card dashboard-chart-card--wide">
             <h3>Analisis per Kriteria</h3>
             <p id="criteria-summary-help" class="small"></p>
             <p class="small criteria-summary-note">
@@ -147,7 +163,7 @@
               <p id="question-detail-label">-</p>
             </div>
           </article>
-          <article class="dashboard-chart-card dashboard-chart-card--wide">
+          <article id="card-advanced-viz" class="dashboard-chart-card dashboard-chart-card--wide">
             <div class="dashboard-viz-head">
               <h3>Visual Lanjutan</h3>
               <div class="dashboard-viz-tabs" role="tablist" aria-label="Pilih jenis visual">
@@ -159,6 +175,9 @@
                 </button>
                 <button type="button" class="dashboard-viz-tab" data-viz-mode="weekly" role="tab" aria-selected="false">
                   Pola Mingguan
+                </button>
+                <button type="button" class="dashboard-viz-tab" data-viz-mode="period" role="tab" aria-selected="false">
+                  Banding Periode
                 </button>
               </div>
             </div>
@@ -250,6 +269,6 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
-    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-10"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-11"></script>
   </body>
 </html>
