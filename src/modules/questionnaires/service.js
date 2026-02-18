@@ -500,6 +500,156 @@ function buildCriteriaSummary(questions = []) {
     .sort((a, b) => a.criterion.localeCompare(b.criterion, 'id'));
 }
 
+function titleCaseSegmentKey(key = '') {
+  const text = String(key || '').trim();
+  if (!text) return 'Dimensi';
+  return text
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map((word) => (word ? `${word.slice(0, 1).toUpperCase()}${word.slice(1)}` : ''))
+    .join(' ');
+}
+
+function normalizeSegmentBucketValue(rawValue) {
+  if (rawValue === null || rawValue === undefined) return '';
+  if (Array.isArray(rawValue)) {
+    const compact = rawValue
+      .map((item) => String(item ?? '').trim())
+      .filter((item) => item)
+      .join(', ');
+    return compact.length > 80 ? `${compact.slice(0, 77)}...` : compact;
+  }
+  const text = String(rawValue).trim();
+  if (!text) return '';
+  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
+}
+
+function buildCriterionSegmentDimension(criteriaSummary = []) {
+  const rows = Array.isArray(criteriaSummary) ? criteriaSummary : [];
+  if (!rows.length) return null;
+  const buckets = rows.map((row) => ({
+    label: String(row.criterion || 'Tanpa Kriteria'),
+    total: Number(row.totalScaleAnswered || 0),
+    totalQuestions: Number(row.totalQuestions || 0),
+    totalScaleQuestions: Number(row.totalScaleQuestions || 0),
+    avgScale: Number(row.avgScale || 0),
+  }));
+  return {
+    id: 'criteria',
+    kind: 'criteria',
+    label: 'Kriteria Soal',
+    metric: 'avg_scale',
+    buckets,
+  };
+}
+
+function buildScoreBandSegmentDimension(fields = [], responseRows = []) {
+  const scaleNames = (Array.isArray(fields) ? fields : [])
+    .filter((field) => String(field?.type || '').trim() === 'scale')
+    .map((field) => String(field.name || '').trim())
+    .filter((name) => name);
+  if (!scaleNames.length) return null;
+
+  const bandMap = new Map([
+    ['low', { label: 'Rendah (<=2.5)', total: 0 }],
+    ['mid', { label: 'Sedang (>2.5 - <4)', total: 0 }],
+    ['high', { label: 'Tinggi (>=4)', total: 0 }],
+  ]);
+
+  (Array.isArray(responseRows) ? responseRows : []).forEach((row) => {
+    let answered = 0;
+    let sum = 0;
+    scaleNames.forEach((name) => {
+      const parsed = Number(row?.answers?.[name]);
+      if (!Number.isFinite(parsed)) return;
+      if (parsed < 1 || parsed > 5) return;
+      answered += 1;
+      sum += parsed;
+    });
+    if (answered <= 0) return;
+    const avg = sum / answered;
+    const bucketId = avg >= 4 ? 'high' : avg > 2.5 ? 'mid' : 'low';
+    const bucket = bandMap.get(bucketId);
+    if (!bucket) return;
+    bucket.total += 1;
+  });
+
+  const buckets = Array.from(bandMap.values());
+  const total = buckets.reduce((sum, item) => sum + Number(item.total || 0), 0);
+  if (total <= 0) return null;
+  return {
+    id: 'score_band',
+    kind: 'derived',
+    label: 'Band Skor Respons',
+    metric: 'count',
+    buckets: buckets.map((item) => ({
+      label: item.label,
+      total: Number(item.total || 0),
+    })),
+  };
+}
+
+function buildRespondentSegmentDimensions(responseRows = []) {
+  const rows = Array.isArray(responseRows) ? responseRows : [];
+  if (!rows.length) return [];
+
+  const valueMaps = new Map();
+  rows.forEach((row) => {
+    const respondent = row?.respondent && typeof row.respondent === 'object' ? row.respondent : {};
+    Object.entries(respondent).forEach(([key, rawValue]) => {
+      const normalizedValue = normalizeSegmentBucketValue(rawValue);
+      if (!normalizedValue) return;
+      if (!valueMaps.has(key)) valueMaps.set(key, new Map());
+      const map = valueMaps.get(key);
+      map.set(normalizedValue, Number(map.get(normalizedValue) || 0) + 1);
+    });
+  });
+
+  const dimensions = [];
+  valueMaps.forEach((valueMap, key) => {
+    const entries = Array.from(valueMap.entries()).map(([value, total]) => ({ label: value, total: Number(total || 0) }));
+    const uniqueCount = entries.length;
+    if (uniqueCount < 2 || uniqueCount > 12) return;
+    const answeredCount = entries.reduce((sum, item) => sum + item.total, 0);
+    if (answeredCount < 2) return;
+    const buckets = entries.sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, 'id'));
+
+    dimensions.push({
+      id: `respondent:${key}`,
+      kind: 'respondent',
+      label: titleCaseSegmentKey(key),
+      key,
+      metric: 'count',
+      buckets,
+    });
+  });
+
+  return dimensions.sort((a, b) => {
+    const aTop = Number(a.buckets?.[0]?.total || 0);
+    const bTop = Number(b.buckets?.[0]?.total || 0);
+    if (aTop !== bTop) return bTop - aTop;
+    return String(a.label || '').localeCompare(String(b.label || ''), 'id');
+  });
+}
+
+function buildSegmentSummary(fields = [], responseRows = [], criteriaSummary = []) {
+  const dimensions = [];
+  const criterionDimension = buildCriterionSegmentDimension(criteriaSummary);
+  if (criterionDimension) dimensions.push(criterionDimension);
+
+  const scoreBandDimension = buildScoreBandSegmentDimension(fields, responseRows);
+  if (scoreBandDimension) dimensions.push(scoreBandDimension);
+
+  const respondentDimensions = buildRespondentSegmentDimensions(responseRows);
+  dimensions.push(...respondentDimensions);
+
+  return {
+    totalDimensions: dimensions.length,
+    dimensions,
+  };
+}
+
 function resolveVersionFields(version) {
   const fields = Array.isArray(version?.schema?.fields) ? version.schema.fields : [];
   return fields
@@ -628,11 +778,13 @@ function computeDistribution(fields, responseRows) {
   }
 
   const criteriaSummary = buildCriteriaSummary(byQuestion);
+  const segmentSummary = buildSegmentSummary(fields, responseRows, criteriaSummary);
   return {
     byQuestion,
     questionAverages,
     scaleAverages,
     criteriaSummary,
+    segmentSummary,
     totalQuestionsWithCriterion,
     avgScaleOverall: totalScaleQuestions > 0 ? Number((totalScaleAverage / totalScaleQuestions).toFixed(2)) : 0,
     totalRadioAnswers: totalChoiceAnswers,
@@ -854,6 +1006,7 @@ export async function getTenantQuestionnaireAnalyticsSummary(env, tenantId, ques
       questionAverages: distribution.questionAverages,
       scaleAverages: distribution.scaleAverages,
       criteriaSummary: distribution.criteriaSummary,
+      segmentSummary: distribution.segmentSummary,
       totalQuestionsWithCriterion: distribution.totalQuestionsWithCriterion,
     },
   };
@@ -886,6 +1039,7 @@ export async function getTenantQuestionnaireAnalyticsDistribution(env, tenantId,
       questionAverages: distribution.questionAverages,
       scaleAverages: distribution.scaleAverages,
       criteriaSummary: distribution.criteriaSummary,
+      segmentSummary: distribution.segmentSummary,
       totalQuestionsWithCriterion: distribution.totalQuestionsWithCriterion,
     },
   };

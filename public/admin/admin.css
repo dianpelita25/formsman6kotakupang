@@ -1414,6 +1414,27 @@ pre {
   color: #ffffff;
 }
 
+.questionnaire-dashboard-page .segment-controls {
+  margin: 8px 0 8px;
+}
+
+.questionnaire-dashboard-page .segment-controls[hidden] {
+  display: none !important;
+}
+
+.questionnaire-dashboard-page .segment-controls .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(460px, 100%);
+}
+
+.questionnaire-dashboard-page .segment-controls .field span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .questionnaire-dashboard-page .dashboard-chart-card canvas {
   width: 100%;
   max-height: 220px;

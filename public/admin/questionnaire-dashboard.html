@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Kuesioner</title>
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-10" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-11" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -195,7 +195,16 @@
                 <button type="button" class="dashboard-viz-tab" data-viz-mode="period" role="tab" aria-selected="false">
                   Banding Periode
                 </button>
+                <button type="button" class="dashboard-viz-tab" data-viz-mode="segment" role="tab" aria-selected="false">
+                  Segmentasi
+                </button>
               </div>
+            </div>
+            <div id="segment-controls" class="segment-controls" hidden>
+              <label class="field">
+                <span>Dimensi Segmentasi</span>
+                <select id="segment-dimension-select"></select>
+              </label>
             </div>
             <p id="advanced-viz-help" class="small">
               Panel ini menyajikan visual tambahan berbasis data yang sama, agar pembacaan hasil lebih cepat dan tidak panjang.
@@ -285,6 +294,6 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
-    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-13"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-14"></script>
   </body>
 </html>
