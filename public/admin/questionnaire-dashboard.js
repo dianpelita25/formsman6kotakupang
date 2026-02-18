@@ -946,6 +946,7 @@ async function loadAiLatest() {
 
 async function runAiAnalysis() {
   await runWithButtonLoading(aiRunBtn, 'Menganalisis...', async () => {
+    const previousAnalysisText = String(state.latestAi?.analysis || '').trim();
     aiPdfBtn.disabled = true;
     startAiProgressIndicator();
     setAiOutput('Sedang memproses analisis AI. Mohon tunggu...');
@@ -972,6 +973,15 @@ async function runAiAnalysis() {
       aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
       setStatus('Analisis AI selesai diproses.', 'success');
       setError(null);
+    } catch (error) {
+      if (previousAnalysisText) {
+        setAiOutput(previousAnalysisText);
+        aiPdfBtn.disabled = false;
+      } else {
+        setAiOutput('Analisis gagal dijalankan. Periksa status error lalu coba lagi.');
+        aiPdfBtn.disabled = true;
+      }
+      throw error;
     } finally {
       stopAiProgressIndicator();
     }
