@@ -729,11 +729,22 @@ function updateCsvLink() {
   exportCsvLink.href = `${baseApiPath()}/responses/export.csv${params.toString() ? `?${params.toString()}` : ''}`;
 }
 
+function ensureSelectedVersionExists() {
+  const selected = String(filterVersionEl?.value || '').trim();
+  if (!selected) return;
+  const available = Array.isArray(state.availableVersions) ? state.availableVersions : [];
+  const exists = available.some((version) => String(version.id || '').trim() === selected);
+  if (exists) return;
+  if (filterVersionEl) filterVersionEl.value = '';
+  state.selectedVersionId = '';
+}
+
 async function refreshDashboardData({
   startMessage = 'Memuat data dashboard sesuai filter...',
   successMessage = 'Dashboard berhasil diperbarui.',
   keepPage = false,
 } = {}) {
+  ensureSelectedVersionExists();
   if (!validateDateRange()) return false;
   if (!keepPage) state.page = 1;
   try {
