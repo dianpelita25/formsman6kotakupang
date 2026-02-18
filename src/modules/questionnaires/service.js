@@ -544,11 +544,15 @@ function buildCriterionSegmentDimension(criteriaSummary = []) {
   };
 }
 
-function buildScoreBandSegmentDimension(fields = [], responseRows = []) {
-  const scaleNames = (Array.isArray(fields) ? fields : [])
+function resolveScaleFieldNames(fields = []) {
+  return (Array.isArray(fields) ? fields : [])
     .filter((field) => String(field?.type || '').trim() === 'scale')
-    .map((field) => String(field.name || '').trim())
+    .map((field) => String(field?.name || '').trim())
     .filter((name) => name);
+}
+
+function buildScoreBandSegmentDimension(fields = [], responseRows = []) {
+  const scaleNames = resolveScaleFieldNames(fields);
   if (!scaleNames.length) return null;
 
   const bandMap = new Map([
@@ -590,37 +594,199 @@ function buildScoreBandSegmentDimension(fields = [], responseRows = []) {
   };
 }
 
-function buildRespondentSegmentDimensions(responseRows = []) {
+function buildRowScaleAverages(responseRows = [], scaleNames = []) {
+  const rows = Array.isArray(responseRows) ? responseRows : [];
+  const names = Array.isArray(scaleNames) ? scaleNames.filter(Boolean) : [];
+  if (!rows.length || !names.length) return new Array(rows.length).fill(null);
+
+  return rows.map((row) => {
+    let answered = 0;
+    let sum = 0;
+    names.forEach((name) => {
+      const parsed = Number(row?.answers?.[name]);
+      if (!Number.isFinite(parsed)) return;
+      if (parsed < 1 || parsed > 5) return;
+      answered += 1;
+      sum += parsed;
+    });
+    if (answered <= 0) return null;
+    return sum / answered;
+  });
+}
+
+function collectSegmentAnswerValues(field = null, rawValue = null) {
+  const type = String(field?.type || '').trim();
+  if (type === 'checkbox') {
+    return Array.from(
+      new Set(
+        parseChoiceValues(rawValue)
+          .map((value) => normalizeSegmentBucketValue(value))
+          .filter(Boolean)
+      )
+    );
+  }
+  const normalized = normalizeSegmentBucketValue(rawValue);
+  return normalized ? [normalized] : [];
+}
+
+function buildQuestionSegmentDimensions(fields = [], responseRows = [], scaleNames = []) {
   const rows = Array.isArray(responseRows) ? responseRows : [];
   if (!rows.length) return [];
 
+  const candidates = (Array.isArray(fields) ? fields : [])
+    .filter((field) => {
+      const type = String(field?.type || '').trim();
+      return type === 'radio' || type === 'checkbox' || type === 'text';
+    })
+    .map((field, index) => ({ ...field, _index: index }));
+  if (!candidates.length) return [];
+
+  const rowScaleAverages = buildRowScaleAverages(rows, scaleNames);
+  const dimensions = [];
+
+  candidates.forEach((field) => {
+    const valueMap = new Map();
+
+    rows.forEach((row, rowIndex) => {
+      const values = collectSegmentAnswerValues(field, row?.answers?.[field.name]);
+      if (!values.length) return;
+      const rowScaleAvg = rowScaleAverages[rowIndex];
+
+      values.forEach((value) => {
+        if (!valueMap.has(value)) {
+          valueMap.set(value, {
+            label: value,
+            total: 0,
+            totalScaleAnswered: 0,
+            scaleWeightedSum: 0,
+          });
+        }
+        const bucket = valueMap.get(value);
+        bucket.total += 1;
+        if (Number.isFinite(rowScaleAvg)) {
+          bucket.totalScaleAnswered += 1;
+          bucket.scaleWeightedSum += rowScaleAvg;
+        }
+      });
+    });
+
+    const entries = Array.from(valueMap.values());
+    const uniqueCount = entries.length;
+    if (uniqueCount < 2 || uniqueCount > 12) return;
+
+    const answeredCount = entries.reduce((sum, entry) => sum + Number(entry.total || 0), 0);
+    if (answeredCount < 2) return;
+
+    // Free-text with very high uniqueness is likely essay content, not segmentation.
+    if (String(field.type || '').trim() === 'text' && uniqueCount / Math.max(answeredCount, 1) > 0.6) return;
+
+    const hasScaleSignal = entries.some((entry) => Number(entry.totalScaleAnswered || 0) > 0);
+    const metric = hasScaleSignal ? 'avg_scale' : 'count';
+    const buckets = entries
+      .map((entry) => ({
+        label: String(entry.label || '-'),
+        total: Number(entry.total || 0),
+        totalScaleAnswered: Number(entry.totalScaleAnswered || 0),
+        avgScale:
+          Number(entry.totalScaleAnswered || 0) > 0
+            ? Number((entry.scaleWeightedSum / entry.totalScaleAnswered).toFixed(2))
+            : 0,
+      }))
+      .sort((a, b) => {
+        if (metric === 'avg_scale') {
+          if (b.avgScale !== a.avgScale) return b.avgScale - a.avgScale;
+          if (b.total !== a.total) return b.total - a.total;
+        } else if (b.total !== a.total) {
+          return b.total - a.total;
+        }
+        return a.label.localeCompare(b.label, 'id');
+      });
+
+    const questionCode = String(field?.questionCode || resolveQuestionCode(field, field._index || 0)).trim();
+    const labelText = String(field?.label || '').trim();
+    const label = questionCode && labelText ? `${questionCode} - ${labelText}` : questionCode || labelText || field.name;
+    dimensions.push({
+      id: `question:${field.name}`,
+      kind: 'question',
+      label,
+      key: field.name,
+      questionCode,
+      metric,
+      buckets,
+    });
+  });
+
+  return dimensions.sort((a, b) => {
+    const aCoverage = (Array.isArray(a.buckets) ? a.buckets : []).reduce((sum, bucket) => sum + Number(bucket.total || 0), 0);
+    const bCoverage = (Array.isArray(b.buckets) ? b.buckets : []).reduce((sum, bucket) => sum + Number(bucket.total || 0), 0);
+    if (aCoverage !== bCoverage) return bCoverage - aCoverage;
+    return String(a.label || '').localeCompare(String(b.label || ''), 'id');
+  });
+}
+
+function buildRespondentSegmentDimensions(responseRows = [], scaleNames = []) {
+  const rows = Array.isArray(responseRows) ? responseRows : [];
+  if (!rows.length) return [];
+
+  const rowScaleAverages = buildRowScaleAverages(rows, scaleNames);
   const valueMaps = new Map();
-  rows.forEach((row) => {
+  rows.forEach((row, rowIndex) => {
     const respondent = row?.respondent && typeof row.respondent === 'object' ? row.respondent : {};
+    const rowScaleAvg = rowScaleAverages[rowIndex];
     Object.entries(respondent).forEach(([key, rawValue]) => {
       const normalizedValue = normalizeSegmentBucketValue(rawValue);
       if (!normalizedValue) return;
       if (!valueMaps.has(key)) valueMaps.set(key, new Map());
       const map = valueMaps.get(key);
-      map.set(normalizedValue, Number(map.get(normalizedValue) || 0) + 1);
+      if (!map.has(normalizedValue)) {
+        map.set(normalizedValue, {
+          label: normalizedValue,
+          total: 0,
+          totalScaleAnswered: 0,
+          scaleWeightedSum: 0,
+        });
+      }
+      const bucket = map.get(normalizedValue);
+      bucket.total += 1;
+      if (Number.isFinite(rowScaleAvg)) {
+        bucket.totalScaleAnswered += 1;
+        bucket.scaleWeightedSum += rowScaleAvg;
+      }
     });
   });
 
   const dimensions = [];
   valueMaps.forEach((valueMap, key) => {
-    const entries = Array.from(valueMap.entries()).map(([value, total]) => ({ label: value, total: Number(total || 0) }));
+    const entries = Array.from(valueMap.values()).map((entry) => ({
+      label: String(entry.label || '-'),
+      total: Number(entry.total || 0),
+      totalScaleAnswered: Number(entry.totalScaleAnswered || 0),
+      avgScale:
+        Number(entry.totalScaleAnswered || 0) > 0
+          ? Number((entry.scaleWeightedSum / entry.totalScaleAnswered).toFixed(2))
+          : 0,
+    }));
     const uniqueCount = entries.length;
     if (uniqueCount < 2 || uniqueCount > 12) return;
     const answeredCount = entries.reduce((sum, item) => sum + item.total, 0);
     if (answeredCount < 2) return;
-    const buckets = entries.sort((a, b) => b.total - a.total || a.label.localeCompare(b.label, 'id'));
+    const metric = entries.some((entry) => Number(entry.totalScaleAnswered || 0) > 0) ? 'avg_scale' : 'count';
+    const buckets = entries.sort((a, b) => {
+      if (metric === 'avg_scale') {
+        if (b.avgScale !== a.avgScale) return b.avgScale - a.avgScale;
+        if (b.total !== a.total) return b.total - a.total;
+      } else if (b.total !== a.total) {
+        return b.total - a.total;
+      }
+      return a.label.localeCompare(b.label, 'id');
+    });
 
     dimensions.push({
       id: `respondent:${key}`,
       kind: 'respondent',
       label: titleCaseSegmentKey(key),
       key,
-      metric: 'count',
+      metric,
       buckets,
     });
   });
@@ -635,14 +801,19 @@ function buildRespondentSegmentDimensions(responseRows = []) {
 
 function buildSegmentSummary(fields = [], responseRows = [], criteriaSummary = []) {
   const dimensions = [];
+  const scaleNames = resolveScaleFieldNames(fields);
+
+  const questionDimensions = buildQuestionSegmentDimensions(fields, responseRows, scaleNames);
+  dimensions.push(...questionDimensions);
+
+  const respondentDimensions = buildRespondentSegmentDimensions(responseRows, scaleNames);
+  dimensions.push(...respondentDimensions);
+
   const criterionDimension = buildCriterionSegmentDimension(criteriaSummary);
   if (criterionDimension) dimensions.push(criterionDimension);
 
   const scoreBandDimension = buildScoreBandSegmentDimension(fields, responseRows);
   if (scoreBandDimension) dimensions.push(scoreBandDimension);
-
-  const respondentDimensions = buildRespondentSegmentDimensions(responseRows);
-  dimensions.push(...respondentDimensions);
 
   return {
     totalDimensions: dimensions.length,

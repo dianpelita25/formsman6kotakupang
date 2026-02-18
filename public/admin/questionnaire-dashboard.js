@@ -946,7 +946,16 @@ function findSegmentDimensionById(dimensionId) {
 function formatSegmentDimensionOptionLabel(dimension) {
   const kind = String(dimension?.kind || '').trim();
   const metric = String(dimension?.metric || '').trim();
-  const kindLabel = kind === 'criteria' ? 'Kriteria' : kind === 'respondent' ? 'Profil' : kind === 'derived' ? 'Turunan' : 'Dimensi';
+  const kindLabel =
+    kind === 'criteria'
+      ? 'Kriteria'
+      : kind === 'respondent'
+        ? 'Profil'
+        : kind === 'question'
+          ? 'Pertanyaan'
+          : kind === 'derived'
+            ? 'Turunan'
+            : 'Dimensi';
   const metricLabel = metric === 'avg_scale' ? 'rata-rata' : 'jumlah';
   return `${dimension.label} (${kindLabel} | ${metricLabel})`;
 }
