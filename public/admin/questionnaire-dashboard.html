@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Kuesioner</title>
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-4" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <nav class="global-nav">
+      <div class="global-nav__inner">
+        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
+        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
+        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+        <button class="global-nav__logout" type="button">Logout</button>
+      </div>
+    </nav>
+
+    <main class="container questionnaire-dashboard-page">
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h1 id="dashboard-title">Dashboard Kuesioner</h1>
+            <p id="dashboard-subtitle" class="small">Memuat data dashboard...</p>
+          </div>
+          <div class="row">
+            <a id="back-builder-link" href="#" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+              >Buka Builder</a
+            >
+            <a id="open-form-link" href="#" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+              >Buka Form Publik</a
+            >
+            <a id="export-csv-link" href="#" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+              >Export CSV</a
+            >
+          </div>
+        </div>
+        <p id="dashboard-inline-status" class="status dashboard-inline-status" aria-live="polite"></p>
+
+        <div class="dashboard-filter-grid">
+          <label class="field">
+            <span>Versi Data</span>
+            <select id="filter-version">
+              <option value="">Versi Publish Aktif</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Dari tanggal</span>
+            <input id="filter-from" type="date" />
+          </label>
+          <label class="field">
+            <span>Sampai tanggal</span>
+            <input id="filter-to" type="date" />
+          </label>
+          <label class="field">
+            <span>Rentang tren (hari)</span>
+            <input id="filter-days" type="number" min="7" max="365" value="30" />
+          </label>
+          <button id="apply-filter-btn" type="button">Terapkan Filter</button>
+        </div>
+        <div class="dashboard-context-grid">
+          <article class="dashboard-context-card">
+            <p class="small">Versi Data Aktif</p>
+            <strong id="context-version">-</strong>
+          </article>
+          <article class="dashboard-context-card">
+            <p class="small">Total Pertanyaan</p>
+            <strong id="context-total-questions">0</strong>
+          </article>
+          <article class="dashboard-context-card">
+            <p class="small">Skala / Pilihan / Pilihan Ganda / Teks</p>
+            <strong id="context-question-types">0 / 0 / 0 / 0</strong>
+          </article>
+        </div>
+        <p id="context-note" class="small dashboard-context-note"></p>
+      </section>
+
+      <section class="panel">
+        <div class="dashboard-kpi-grid">
+          <article class="dashboard-kpi-card">
+            <p>Total Respons</p>
+            <h2 id="kpi-total">0</h2>
+          </article>
+          <article class="dashboard-kpi-card">
+            <p>Respons Hari Ini</p>
+            <h2 id="kpi-today">0</h2>
+          </article>
+          <article class="dashboard-kpi-card">
+            <p>Skor Rata-rata Skala</p>
+            <h2 id="kpi-scale">0.00</h2>
+          </article>
+          <article class="dashboard-kpi-card">
+            <p>Submit Terakhir</p>
+            <h2 id="kpi-last">-</h2>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Distribusi Jawaban</h2>
+        <p class="small dashboard-context-note">
+          Grafik hanya ditampilkan untuk pertanyaan tipe <strong>Skala</strong>, <strong>Pilihan</strong>, dan <strong>Pilihan Ganda</strong>. Pertanyaan teks masuk ke tabel respons dan analisis AI.
+        </p>
+        <div class="dashboard-chart-grid">
+          <article class="dashboard-chart-card">
+            <h3>Rata-rata Pertanyaan Skala</h3>
+            <p id="scale-question-help" class="small"></p>
+            <canvas id="scale-average-chart" height="160"></canvas>
+          </article>
+          <article class="dashboard-chart-card">
+            <h3>Pertanyaan Pilihan (Terpilih)</h3>
+            <label class="field">
+              <span>Pilih pertanyaan pilihan</span>
+              <select id="radio-question-select"></select>
+            </label>
+            <p id="radio-question-help" class="small"></p>
+            <canvas id="radio-distribution-chart" height="180"></canvas>
+          </article>
+          <article class="dashboard-chart-card dashboard-chart-card--wide">
+            <h3>Tren Respons Harian</h3>
+            <canvas id="trend-chart" height="160"></canvas>
+          </article>
+          <article class="dashboard-chart-card dashboard-chart-card--wide">
+            <h3>Analisis per Kriteria</h3>
+            <p id="criteria-summary-help" class="small"></p>
+            <div id="criteria-summary-list" class="criteria-summary-list"></div>
+            <div id="question-detail-panel" class="question-detail-panel" hidden>
+              <p class="small">Detail Soal Terpilih</p>
+              <h4 id="question-detail-code">-</h4>
+              <p id="question-detail-criterion" class="small">-</p>
+              <p id="question-detail-label">-</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Daftar Respons</h2>
+            <p class="small">Menampilkan data per halaman agar tetap ringan.</p>
+          </div>
+          <div class="row">
+            <input id="response-search" placeholder="Cari jawaban..." />
+            <button id="response-search-btn" type="button" class="ghost">Cari</button>
+          </div>
+        </div>
+        <div class="table-wrap dashboard-responses-wrap">
+          <div class="table-scroll">
+            <table class="dashboard-responses-table">
+              <thead>
+                <tr>
+                  <th>Waktu</th>
+                  <th>Responden</th>
+                  <th>Jawaban</th>
+                </tr>
+              </thead>
+              <tbody id="responses-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 10px; justify-content: space-between">
+          <p class="small" id="responses-page-info">Halaman 1</p>
+          <div class="row">
+            <button id="responses-prev-btn" type="button" class="ghost">Sebelumnya</button>
+            <button id="responses-next-btn" type="button" class="ghost">Berikutnya</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Analisis AI</h2>
+            <p class="small">Analisis berjalan manual agar biaya dan kualitas tetap terkontrol.</p>
+          </div>
+          <div class="row">
+            <label class="field" style="min-width: 220px">
+              <span>Mode Analisis</span>
+              <select id="ai-mode">
+                <option value="internal">Internal</option>
+                <option value="external_pemerintah">External Pemerintah</option>
+                <option value="external_mitra">External Mitra</option>
+                <option value="live_guru">Live Guru</option>
+              </select>
+            </label>
+            <button id="ai-load-btn" type="button" class="ghost">Muat Terakhir</button>
+            <button id="ai-run-btn" type="button">Jalankan Analisis</button>
+            <button id="ai-pdf-btn" type="button" class="secondary" disabled>Unduh PDF Analisis</button>
+          </div>
+        </div>
+        <pre id="ai-output">Belum ada analisis.</pre>
+      </section>
+
+      <section class="panel">
+        <div class="status-panel">
+          <h3>Status Dashboard</h3>
+          <p id="status" class="status" aria-live="polite"></p>
+          <pre id="error-debug">Belum ada error.</pre>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard.js?v=20260218-3"></script>
+  </body>
+</html>

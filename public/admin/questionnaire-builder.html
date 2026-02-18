@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Builder Kuesioner</title>
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260218-3" />
+  </head>
+  <body>
+    <nav class="global-nav">
+      <div class="global-nav__inner">
+        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
+        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
+        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+        <button class="global-nav__logout" type="button">Logout</button>
+      </div>
+    </nav>
+
+    <main class="container builder-page">
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h1>Builder Kuesioner</h1>
+            <p id="builder-subtitle" class="small">Memuat kuesioner...</p>
+          </div>
+          <div class="row">
+            <a id="back-panel-link" class="ghost" href="#" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+              >Kembali ke Panel</a
+            >
+            <a
+              id="open-dashboard-link"
+              class="ghost"
+              href="#"
+              style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+              >Buka Dashboard</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="builder-steps" role="tablist" aria-label="Langkah Builder">
+          <button type="button" class="builder-step is-active" data-step-target="info">1. Info</button>
+          <button type="button" class="builder-step" data-step-target="pertanyaan">2. Pertanyaan</button>
+          <button type="button" class="builder-step" data-step-target="pratinjau">3. Pratinjau</button>
+          <button type="button" class="builder-step" data-step-target="publikasi">4. Publikasi</button>
+        </div>
+        <p id="status-inline" class="status builder-inline-status" aria-live="polite"></p>
+
+        <section class="builder-step-panel is-active" data-step-panel="info">
+          <h2>Info Kuesioner</h2>
+          <p class="small">Judul dan sapaan ini akan tampil di halaman publik.</p>
+          <div class="builder-form-grid">
+            <label class="field field-block">
+              <span>Judul Kuesioner</span>
+              <input id="meta-title" placeholder="Contoh: Evaluasi Pelatihan Guru" />
+            </label>
+            <label class="field">
+              <span>Judul Sapaan</span>
+              <input id="meta-greeting-title" placeholder="Contoh: Salam Hormat," />
+            </label>
+            <label class="field field-block">
+              <span>Teks Sapaan</span>
+              <textarea id="meta-greeting-text" class="builder-textarea" placeholder="Tulis pengantar singkat untuk responden..."></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="builder-step-panel" data-step-panel="pertanyaan" hidden>
+          <div class="section-head">
+            <div>
+              <h2>Susun Pertanyaan</h2>
+              <p class="small">
+                MVP mendukung 4 tipe: teks, pilihan tunggal, pilihan ganda, dan skala 1-5. Kriteria pertanyaan bersifat
+                opsional, namun disarankan agar analisis dashboard lebih presisi.
+              </p>
+            </div>
+          </div>
+
+          <div class="builder-add-question">
+            <label class="field">
+              <span>Label Pertanyaan</span>
+              <input id="new-question-label" placeholder="Contoh: Seberapa puas Anda?" />
+            </label>
+            <label class="field">
+              <span>Tipe</span>
+              <select id="new-question-type">
+                <option value="text">Teks</option>
+                <option value="radio">Pilihan Tunggal</option>
+                <option value="checkbox">Pilihan Ganda (Centang)</option>
+                <option value="scale">Skala 1-5</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Kriteria (opsional, disarankan)</span>
+              <input id="new-question-criterion" placeholder="Contoh: A / B / C" />
+            </label>
+            <label class="builder-required-toggle builder-required-toggle--composer">
+              <input id="new-question-required" type="checkbox" checked />
+              <span>Wajib diisi</span>
+            </label>
+            <label class="field" id="new-question-options-wrap">
+              <span>Opsi Pilihan (pisahkan koma)</span>
+              <input id="new-question-options" placeholder="Sangat setuju, Setuju, Netral, Tidak setuju" />
+            </label>
+            <label class="field" id="new-question-from-wrap" hidden>
+              <span>Label Skala Kiri</span>
+              <input id="new-question-from" placeholder="Tidak setuju" />
+            </label>
+            <label class="field" id="new-question-to-wrap" hidden>
+              <span>Label Skala Kanan</span>
+              <input id="new-question-to" placeholder="Sangat setuju" />
+            </label>
+            <button id="add-question-btn" type="button">Tambah Pertanyaan</button>
+          </div>
+
+          <div id="question-list" class="builder-question-list" aria-live="polite"></div>
+        </section>
+
+        <section class="builder-step-panel" data-step-panel="pratinjau" hidden>
+          <h2>Pratinjau</h2>
+          <p class="small">Cek hasil sebelum menyimpan/publish.</p>
+          <div class="builder-preview">
+            <div class="builder-preview-meta">
+              <h3 id="preview-title">-</h3>
+              <p id="preview-greeting-title" class="builder-preview-greeting-title">-</p>
+              <p id="preview-greeting-text" class="small">-</p>
+            </div>
+            <ol id="preview-fields" class="builder-preview-fields"></ol>
+          </div>
+        </section>
+
+        <section class="builder-step-panel" data-step-panel="publikasi" hidden>
+          <h2>Publikasi</h2>
+          <p class="small">Publish akan menyimpan perubahan terbaru secara otomatis sebelum rilis.</p>
+          <div id="publish-warning" class="builder-warning" hidden></div>
+          <div id="publish-result" class="builder-publish-result" hidden>
+            <strong id="publish-result-title">Publikasi berhasil.</strong>
+            <p id="publish-result-message" class="small"></p>
+            <div class="row">
+              <a id="publish-result-form-link" class="ghost" href="#" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+                >Buka Form Publik</a
+              >
+              <a
+                id="publish-result-dashboard-link"
+                class="ghost"
+                href="#"
+                style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
+                >Buka Dashboard</a
+              >
+            </div>
+          </div>
+          <div class="row">
+            <button id="reload-draft-btn" type="button" class="ghost">Reload Draf</button>
+            <button id="save-draft-btn" type="button">Simpan Draf</button>
+            <button id="publish-btn" type="button" class="secondary">Publikasikan</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <details>
+          <summary class="builder-advanced-summary">Mode Lanjutan (JSON)</summary>
+          <p class="small">
+            Mode ini untuk pengguna teknis. Perubahan key/tipe pada kuesioner yang sudah punya respons dapat mengubah interpretasi data.
+          </p>
+          <textarea id="advanced-json" class="builder-advanced-json"></textarea>
+          <div class="row">
+            <button id="apply-advanced-btn" type="button" class="ghost">Terapkan dari JSON</button>
+            <button id="sync-advanced-btn" type="button" class="ghost">Sinkronkan JSON</button>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="status-panel">
+          <h3>Status Builder</h3>
+          <p id="status" class="status" aria-live="polite"></p>
+          <pre id="error-debug">Belum ada error.</pre>
+        </div>
+        <div class="field-block">
+          <h3 class="subsection-title">Aktivitas Terakhir</h3>
+          <ul id="activity-feed" class="activity-feed"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-builder.js?v=20260218-5"></script>
+  </body>
+</html>
