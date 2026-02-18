@@ -1047,6 +1047,22 @@ pre {
   color: #d9ebff;
 }
 
+.questionnaire-dashboard-page .dashboard-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -6px 0 12px;
+}
+
+.questionnaire-dashboard-page .dashboard-inline-actions[hidden] {
+  display: none !important;
+}
+
+.questionnaire-dashboard-page #dashboard-retry-btn {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 .questionnaire-dashboard-page .dashboard-inline-status.success {
   color: #9effd9;
   border-color: rgba(52, 227, 185, 0.45);
@@ -1358,6 +1374,11 @@ pre {
 
   .questionnaire-dashboard-page .dashboard-kpi-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .questionnaire-dashboard-page .dashboard-inline-actions {
+    justify-content: flex-start;
+    margin-top: -2px;
   }
 
   .questionnaire-dashboard-page .dashboard-chart-card,

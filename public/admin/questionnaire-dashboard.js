@@ -10,6 +10,8 @@ const titleEl = document.getElementById('dashboard-title');
 const subtitleEl = document.getElementById('dashboard-subtitle');
 const statusEl = document.getElementById('status');
 const inlineStatusEl = document.getElementById('dashboard-inline-status');
+const inlineActionsEl = document.getElementById('dashboard-inline-actions');
+const retryBtnEl = document.getElementById('dashboard-retry-btn');
 const errorDebugEl = document.getElementById('error-debug');
 
 const backBuilderLink = document.getElementById('back-builder-link');
@@ -104,9 +106,16 @@ function baseApiPath() {
   return `/forms/${encodeURIComponent(state.tenantSlug)}/admin/api/questionnaires/${encodeURIComponent(state.questionnaireSlug)}`;
 }
 
-function setStatus(message, kind = 'info') {
+function setRetryActionVisibility(visible = false) {
+  if (!inlineActionsEl) return;
+  inlineActionsEl.hidden = !visible;
+}
+
+function setStatus(message, kind = 'info', options = {}) {
+  const { retry = false } = options || {};
   setInlineStatus(statusEl, message, kind);
   setInlineStatus(inlineStatusEl, message, kind);
+  setRetryActionVisibility(Boolean(retry));
 }
 
 function setError(error = null) {
@@ -154,11 +163,28 @@ function toActionableErrorMessage(normalized = {}) {
   return base;
 }
 
+function canRetryFromError(normalized = {}) {
+  const status = Number(normalized.status || 0);
+  const path = String(normalized.path || '').trim();
+  if (status === 0) return true;
+  if (status >= 500) return true;
+  if (status === 404 && path.includes('/analytics/')) return true;
+  if (status === 409) return true;
+  return false;
+}
+
+function presentError(error, fallbackMessage = 'Terjadi kesalahan.') {
+  const normalized = normalizeUiError(error, fallbackMessage);
+  setStatus(toActionableErrorMessage(normalized), 'error', {
+    retry: canRetryFromError(normalized),
+  });
+  setError(error);
+  return normalized;
+}
+
 function api(path, options, fallbackErrorMessage) {
   return requestJson(path, options).catch((error) => {
-    const normalized = normalizeUiError(error, fallbackErrorMessage || 'Terjadi kesalahan.');
-    setStatus(toActionableErrorMessage(normalized), 'error');
-    setError(error);
+    presentError(error, fallbackErrorMessage || 'Terjadi kesalahan.');
     throw error;
   });
 }
@@ -701,6 +727,29 @@ function renderResponsesTable() {
 function updateCsvLink() {
   const params = buildCommonQuery();
   exportCsvLink.href = `${baseApiPath()}/responses/export.csv${params.toString() ? `?${params.toString()}` : ''}`;
+}
+
+async function refreshDashboardData({
+  startMessage = 'Memuat data dashboard sesuai filter...',
+  successMessage = 'Dashboard berhasil diperbarui.',
+  keepPage = false,
+} = {}) {
+  if (!validateDateRange()) return false;
+  if (!keepPage) state.page = 1;
+  try {
+    setStatus(startMessage, 'warning');
+    await runWithButtonLoading(applyFilterBtn, 'Memproses...', async () => {
+      await loadSummaryAndCharts();
+      await loadResponses();
+      await loadAiLatest();
+    });
+    setStatus(successMessage, 'success');
+    setError(null);
+    return true;
+  } catch (error) {
+    presentError(error, 'Gagal memuat ulang dashboard.');
+    return false;
+  }
 }
 
 async function loadSummaryAndCharts() {
@@ -1482,54 +1531,62 @@ async function downloadAiPdf() {
 
 function bindEvents() {
   applyFilterBtn.addEventListener('click', async () => {
-    if (!validateDateRange()) return;
-    try {
-      state.page = 1;
-      setStatus('Memuat data dashboard sesuai filter...', 'warning');
-      await runWithButtonLoading(applyFilterBtn, 'Memproses...', async () => {
-        await loadSummaryAndCharts();
-        await loadResponses();
-        await loadAiLatest();
-      });
-      setStatus('Dashboard berhasil diperbarui.', 'success');
-      setError(null);
-    } catch (error) {
-      const normalized = normalizeUiError(error, 'Gagal menerapkan filter dashboard.');
-      setStatus(normalized.message, 'error');
-      setError(error);
-    }
+    await refreshDashboardData({
+      startMessage: 'Memuat data dashboard sesuai filter...',
+      successMessage: 'Dashboard berhasil diperbarui.',
+    });
+  });
+
+  retryBtnEl?.addEventListener('click', async () => {
+    await refreshDashboardData({
+      startMessage: 'Mencoba ulang koneksi dashboard...',
+      successMessage: 'Dashboard berhasil dipulihkan.',
+      keepPage: true,
+    });
   });
 
   responseSearchBtn.addEventListener('click', async () => {
     if (!validateDateRange()) return;
     state.page = 1;
     state.search = String(responseSearchEl.value || '').trim();
-    await runWithButtonLoading(responseSearchBtn, 'Mencari...', async () => {
-      await loadResponses();
-      setStatus(`Pencarian selesai. Menampilkan hasil untuk "${state.search || 'semua'}".`, 'success');
-      setError(null);
-    });
+    try {
+      await runWithButtonLoading(responseSearchBtn, 'Mencari...', async () => {
+        await loadResponses();
+        setStatus(`Pencarian selesai. Menampilkan hasil untuk "${state.search || 'semua'}".`, 'success');
+        setError(null);
+      });
+    } catch (error) {
+      presentError(error, 'Gagal mencari respons.');
+    }
   });
 
   responsesPrevBtn.addEventListener('click', async () => {
     if (state.page <= 1) return;
     state.page -= 1;
-    await runWithButtonLoading(responsesPrevBtn, 'Memuat...', async () => {
-      await loadResponses();
-      setStatus('Halaman respons diperbarui.', 'success');
-      setError(null);
-    }, [responsesNextBtn]);
+    try {
+      await runWithButtonLoading(responsesPrevBtn, 'Memuat...', async () => {
+        await loadResponses();
+        setStatus('Halaman respons diperbarui.', 'success');
+        setError(null);
+      }, [responsesNextBtn]);
+    } catch (error) {
+      presentError(error, 'Gagal memuat halaman respons.');
+    }
   });
 
   responsesNextBtn.addEventListener('click', async () => {
     const totalPages = Math.max(1, Math.ceil((state.totalResponses || 0) / state.pageSize));
     if (state.page >= totalPages) return;
     state.page += 1;
-    await runWithButtonLoading(responsesNextBtn, 'Memuat...', async () => {
-      await loadResponses();
-      setStatus('Halaman respons diperbarui.', 'success');
-      setError(null);
-    }, [responsesPrevBtn]);
+    try {
+      await runWithButtonLoading(responsesNextBtn, 'Memuat...', async () => {
+        await loadResponses();
+        setStatus('Halaman respons diperbarui.', 'success');
+        setError(null);
+      }, [responsesPrevBtn]);
+    } catch (error) {
+      presentError(error, 'Gagal memuat halaman respons.');
+    }
   });
 
   radioQuestionSelectEl.addEventListener('change', () => {
@@ -1557,15 +1614,23 @@ function bindEvents() {
   });
 
   aiLoadBtn.addEventListener('click', async () => {
-    await runWithButtonLoading(aiLoadBtn, 'Memuat...', async () => {
-      await loadAiLatest();
-      setStatus('Analisis AI terbaru dimuat.', 'success');
-      setError(null);
-    }, [aiRunBtn]);
+    try {
+      await runWithButtonLoading(aiLoadBtn, 'Memuat...', async () => {
+        await loadAiLatest();
+        setStatus('Analisis AI terbaru dimuat.', 'success');
+        setError(null);
+      }, [aiRunBtn]);
+    } catch (error) {
+      presentError(error, 'Gagal memuat analisis AI terbaru.');
+    }
   });
 
   aiRunBtn.addEventListener('click', async () => {
-    await runAiAnalysis();
+    try {
+      await runAiAnalysis();
+    } catch (error) {
+      presentError(error, 'Gagal menjalankan analisis AI.');
+    }
   });
 
   aiModeEl.addEventListener('change', () => {
@@ -1574,16 +1639,10 @@ function bindEvents() {
   });
 
   filterVersionEl.addEventListener('change', async () => {
-    if (!validateDateRange()) return;
-    state.page = 1;
-    setStatus('Versi data diubah. Memuat ulang dashboard...', 'warning');
-    await runWithButtonLoading(applyFilterBtn, 'Memproses...', async () => {
-      await loadSummaryAndCharts();
-      await loadResponses();
-      await loadAiLatest();
+    await refreshDashboardData({
+      startMessage: 'Versi data diubah. Memuat ulang dashboard...',
+      successMessage: 'Dashboard berhasil diperbarui untuk versi terpilih.',
     });
-    setStatus('Dashboard berhasil diperbarui untuk versi terpilih.', 'success');
-    setError(null);
   });
 
   aiPdfBtn.addEventListener('click', downloadAiPdf);
@@ -1611,12 +1670,12 @@ async function init() {
 }
 
 bindRuntimeErrorHandlers((normalized, originalError) => {
-  setStatus(normalized.message, 'error');
+  setStatus(toActionableErrorMessage(normalized), 'error', {
+    retry: canRetryFromError(normalized),
+  });
   setError(originalError);
 });
 
 init().catch((error) => {
-  const normalized = normalizeUiError(error, 'Gagal memuat dashboard questionnaire.');
-  setStatus(normalized.message, 'error');
-  setError(error);
+  presentError(error, 'Gagal memuat dashboard questionnaire.');
 });
