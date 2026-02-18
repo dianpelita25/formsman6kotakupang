@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Admin Forms</title>
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260217-2" />
+  </head>
+  <body>
+    <nav class="global-nav">
+      <div class="global-nav__inner">
+        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
+        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
+        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section class="panel" style="max-width: 460px; margin: 40px auto 0">
+        <h1>Login Admin</h1>
+        <p class="small">Masuk menggunakan akun admin panel multi-tenant (organisasi).</p>
+        <form id="login-form">
+          <div class="row" style="flex-direction: column; align-items: stretch">
+            <label>
+              Login Sebagai
+              <select id="login-role" required>
+                <option value="admin">Admin Organisasi</option>
+                <option value="superadmin">Superadmin</option>
+              </select>
+            </label>
+            <label>
+              Email
+              <input type="email" id="email" required />
+            </label>
+            <label>
+              Password
+              <input type="password" id="password" required />
+            </label>
+            <button type="submit">Login</button>
+          </div>
+          <div class="status-panel field-block">
+            <h3>Status Login</h3>
+            <p id="status" class="status" aria-live="polite"></p>
+            <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/login.js?v=20260216-6"></script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Analytics Feedback</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/admin/dashboard.css?v=20260215" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <nav class="global-nav">
+      <div class="global-nav__inner">
+        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
+        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
+        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+        <button class="global-nav__logout" type="button">Logout</button>
+      </div>
+    </nav>
+
+    <main class="dashboard-page">
+      <header class="dashboard-hero">
+        <div>
+          <p class="kicker">AITI ANALYTICS</p>
+          <h1>Dashboard Hasil Feedback</h1>
+          <p class="sub">Visual ringkas untuk evaluasi program dan adopsi AI Teaching Assistant.</p>
+        </div>
+        <div class="actions">
+          <a id="back-to-form-link" href="#" class="btn ghost">Kembali ke Form</a>
+          <a id="export-csv-link" href="#" class="btn">Export CSV</a>
+        </div>
+      </header>
+
+      <section class="kpi-grid" id="kpi-grid">
+        <article class="kpi-card">
+          <p>Total Responden</p>
+          <h2 id="kpi-total">0</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Rata-rata Kepuasan (Q12)</p>
+          <h2 id="kpi-q12">0.00</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Minat Pelatihan Lanjutan</p>
+          <h2 id="kpi-interest">0%</h2>
+        </article>
+        <article class="kpi-card">
+          <p>Skor Adopsi AI</p>
+          <h2 id="kpi-ai">0.00</h2>
+        </article>
+      </section>
+
+      <section class="chart-grid">
+        <article class="chart-card wide">
+          <h3>Rata-rata Skor per Pertanyaan</h3>
+          <canvas id="avgChart" height="120"></canvas>
+        </article>
+
+        <article class="chart-card">
+          <h3>Distribusi Minat (Q10)</h3>
+          <canvas id="q10Chart" height="220"></canvas>
+          <ul id="q10-breakdown" class="q10-breakdown"></ul>
+        </article>
+
+        <article class="chart-card adoption-card">
+          <h3>Indeks Kesiapan Adopsi</h3>
+          <div class="adoption-visual">
+            <div class="adoption-gauge" id="adoption-gauge" aria-label="Indeks Kesiapan Adopsi">
+              <div class="adoption-gauge-core">
+                <span id="adoption-score">0.00</span>
+                <small>/5</small>
+              </div>
+            </div>
+            <div class="adoption-summary">
+              <div class="adoption-pill" id="adoption-label">Belum</div>
+              <p class="adoption-note">Gabungan Q7, Q8, Q9, Q11</p>
+            </div>
+          </div>
+          <canvas id="adoptionRadar" height="180"></canvas>
+          <div class="adoption-breakdown">
+            <div class="adoption-row">
+              <span>Q7 Potensi HOTS</span>
+              <div class="adoption-bar"><span id="adoption-bar-q7"></span></div>
+              <strong id="adoption-q7">0.00</strong>
+            </div>
+            <div class="adoption-row">
+              <span>Q8 Terbantu</span>
+              <div class="adoption-bar"><span id="adoption-bar-q8"></span></div>
+              <strong id="adoption-q8">0.00</strong>
+            </div>
+            <div class="adoption-row">
+              <span>Q9 Siap Implementasi</span>
+              <div class="adoption-bar"><span id="adoption-bar-q9"></span></div>
+              <strong id="adoption-q9">0.00</strong>
+            </div>
+            <div class="adoption-row">
+              <span>Q11 Rekomendasi</span>
+              <div class="adoption-bar"><span id="adoption-bar-q11"></span></div>
+              <strong id="adoption-q11">0.00</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="chart-grid">
+        <article class="chart-card wide ai-panel">
+          <div class="ai-header">
+            <div>
+              <h3>Analisa AI</h3>
+              <p class="ai-sub" id="ai-subtitle">Ringkasan otomatis berbasis data untuk admin.</p>
+              <div class="ai-mode-controls">
+                <div class="ai-segmented" role="tablist" aria-label="Mode Analisa">
+                  <button id="ai-group-internal" type="button" class="ai-segment active" data-group="internal">
+                    Internal
+                  </button>
+                  <button id="ai-group-external" type="button" class="ai-segment" data-group="external">
+                    External
+                  </button>
+                  <button id="ai-group-live" type="button" class="ai-segment" data-group="live">
+                    Live Guru
+                  </button>
+                </div>
+                <label id="ai-external-label" class="ai-external-select is-hidden" for="ai-external-audience">
+                  Audiens:
+                  <select id="ai-external-audience">
+                    <option value="pemerintah">Pemerintah</option>
+                    <option value="mitra">Mitra</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="ai-actions">
+              <button id="ai-run" class="btn">Analisa</button>
+              <button id="ai-download-pdf" class="btn ghost" type="button" disabled>PDF Analisa</button>
+            </div>
+          </div>
+          <div id="ai-output" class="ai-output">Belum ada analisa.</div>
+          <p id="ai-status" class="status" aria-live="polite"></p>
+        </article>
+      </section>
+
+      <p id="status" class="status" aria-live="polite"></p>
+      <section class="chart-card">
+        <h3>Detail Error (Jika Ada)</h3>
+        <pre id="error-debug">Belum ada error.</pre>
+      </section>
+    </main>
+
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/dashboard.js?v=20260215"></script>
+  </body>
+</html>

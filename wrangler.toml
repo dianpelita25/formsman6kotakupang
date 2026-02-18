@@ -1,0 +1,48 @@
+name = "aiti-forms-multischool"
+main = "src/worker.js"
+compatibility_date = "2026-02-15"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+html_handling = "none"
+not_found_handling = "none"
+run_worker_first = [
+  "/forms",
+  "/forms/*",
+  "/forms-static/*",
+  "/formsman6kotakupang",
+  "/formsman6kotakupang/*",
+  "/admin",
+  "/admin/*",
+  "/health",
+  "/health/*",
+]
+
+[vars]
+GEMINI_MODEL = "gemini-2.5-flash"
+APP_ENV = "local"
+DB_BOOTSTRAP_MODE = "full"
+ENABLE_LEGACY_ADMIN_ALIAS = "true"
+
+[env.staging]
+name = "aiti-forms-multischool-staging"
+
+[env.staging.vars]
+GEMINI_MODEL = "gemini-2.5-flash"
+APP_ENV = "staging"
+DB_BOOTSTRAP_MODE = "check"
+ENABLE_LEGACY_ADMIN_ALIAS = "true"
+
+[env.production]
+name = "aiti-forms-multischool"
+routes = [
+  { pattern = "aitiglobal.link/forms*", zone_name = "aitiglobal.link" },
+  { pattern = "aitiglobal.link/formsman6kotakupang*", zone_name = "aitiglobal.link" },
+]
+
+[env.production.vars]
+GEMINI_MODEL = "gemini-2.5-flash"
+APP_ENV = "production"
+DB_BOOTSTRAP_MODE = "check"
+ENABLE_LEGACY_ADMIN_ALIAS = "false"

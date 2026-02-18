@@ -5,14 +5,26 @@
   "description": "Custom modular feedback form with Neon DB (pnpm)",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "dev": "wrangler dev src/worker.js --port 8787",
+    "deploy": "wrangler deploy src/worker.js",
+    "deploy:staging": "wrangler deploy src/worker.js --env staging",
+    "deploy:production": "wrangler deploy src/worker.js --env production",
+    "migrate:multi": "node scripts/migrate-to-multi-tenant.js",
+    "seed:superadmin": "node scripts/bootstrap-superadmin.js",
+    "smoke:e2e": "node scripts/smoke-e2e.js",
+    "smoke:e2e:full": "node scripts/smoke-e2e.js --with-writes",
+    "legacy:dev": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node --watch src/server.js",
+    "legacy:start": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node src/server.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "hono": "^4.8.7",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "wrangler": "^4.49.1"
   },
   "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
 }

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feedback Kegiatan Sosialisasi AI Teaching Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260218-3" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero-card">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="hero-top">
+          <div class="brand">AITI GLOBAL NEXUS</div>
+          <a id="admin-login-link" class="admin-entry-link" href="/forms/admin/login" title="Masuk admin">
+            Login
+          </a>
+        </div>
+        <h1 id="form-title">Memuat judul form...</h1>
+        <div class="greeting-block">
+          <h2 id="greeting-title">Salam Hormat,</h2>
+          <p id="greeting-text"></p>
+        </div>
+      </section>
+
+      <form id="feedback-form" class="form-card" novalidate>
+        <div id="fields-container" class="fields-stack"></div>
+        <div class="submit-row">
+          <button id="submit-btn" type="submit">Kirim</button>
+          <p id="status-message" class="status-message" aria-live="polite"></p>
+          <details id="status-debug-wrap" class="status-debug-wrap">
+            <summary>Detail error teknis</summary>
+            <pre id="status-debug">Belum ada error.</pre>
+          </details>
+        </div>
+      </form>
+    </main>
+
+    <script type="module" src="/forms-static/forms/app.js?v=20260218-3"></script>
+  </body>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superadmin Forms</title>
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260217-2" />
+  </head>
+  <body>
+    <nav class="global-nav">
+      <div class="global-nav__inner">
+        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
+        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
+        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+        <button class="global-nav__logout" type="button">Logout</button>
+      </div>
+    </nav>
+
+    <main class="container superadmin-page">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h1>Superadmin Panel Organisasi</h1>
+            <p class="small" id="user-info">Memuat user...</p>
+          </div>
+          <button id="logout-btn" class="secondary">Logout</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Alur Cepat</h2>
+        <ol class="workflow-list">
+          <li>Buat organisasi baru (nama, slug, tipe).</li>
+          <li>Tambahkan admin organisasi.</li>
+          <li>Buka panel organisasi untuk kelola questionnaire.</li>
+          <li>Kelola prompt AI global/tenant/questionnaire sesuai kebutuhan.</li>
+        </ol>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Buat Organisasi Baru</h2>
+            <p class="small">Gunakan ini untuk sekolah, pemerintah, komunitas, event, atau unit lain.</p>
+          </div>
+        </div>
+        <div class="admin-form-grid admin-form-grid--school">
+          <label class="field">
+            <span>Nama Organisasi</span>
+            <input id="tenant-name" placeholder="Contoh: Dinas Pendidikan Kupang" />
+          </label>
+          <label class="field">
+            <span>Slug Organisasi</span>
+            <input id="tenant-slug" placeholder="dinas-pendidikan-kupang" />
+          </label>
+          <label class="field">
+            <span>Tipe Organisasi</span>
+            <select id="tenant-type">
+              <option value="school">school</option>
+              <option value="government">government</option>
+              <option value="business">business</option>
+              <option value="class">class</option>
+              <option value="community">community</option>
+              <option value="event">event</option>
+              <option value="other">other</option>
+            </select>
+          </label>
+          <button id="create-tenant-btn">Buat Organisasi</button>
+        </div>
+        <p class="small">URL publik akan tersedia di `/forms/{tenantSlug}/{questionnaireSlug}`.</p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Daftar Organisasi</h2>
+            <p class="small">Semua tenant aktif/nonaktif, termasuk total questionnaire dan respon.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="schools-table" aria-label="Daftar Organisasi">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Slug</th>
+                  <th>Tipe</th>
+                  <th>Status</th>
+                  <th><span class="th-wrap">Total<br />Questionnaire</span></th>
+                  <th><span class="th-wrap">Total<br />Respon</span></th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tenants-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Tambah Admin Organisasi</h2>
+            <p class="small">Buat akun admin untuk tenant terpilih.</p>
+          </div>
+        </div>
+        <div class="admin-form-grid admin-form-grid--admin">
+          <label class="field">
+            <span>Pilih Organisasi</span>
+            <select id="tenant-select"></select>
+          </label>
+          <label class="field">
+            <span>Email Admin</span>
+            <input id="admin-email" type="email" placeholder="admin@organisasi.id" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="admin-password" type="password" placeholder="password minimal 8 karakter" />
+          </label>
+          <button id="create-admin-btn">Tambah Admin Organisasi</button>
+        </div>
+      </section>
+
+      <section class="panel" id="prompt-manager-panel">
+        <h2>Prompt AI Manager</h2>
+        <p class="small">
+          Kelola template prompt analisa AI. Scope tenant/questionnaire akan override global setelah dipublish.
+        </p>
+
+        <div class="admin-form-grid admin-form-grid--prompt-filter">
+          <label class="field">
+            <span>Mode</span>
+            <select id="prompt-mode">
+              <option value="internal">internal</option>
+              <option value="external_pemerintah">external_pemerintah</option>
+              <option value="external_mitra">external_mitra</option>
+              <option value="live_guru">live_guru</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Scope</span>
+            <select id="prompt-scope">
+              <option value="global">global</option>
+              <option value="tenant">tenant override</option>
+              <option value="questionnaire">questionnaire override</option>
+            </select>
+          </label>
+
+          <label class="field" id="prompt-tenant-wrap" style="display: none">
+            <span>Tenant</span>
+            <select id="prompt-tenant-select"></select>
+          </label>
+
+          <label class="field" id="prompt-questionnaire-wrap" style="display: none">
+            <span>Questionnaire</span>
+            <select id="prompt-questionnaire-select"></select>
+          </label>
+        </div>
+
+        <div class="prompt-layout">
+          <section class="prompt-editor-card">
+            <label class="field field-block">
+              <span>Draft Template</span>
+              <textarea id="prompt-template" placeholder="Tulis template prompt AI di sini..."></textarea>
+            </label>
+
+            <label class="field field-block">
+              <span>Catatan Perubahan</span>
+              <input id="prompt-change-note" placeholder="Opsional, untuk audit ringkas versi prompt." />
+            </label>
+
+            <div class="row row-actions">
+              <button id="prompt-save-btn">Simpan Draft</button>
+              <button id="prompt-publish-btn" class="secondary">Publish</button>
+              <button id="prompt-reset-btn" class="ghost">Reset ke Published</button>
+              <button id="prompt-refresh-btn" class="ghost">Refresh</button>
+            </div>
+            <p id="prompt-draft-meta" class="small prompt-draft-meta"></p>
+          </section>
+
+          <section class="prompt-preview-card">
+            <h3 class="subsection-title">Effective Prompt (Aktif Digunakan)</h3>
+            <div id="prompt-effective-meta" class="prompt-meta"></div>
+            <pre id="prompt-effective"></pre>
+          </section>
+        </div>
+
+        <h3>Riwayat Versi</h3>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Scope</th>
+                  <th>Change Note</th>
+                  <th>Dibuat</th>
+                  <th>Published</th>
+                </tr>
+              </thead>
+              <tbody id="prompt-history-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <p id="prompt-status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Diagnostic & Aktivitas</h2>
+            <p class="small">Jika terjadi error, detail teknis akan tampil di sini agar tidak menebak-nebak.</p>
+          </div>
+        </div>
+
+        <div class="status-panel">
+          <h3>Status terakhir</h3>
+          <p id="status" class="status" aria-live="polite"></p>
+          <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+        </div>
+
+        <div class="field-block">
+          <h3 class="subsection-title">Aktivitas Terakhir</h3>
+          <ul id="activity-feed" class="activity-feed"></ul>
+        </div>
+      </section>
+    </main>
+    <div id="tenant-toggle-modal" class="confirm-modal" hidden>
+      <div
+        class="confirm-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tenant-toggle-title"
+        aria-describedby="tenant-toggle-message"
+      >
+        <h3 id="tenant-toggle-title">Konfirmasi Perubahan Status</h3>
+        <p id="tenant-toggle-message" class="small"></p>
+        <div class="confirm-modal__actions">
+          <button id="tenant-toggle-cancel" class="ghost" type="button">Batal</button>
+          <button id="tenant-toggle-confirm" class="secondary" type="button">Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/superadmin.js?v=20260217-3"></script>
+  </body>
+</html>
