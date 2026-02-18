@@ -75,6 +75,11 @@ const aiProgressState = {
   timerId: null,
 };
 
+const visualOrderDragState = {
+  draggedKey: '',
+  overKey: '',
+};
+
 const VISUAL_CARD_CONFIG = Object.freeze({
   scaleAverage: Object.freeze({
     cardId: 'card-scale-average',
@@ -346,6 +351,51 @@ function applyVisualCardOrder() {
   window.setTimeout(resizeVisibleCharts, 100);
 }
 
+function findVisualOrderRowByKey(key) {
+  const targetKey = String(key || '').trim();
+  if (!targetKey || !visualOrderListEl) return null;
+  const rows = visualOrderListEl.querySelectorAll('.dashboard-visual-order-item');
+  for (const row of rows) {
+    if (String(row.dataset.orderKey || '').trim() === targetKey) return row;
+  }
+  return null;
+}
+
+function clearVisualOrderDragClasses() {
+  if (!visualOrderListEl) return;
+  const rows = visualOrderListEl.querySelectorAll('.dashboard-visual-order-item');
+  rows.forEach((row) => {
+    row.classList.remove('is-dragging');
+    row.classList.remove('is-drag-over');
+  });
+}
+
+function resetVisualOrderDragState() {
+  visualOrderDragState.draggedKey = '';
+  visualOrderDragState.overKey = '';
+  clearVisualOrderDragClasses();
+}
+
+function reorderVisualCardOrder(draggedKey, dropKey) {
+  const fromKey = String(draggedKey || '').trim();
+  const toKey = String(dropKey || '').trim();
+  if (!fromKey || !toKey || fromKey === toKey) return false;
+  if (!VISUAL_CARD_CONFIG[fromKey] || !VISUAL_CARD_CONFIG[toKey]) return false;
+
+  const order = normalizeVisualCardOrder(state.visualCardOrder);
+  const fromIndex = order.indexOf(fromKey);
+  const toIndex = order.indexOf(toKey);
+  if (fromIndex < 0 || toIndex < 0) return false;
+
+  const [movedItem] = order.splice(fromIndex, 1);
+  order.splice(toIndex, 0, movedItem);
+  state.visualCardOrder = order;
+  saveVisualCardOrder();
+  applyVisualCardOrder();
+  renderVisualOrderList();
+  return true;
+}
+
 function renderVisualOrderList() {
   if (!visualOrderListEl) return;
   const order = normalizeVisualCardOrder(state.visualCardOrder);
@@ -356,6 +406,17 @@ function renderVisualOrderList() {
     if (!config) return;
     const row = document.createElement('div');
     row.className = 'dashboard-visual-order-item';
+    row.dataset.orderKey = key;
+    row.draggable = true;
+    row.setAttribute('aria-label', `Urut panel ${config.label}`);
+
+    const head = document.createElement('div');
+    head.className = 'dashboard-visual-order-item__head';
+
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'dashboard-visual-order-drag';
+    dragHandle.textContent = '::';
+    dragHandle.setAttribute('aria-hidden', 'true');
 
     const label = document.createElement('p');
     label.textContent = `${index + 1}. ${config.label}`;
@@ -380,7 +441,8 @@ function renderVisualOrderList() {
     downBtn.disabled = index === order.length - 1;
 
     actions.append(upBtn, downBtn);
-    row.append(label, actions);
+    head.append(dragHandle, label);
+    row.append(head, actions);
     visualOrderListEl.append(row);
   });
 }
@@ -408,6 +470,7 @@ function moveVisualCardOrder(key, direction) {
   saveVisualCardOrder();
   applyVisualCardOrder();
   renderVisualOrderList();
+  resetVisualOrderDragState();
   return true;
 }
 
@@ -429,6 +492,7 @@ function applyVisualPreset(presetId) {
   syncVisualVisibilityInputs();
   renderVisualOrderList();
   applyVisualCardOrder();
+  resetVisualOrderDragState();
   applyVisualCardVisibility();
   renderAdvancedVizChart();
   setVisualLayoutPresetSelection(normalizedPresetId);
@@ -2551,6 +2615,57 @@ function bindEvents() {
     setStatus(`Urutan visual diperbarui (${VISUAL_CARD_CONFIG[orderKey]?.label || orderKey}).`, 'success');
   });
 
+  visualOrderListEl?.addEventListener('dragstart', (event) => {
+    const row = event.target.closest('.dashboard-visual-order-item');
+    if (!row) return;
+    const key = String(row.dataset.orderKey || '').trim();
+    if (!key) return;
+    visualOrderDragState.draggedKey = key;
+    row.classList.add('is-dragging');
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', key);
+    }
+  });
+
+  visualOrderListEl?.addEventListener('dragover', (event) => {
+    const row = event.target.closest('.dashboard-visual-order-item');
+    if (!row) return;
+    event.preventDefault();
+    const key = String(row.dataset.orderKey || '').trim();
+    if (!key || key === visualOrderDragState.draggedKey) return;
+    if (visualOrderDragState.overKey && visualOrderDragState.overKey !== key) {
+      const previous = findVisualOrderRowByKey(visualOrderDragState.overKey);
+      previous?.classList.remove('is-drag-over');
+    }
+    visualOrderDragState.overKey = key;
+    row.classList.add('is-drag-over');
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  });
+
+  visualOrderListEl?.addEventListener('drop', (event) => {
+    const row = event.target.closest('.dashboard-visual-order-item');
+    if (!row) return;
+    event.preventDefault();
+    const dropKey = String(row.dataset.orderKey || '').trim();
+    const draggedKey =
+      String(visualOrderDragState.draggedKey || '').trim() ||
+      String(event.dataTransfer?.getData('text/plain') || '').trim();
+    if (!draggedKey || !dropKey) {
+      resetVisualOrderDragState();
+      return;
+    }
+    const moved = reorderVisualCardOrder(draggedKey, dropKey);
+    resetVisualOrderDragState();
+    if (!moved) return;
+    setVisualLayoutPresetSelection(resolveMatchingVisualPresetId());
+    setStatus(`Urutan visual diperbarui (${VISUAL_CARD_CONFIG[draggedKey]?.label || draggedKey}).`, 'success');
+  });
+
+  visualOrderListEl?.addEventListener('dragend', () => {
+    resetVisualOrderDragState();
+  });
+
   visualVisibilityResetBtnEl?.addEventListener('click', () => {
     state.visualCardVisibility = createDefaultVisualCardVisibility();
     state.visualCardOrder = createDefaultVisualCardOrder();
@@ -2563,6 +2678,7 @@ function bindEvents() {
     applyVisualCardVisibility();
     renderAdvancedVizChart();
     setVisualLayoutPresetSelection('full');
+    resetVisualOrderDragState();
     if (visualVisibilitySettingsEl) visualVisibilitySettingsEl.open = false;
     setStatus('Tampilan visual dikembalikan ke default.', 'success');
   });

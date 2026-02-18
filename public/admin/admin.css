@@ -1293,6 +1293,44 @@ pre {
   border-radius: 9px;
   padding: 7px 9px;
   background: rgba(10, 22, 44, 0.55);
+  cursor: grab;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item.is-dragging {
+  opacity: 0.56;
+  border-color: rgba(48, 228, 255, 0.5);
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item.is-drag-over {
+  border-color: rgba(48, 228, 255, 0.85);
+  background: rgba(15, 42, 75, 0.72);
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item__head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-drag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(106, 164, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(13, 26, 53, 0.74);
+  color: #9fd1ff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  user-select: none;
+}
+
+.questionnaire-dashboard-page .dashboard-visual-order-item:active {
+  cursor: grabbing;
 }
 
 .questionnaire-dashboard-page .dashboard-visual-order-item p {
