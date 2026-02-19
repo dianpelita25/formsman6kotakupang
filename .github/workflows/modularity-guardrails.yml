@@ -56,34 +56,49 @@ jobs:
   smoke-dashboard-pdf:
     needs:
       - check-architecture
-    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping dashboard PDF smoke (missing required secrets)."
+          fi
+
       - name: Checkout
+        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
         run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
         run: pnpm exec playwright install chromium
 
       - name: Run dashboard PDF smoke test
+        if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:dashboard:pdf
 
       - name: Upload dashboard PDF artifacts
-        if: always()
+        if: always() && steps.guard.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: dashboard-pdf-smoke
@@ -93,56 +108,85 @@ jobs:
   smoke-e2e:
     needs:
       - check-architecture
-    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping smoke E2E (missing required secrets)."
+          fi
+
       - name: Checkout
+        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
         run: pnpm install --no-frozen-lockfile
 
       - name: Run smoke E2E
+        if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:e2e
 
   smoke-admin-ui:
     needs:
       - check-architecture
-    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping admin UI smoke (missing required secrets)."
+          fi
+
       - name: Checkout
+        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
         run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
         run: pnpm exec playwright install chromium
 
       - name: Run admin UI smoke tests
+        if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:admin:ui
 
   visual-regression-legacy-dashboard:
@@ -151,39 +195,55 @@ jobs:
       - smoke-dashboard-pdf
       - smoke-e2e
       - smoke-admin-ui
-    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     env:
       VISUAL_DIFF_MAX_RATIO: '0.03'
     steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping visual regression (missing required secrets)."
+          fi
+
       - name: Checkout
+        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
         run: pnpm install --no-frozen-lockfile
 
       - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
         run: pnpm exec playwright install chromium
 
       - name: Run visual regression (legacy dashboard)
+        if: steps.guard.outputs.run == 'true'
         run: pnpm visual:legacy-dashboard:diff
 
       - name: Run visual regression (questionnaire dashboard)
+        if: steps.guard.outputs.run == 'true'
         run: pnpm visual:questionnaire-dashboard:diff
 
       - name: Upload visual artifacts
-        if: always()
+        if: always() && steps.guard.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: legacy-dashboard-visual-diff
