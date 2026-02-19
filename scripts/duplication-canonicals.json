@@ -73,6 +73,28 @@
         "src/modules/ai-prompts/repositories/publish-repository.js"
       ],
       "maxAllowedMatches": 0
+    },
+    {
+      "id": "build-submission-schema-declarations",
+      "debtId": "D08",
+      "description": "buildSubmissionSchema declaration harus tunggal pada canonical shared validation module.",
+      "declarationPattern": "(?:export\\s+)?function\\s+buildSubmissionSchema\\(|(?:const|let|var)\\s+buildSubmissionSchema\\s*=",
+      "allowedDeclarationFiles": [
+        "src/modules/shared/validation/submission-payload-schema.js"
+      ],
+      "maxAllowedDeclarations": 1,
+      "enforceExactFiles": true
+    },
+    {
+      "id": "validate-submission-payload-declarations",
+      "debtId": "D08",
+      "description": "validateSubmissionPayload declaration harus tunggal pada canonical shared validation module.",
+      "declarationPattern": "(?:export\\s+)?function\\s+validateSubmissionPayload\\(|(?:const|let|var)\\s+validateSubmissionPayload\\s*=",
+      "allowedDeclarationFiles": [
+        "src/modules/shared/validation/submission-payload-schema.js"
+      ],
+      "maxAllowedDeclarations": 1,
+      "enforceExactFiles": true
     }
   ]
 }
