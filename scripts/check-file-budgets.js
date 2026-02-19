@@ -34,6 +34,42 @@ const BUDGET_RULES = [
     enforceAbsolute: true,
   },
   {
+    id: 'd07-bootstrap-questionnaire-sync-exact',
+    test: (relativePath) => relativePath === 'src/lib/db/bootstrap/questionnaire-sync.js',
+    maxLines: 260,
+    enforceAbsolute: true,
+  },
+  {
+    id: 'd07-bootstrap-schema-ddl-exact',
+    test: (relativePath) => relativePath === 'src/lib/db/bootstrap/schema-ddl.js',
+    maxLines: 260,
+    enforceAbsolute: true,
+  },
+  {
+    id: 'd07-public-script-exact',
+    test: (relativePath) => relativePath === 'public/script.js',
+    maxLines: 220,
+    enforceAbsolute: true,
+  },
+  {
+    id: 'd07-legacy-pdf-renderer-exact',
+    test: (relativePath) => relativePath === 'public/shared/dashboard-legacy/pdf-renderer.js',
+    maxLines: 220,
+    enforceAbsolute: true,
+  },
+  {
+    id: 'd07-legacy-charts-exact',
+    test: (relativePath) => relativePath === 'public/shared/dashboard-legacy/charts.js',
+    maxLines: 220,
+    enforceAbsolute: true,
+  },
+  {
+    id: 'd07-legacy-ai-exact',
+    test: (relativePath) => relativePath === 'public/shared/dashboard-legacy/ai.js',
+    maxLines: 220,
+    enforceAbsolute: true,
+  },
+  {
     id: 'distribution-subfiles',
     test: (relativePath) => /^src\/modules\/.+\/distribution\/.+\.js$/.test(relativePath),
     maxLines: 220,
