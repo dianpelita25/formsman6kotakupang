@@ -2,6 +2,7 @@ export * from './services/index.js';
 export {
   getTenantQuestionnaireAnalyticsBundle,
   getTenantQuestionnaireAiSource,
+  getTenantQuestionnaireAnalyticsSegmentCompare,
   getTenantQuestionnaireAnalyticsDistribution,
   getTenantQuestionnaireAnalyticsSummary,
   getTenantQuestionnaireAnalyticsTrend,

@@ -56,6 +56,34 @@ export function createBuilderQuestionCard(field, index, totalFields) {
     <input data-field="criterion" value="${String(field.criterion || '').replace(/"/g, '&quot;')}" placeholder="Contoh: A" />
   `;
 
+  const supportsForcedDimension = field.type === 'radio' || field.type === 'checkbox';
+  const segmentRoleField = document.createElement('label');
+  segmentRoleField.className = 'field';
+  segmentRoleField.innerHTML = `
+    <span>Peran Segmentasi</span>
+    <select data-field="segmentRole">
+      <option value="auto"${String(field.segmentRole || 'auto') === 'auto' ? ' selected' : ''}>Auto</option>
+      <option value="dimension"${String(field.segmentRole || '') === 'dimension' ? ' selected' : ''}${
+        supportsForcedDimension ? '' : ' disabled'
+      }>Paksa Dimensi</option>
+      <option value="exclude"${String(field.segmentRole || '') === 'exclude' ? ' selected' : ''}>Exclude</option>
+    </select>
+  `;
+
+  const segmentLabelField = document.createElement('label');
+  segmentLabelField.className = 'field';
+  segmentLabelField.innerHTML = `
+    <span>Label Segmentasi (opsional)</span>
+    <input data-field="segmentLabel" maxlength="64" value="${String(field.segmentLabel || '').replace(/"/g, '&quot;')}" />
+  `;
+
+  const sensitiveField = document.createElement('label');
+  sensitiveField.className = 'builder-required-toggle';
+  sensitiveField.innerHTML = `
+    <input data-field="isSensitive" type="checkbox"${field.isSensitive ? ' checked' : ''} />
+    <span>Data sensitif (exclude dari segmentasi)</span>
+  `;
+
   const dynamicWrap = document.createElement('div');
   dynamicWrap.className = 'builder-question-card__dynamic';
   if (field.type === 'radio' || field.type === 'checkbox') {
@@ -78,6 +106,6 @@ export function createBuilderQuestionCard(field, index, totalFields) {
     `;
   }
 
-  card.append(topRow, keyRow, requiredField, labelField, typeField, criterionField, dynamicWrap);
+  card.append(topRow, keyRow, requiredField, labelField, typeField, criterionField, segmentRoleField, segmentLabelField, sensitiveField, dynamicWrap);
   return card;
 }

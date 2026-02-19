@@ -47,6 +47,9 @@ export function wireDashboardCharts({
     advancedVizHelpEl: domRefs.advancedVizHelpEl,
     segmentControlsEl: domRefs.segmentControlsEl,
     segmentDimensionSelectEl: domRefs.segmentDimensionSelectEl,
+    segmentBucketSelectEl: domRefs.segmentBucketSelectEl,
+    segmentCompareBucketsEl: domRefs.segmentCompareBucketsEl,
+    segmentFilterChipEl: domRefs.segmentFilterChipEl,
     formatNumber,
     truncateText,
     destroyChart,
@@ -59,6 +62,21 @@ export function wireDashboardCharts({
   function renderSegmentDimensionOptions() {
     if (!advancedVizController) return;
     advancedVizController.renderSegmentDimensionOptions();
+  }
+
+  function renderSegmentBucketOptions() {
+    if (!advancedVizController) return;
+    advancedVizController.renderSegmentBucketOptions();
+  }
+
+  function renderSegmentFilterChip() {
+    if (!advancedVizController) return;
+    advancedVizController.renderSegmentFilterChip();
+  }
+
+  function getSelectedCompareBuckets() {
+    if (!advancedVizController) return [];
+    return advancedVizController.getSelectedCompareBuckets();
   }
 
   function renderAdvancedVizChart() {
@@ -76,6 +94,9 @@ export function wireDashboardCharts({
     renderTrendChart,
     resolveSegmentDimensions,
     renderSegmentDimensionOptions,
+    renderSegmentBucketOptions,
+    renderSegmentFilterChip,
+    getSelectedCompareBuckets,
     renderAdvancedVizChart,
   };
 }

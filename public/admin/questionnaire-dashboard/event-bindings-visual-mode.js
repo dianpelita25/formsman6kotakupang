@@ -4,12 +4,24 @@ export function createVisualModeEventBinder({
   VISUAL_PRESET_CONFIG,
   radioQuestionSelectEl,
   segmentDimensionSelectEl,
+  segmentBucketSelectEl,
+  segmentCompareBucketsEl,
+  segmentCompareBtn,
+  segmentApplyFilterBtn,
+  segmentClearFilterBtn,
   advancedVizTabsContainerEl,
+  refreshDashboardData,
+  applySegmentDrilldown,
+  clearSegmentDrilldown,
+  runSegmentCompare,
+  validateDateRange,
   visualVisibilityInputEls,
   visualLayoutApplyBtnEl,
   visualLayoutPresetEl,
   renderRadioDistributionChart,
   renderAdvancedVizChart,
+  renderSegmentBucketOptions,
+  renderSegmentFilterChip,
   countVisibleVisualCards,
   saveVisualCardVisibility,
   setVisualLayoutPresetSelection,
@@ -26,9 +38,50 @@ export function createVisualModeEventBinder({
 
     segmentDimensionSelectEl?.addEventListener('change', () => {
       state.selectedSegmentDimension = String(segmentDimensionSelectEl.value || '').trim();
+      state.segmentCompareResult = null;
+      renderSegmentBucketOptions();
+      renderSegmentFilterChip();
       if (String(state.advancedVizMode || '').trim() === 'segment') {
         renderAdvancedVizChart();
       }
+    });
+
+    segmentBucketSelectEl?.addEventListener('change', () => {
+      state.selectedSegmentBucket = String(segmentBucketSelectEl.value || '').trim();
+    });
+
+    segmentCompareBucketsEl?.addEventListener('change', () => {
+      state.selectedSegmentCompareBuckets = Array.from(segmentCompareBucketsEl.selectedOptions || [])
+        .map((option) => String(option.value || '').trim())
+        .filter(Boolean)
+        .slice(0, 3);
+    });
+
+    segmentApplyFilterBtn?.addEventListener('click', async () => {
+      if (!validateDateRange()) return;
+      const dimensionId = String(state.selectedSegmentDimension || '').trim();
+      const bucket = String(state.selectedSegmentBucket || segmentBucketSelectEl?.value || '').trim();
+      if (!dimensionId || !bucket) {
+        setStatus('Pilih dimensi dan bucket segmentasi dulu.', 'warning');
+        return;
+      }
+      const ok = await applySegmentDrilldown(dimensionId, bucket);
+      if (ok && String(state.advancedVizMode || '').trim() === 'segment') {
+        renderAdvancedVizChart();
+      }
+    });
+
+    segmentClearFilterBtn?.addEventListener('click', async () => {
+      if (!validateDateRange()) return;
+      const ok = await clearSegmentDrilldown();
+      if (ok && String(state.advancedVizMode || '').trim() === 'segment') {
+        renderAdvancedVizChart();
+      }
+    });
+
+    segmentCompareBtn?.addEventListener('click', async () => {
+      if (!validateDateRange()) return;
+      await runSegmentCompare();
     });
 
     advancedVizTabsContainerEl?.addEventListener('click', (event) => {
@@ -38,6 +91,11 @@ export function createVisualModeEventBinder({
       if (!mode || mode === state.advancedVizMode) return;
       state.advancedVizMode = mode;
       renderAdvancedVizChart();
+      if (mode !== 'segment') {
+        return;
+      }
+      renderSegmentBucketOptions();
+      renderSegmentFilterChip();
     });
 
     visualVisibilityInputEls.forEach((input) => {

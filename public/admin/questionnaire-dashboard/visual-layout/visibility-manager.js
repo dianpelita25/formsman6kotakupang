@@ -7,6 +7,7 @@ import {
   loadVisualCardOrder as loadVisualCardOrderFromStorage,
   loadVisualCardVisibility as loadVisualCardVisibilityFromStorage,
   saveLocalStorageJson,
+  saveVisualPreferences,
 } from '../visual-layout-storage.js';
 
 export function createVisibilityManager({
@@ -27,20 +28,30 @@ export function createVisibilityManager({
 
   function loadVisualCardVisibility() {
     const defaults = createDefaultVisibility();
-    return loadVisualCardVisibilityFromStorage(state.visualVisibilityStorageKey, VISUAL_CARD_KEYS, defaults);
+    return loadVisualCardVisibilityFromStorage(state.visualVisibilityStorageKey, VISUAL_CARD_KEYS, defaults, {
+      preferencesKey: state.visualPreferencesStorageKey,
+    });
   }
 
   function loadVisualCardOrder() {
     const defaults = createDefaultOrder();
-    return loadVisualCardOrderFromStorage(state.visualOrderStorageKey, defaults, normalizeVisualCardOrder);
+    return loadVisualCardOrderFromStorage(state.visualOrderStorageKey, defaults, normalizeVisualCardOrder, {
+      preferencesKey: state.visualPreferencesStorageKey,
+    });
+  }
+
+  function saveCombinedPreferences() {
+    saveVisualPreferences(state.visualPreferencesStorageKey, state.visualCardVisibility || {}, state.visualCardOrder || []);
   }
 
   function saveVisualCardVisibility() {
     saveLocalStorageJson(state.visualVisibilityStorageKey, state.visualCardVisibility || {});
+    saveCombinedPreferences();
   }
 
   function saveVisualCardOrder() {
     saveLocalStorageJson(state.visualOrderStorageKey, state.visualCardOrder || []);
+    saveCombinedPreferences();
   }
 
   function countVisibleCards(visibility = {}) {

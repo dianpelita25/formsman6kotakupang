@@ -9,6 +9,7 @@ import {
 } from '../questionnaires/service.js';
 import { AI_ANALYSIS_MODES, normalizeAiMode } from '../shared/ai-modes.js';
 import { callGemini } from './gemini-client.js';
+import { buildAiInputSignature, getAiAnalyzeCooldownSeconds, resolveReusableAnalysis } from './cooldown-policy.js';
 import { buildPromptLegacy } from './prompt-fallback.js';
 
 export async function analyzeSchoolAi(env, { school, mode }) {
@@ -27,6 +28,29 @@ export async function analyzeSchoolAi(env, { school, mode }) {
   const questionnaire =
     (published?.formVersionId && (await getQuestionnaireByLegacyFormVersionId(env, published.formVersionId))) ||
     (await getDefaultQuestionnaireByTenantId(env, school.id));
+
+  const inputSignature = buildAiInputSignature({
+    mode: normalizedMode,
+    questionnaireVersionId: published?.formVersionId || null,
+    totalResponses: Number(summary?.totalResponses || 0),
+    lastSubmittedAt: summary?.lastSubmittedAt || null,
+  });
+  const cooldownSeconds = getAiAnalyzeCooldownSeconds(env);
+  const latest = await getLatestAiAnalysis(env, {
+    schoolId: school.id,
+    mode: normalizedMode,
+  });
+  const reuseState = resolveReusableAnalysis(latest, inputSignature, cooldownSeconds);
+  if (reuseState.reused) {
+    return {
+      mode: latest.mode,
+      analysis: latest.analysis,
+      meta: latest.meta || null,
+      createdAt: latest.created_at || null,
+      reused: true,
+      cooldownSeconds: reuseState.cooldownSeconds,
+    };
+  }
 
   let prompt = '';
   try {
@@ -60,6 +84,7 @@ export async function analyzeSchoolAi(env, { school, mode }) {
     summary,
     distribution,
     totalResponses: Number(summary?.totalResponses || 0),
+    inputSignature,
   };
 
   const saved = await insertAiAnalysis(env, {
@@ -95,6 +120,8 @@ export async function analyzeSchoolAi(env, { school, mode }) {
     analysis,
     meta,
     createdAt: saved?.created_at || null,
+    reused: false,
+    cooldownSeconds: 0,
   };
 }
 

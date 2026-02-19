@@ -26,6 +26,13 @@ export function createQueryBuilderHelpers({ state, filterFromEl, filterToEl, fil
       params.set('search', state.search);
     }
 
+    const segmentDimensionId = String(state.activeSegmentFilter?.dimensionId || '').trim();
+    const segmentBucket = String(state.activeSegmentFilter?.bucket || '').trim();
+    if (segmentDimensionId && segmentBucket) {
+      params.set('segmentDimensionId', segmentDimensionId);
+      params.set('segmentBucket', segmentBucket);
+    }
+
     return params;
   }
 

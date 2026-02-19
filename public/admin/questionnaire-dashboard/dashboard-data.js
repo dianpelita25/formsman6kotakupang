@@ -28,6 +28,9 @@ export function createDashboardDataController({
   normalizeQuestionCriterion,
   resolveSegmentDimensions,
   renderSegmentDimensionOptions,
+  renderSegmentBucketOptions,
+  renderSegmentFilterChip,
+  getSelectedCompareBuckets,
   renderScaleAverageChart,
   renderRadioQuestionOptions,
   renderRadioDistributionChart,
@@ -69,6 +72,8 @@ export function createDashboardDataController({
     normalizeQuestionCriterion,
     resolveSegmentDimensions,
     renderSegmentDimensionOptions,
+    renderSegmentBucketOptions,
+    renderSegmentFilterChip,
     renderScaleAverageChart,
     renderRadioQuestionOptions,
     renderRadioDistributionChart,
@@ -115,10 +120,92 @@ export function createDashboardDataController({
     }
   }
 
+  async function applySegmentDrilldown(dimensionId, bucketLabel) {
+    const nextDimensionId = String(dimensionId || '').trim();
+    const nextBucket = String(bucketLabel || '').trim();
+    if (!nextDimensionId || !nextBucket) return false;
+
+    state.selectedSegmentDimension = nextDimensionId;
+    state.selectedSegmentBucket = nextBucket;
+    state.activeSegmentFilter = {
+      dimensionId: nextDimensionId,
+      bucket: nextBucket,
+    };
+    state.segmentCompareResult = null;
+
+    const refreshed = await refreshDashboardData({
+      startMessage: 'Menerapkan filter segment...',
+      successMessage: `Filter segment aktif: ${nextBucket}.`,
+    });
+    if (refreshed) {
+      renderSegmentFilterChip();
+    }
+    return refreshed;
+  }
+
+  async function clearSegmentDrilldown() {
+    const hadFilter = String(state.activeSegmentFilter?.dimensionId || '').trim() && String(state.activeSegmentFilter?.bucket || '').trim();
+    state.activeSegmentFilter = { dimensionId: '', bucket: '' };
+    state.segmentCompareResult = null;
+
+    if (!hadFilter) {
+      renderSegmentFilterChip();
+      return true;
+    }
+
+    const refreshed = await refreshDashboardData({
+      startMessage: 'Membersihkan filter segment...',
+      successMessage: 'Filter segment dibersihkan.',
+    });
+    if (refreshed) {
+      renderSegmentFilterChip();
+    }
+    return refreshed;
+  }
+
+  async function runSegmentCompare() {
+    const segmentDimensionId = String(state.selectedSegmentDimension || '').trim();
+    if (!segmentDimensionId) {
+      setStatus('Pilih dimensi segmentasi dulu.', 'warning');
+      return null;
+    }
+
+    const compareBuckets = Array.isArray(getSelectedCompareBuckets?.()) ? getSelectedCompareBuckets() : [];
+    state.selectedSegmentCompareBuckets = compareBuckets;
+    const params = buildCommonQuery();
+    params.set('segmentDimensionId', segmentDimensionId);
+    if (compareBuckets.length) {
+      params.set(
+        'segmentBuckets',
+        compareBuckets
+          .slice(0, 3)
+          .map((bucket) => encodeURIComponent(bucket))
+          .join(',')
+      );
+    }
+    const payload = await api(
+      `${baseApiPath()}/analytics/segment-compare?${params.toString()}`,
+      undefined,
+      'Gagal memuat perbandingan segment.'
+    );
+    state.segmentCompareResult = {
+      dimensionId: segmentDimensionId,
+      buckets: Array.isArray(payload.data?.buckets) ? payload.data.buckets : [],
+      metric: payload.data?.metric || '',
+    };
+    renderSegmentBucketOptions();
+    renderAdvancedVizChart();
+    setStatus('Perbandingan segment berhasil dimuat.', 'success');
+    return state.segmentCompareResult;
+  }
+
   return {
     ensureSelectedVersionExists,
     loadSummaryAndCharts,
     refreshDashboardData,
+    applySegmentDrilldown,
+    clearSegmentDrilldown,
+    runSegmentCompare,
     renderContextInfo,
     renderSummary,
   };

@@ -99,6 +99,22 @@
               <span>Kriteria (opsional, disarankan)</span>
               <input id="new-question-criterion" placeholder="Contoh: A / B / C" />
             </label>
+            <label class="field">
+              <span>Peran Segmentasi</span>
+              <select id="new-question-segment-role">
+                <option value="auto">Auto</option>
+                <option value="dimension">Paksa Dimensi</option>
+                <option value="exclude">Exclude</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Label Segmentasi (opsional)</span>
+              <input id="new-question-segment-label" placeholder="Contoh: Jenjang Kelas" maxlength="64" />
+            </label>
+            <label class="builder-required-toggle builder-required-toggle--composer">
+              <input id="new-question-sensitive" type="checkbox" />
+              <span>Data Sensitif (exclude dari segmentasi)</span>
+            </label>
             <label class="builder-required-toggle builder-required-toggle--composer">
               <input id="new-question-required" type="checkbox" checked />
               <span>Wajib diisi</span>

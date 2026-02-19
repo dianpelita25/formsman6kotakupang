@@ -74,6 +74,19 @@ Jangan tambahkan:
 - `aitiglobal.link/*` (root)
 - `aitiglobal.link/admin*`
 
+## 3.1) WAF Login Rule (Wajib)
+
+Aktifkan WAF rule untuk endpoint login admin:
+
+- Path: `/forms/admin/api/login`
+- Method: `POST`
+- Action: managed challenge atau rate limit (contoh: >10 req/60s per IP)
+
+Catatan:
+
+- WAF adalah kontrol utama.
+- App fallback throttle tetap aktif di runtime (`429` setelah gagal berulang).
+
 ## 4) Deploy Production
 
 ```bash
@@ -88,6 +101,8 @@ pnpm deploy:production
 4. `GET /formsman6kotakupang/index.html` -> 301 ke `/forms/sman6-kotakupang/...`  
 5. `GET /admin/login` -> tidak aktif (bukan route resmi production)  
 6. submit form -> tersimpan dengan `school_id` sesuai tenant  
+7. login gagal berulang endpoint admin -> `429` dari app fallback (best-effort)  
+8. analyze AI berulang pada filter identik dalam cooldown -> response `reused=true`
 
 ## 6) Monitoring 72 Jam
 

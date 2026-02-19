@@ -39,7 +39,9 @@ export function renderBuilderPreview(state, refs) {
 
     item.innerHTML = `<strong>${index + 1}. ${field.label}</strong> <span class="small">[${field.name}] ${detail} | ${
       field.criterion ? `Kriteria ${field.criterion} | ` : ''
-    }${field.required === false ? 'Opsional' : 'Wajib'}</span>`;
+    }${field.required === false ? 'Opsional' : 'Wajib'} | Segment: ${String(field.segmentRole || 'auto')}${
+      field.isSensitive ? ' (sensitive)' : ''
+    }</span>`;
     refs.previewFieldsEl.append(item);
   });
 }

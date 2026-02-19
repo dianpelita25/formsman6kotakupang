@@ -1,4 +1,28 @@
-export function loadVisualCardVisibility(storageKey = '', visualCardKeys = [], defaults = {}) {
+function readLocalStorageJson(storageKey = '') {
+  const normalizedKey = String(storageKey || '').trim();
+  if (!normalizedKey) return null;
+  try {
+    const raw = window.localStorage.getItem(normalizedKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function loadVisualCardVisibility(storageKey = '', visualCardKeys = [], defaults = {}, options = {}) {
+  const preferencesKey = String(options?.preferencesKey || '').trim();
+  const preferences = readLocalStorageJson(preferencesKey);
+  if (preferences?.visibility && typeof preferences.visibility === 'object') {
+    return visualCardKeys.reduce((accumulator, key) => {
+      const value = preferences.visibility[key];
+      accumulator[key] = typeof value === 'boolean' ? value : true;
+      return accumulator;
+    }, {});
+  }
+
   const normalizedKey = String(storageKey || '').trim();
   if (!normalizedKey) return defaults;
   try {
@@ -16,7 +40,13 @@ export function loadVisualCardVisibility(storageKey = '', visualCardKeys = [], d
   }
 }
 
-export function loadVisualCardOrder(storageKey = '', defaults = [], normalizeVisualCardOrder = (value) => value) {
+export function loadVisualCardOrder(storageKey = '', defaults = [], normalizeVisualCardOrder = (value) => value, options = {}) {
+  const preferencesKey = String(options?.preferencesKey || '').trim();
+  const preferences = readLocalStorageJson(preferencesKey);
+  if (Array.isArray(preferences?.order)) {
+    return normalizeVisualCardOrder(preferences.order);
+  }
+
   const normalizedKey = String(storageKey || '').trim();
   if (!normalizedKey) return defaults;
   try {
@@ -37,4 +67,14 @@ export function saveLocalStorageJson(storageKey = '', value = null) {
   } catch {
     // ignore write error (private mode / blocked storage)
   }
+}
+
+export function saveVisualPreferences(storageKey = '', visibility = {}, order = []) {
+  const normalizedKey = String(storageKey || '').trim();
+  if (!normalizedKey) return;
+  saveLocalStorageJson(normalizedKey, {
+    version: 2,
+    visibility: visibility && typeof visibility === 'object' ? visibility : {},
+    order: Array.isArray(order) ? order : [],
+  });
 }

@@ -74,6 +74,7 @@ export function createAdvancedVizRenderDispatcher({
 
     if (mode === 'segment') {
       segmentControls.renderSegmentDimensionOptions();
+      segmentControls.renderSegmentBucketOptions();
       const dimension = segmentControls.getCurrentSegmentDimension();
       if (!dimension) {
         ui.renderEmptyAdvancedVizChart(canvas, 'Belum ada dimensi segmentasi untuk filter ini.');
@@ -94,6 +95,10 @@ export function createAdvancedVizRenderDispatcher({
         formatNumber,
         advancedVizHelpEl,
         renderAdvancedVizInsights: ui.renderAdvancedVizInsights,
+        onBucketClick: ({ dimensionId, bucketLabel }) => {
+          if (typeof state.onSegmentBucketClick !== 'function') return;
+          state.onSegmentBucketClick(dimensionId, bucketLabel);
+        },
       });
       if (!rendered) {
         ui.renderEmptyAdvancedVizChart(canvas, 'Dimensi segmentasi belum punya data bucket.');

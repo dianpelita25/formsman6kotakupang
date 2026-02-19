@@ -104,6 +104,7 @@ export function resolveSegmentDimensions(segmentSummary = null) {
       label: String(dimension.label || 'Dimensi').trim() || 'Dimensi',
       kind: String(dimension.kind || '').trim(),
       metric: String(dimension.metric || '').trim(),
+      drilldownEligible: dimension.drilldownEligible !== false,
       buckets: Array.isArray(dimension.buckets) ? dimension.buckets : [],
     }))
     .filter((dimension) => dimension.id);
