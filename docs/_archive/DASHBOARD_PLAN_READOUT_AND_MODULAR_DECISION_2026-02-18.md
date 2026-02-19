@@ -1,5 +1,10 @@
 # Dashboard Plan Readout + Modular Decision (2026-02-18)
 
+> Status: ARCHIVED (historical snapshot)
+> As of: 2026-02-20
+> Superseded by: `docs/DEBT_REGISTER_LOCKED.md`, `docs/DEBT_CLOSURE_REPORT.md`, `docs/DOCS_INDEX.md`
+> Catatan: isi dokumen ini adalah kondisi 2026-02-18. Jangan dipakai sebagai status current tanpa verifikasi ke dokumen aktif.
+
 Dokumen ini merangkum status aktual code terhadap `PLAN_DASHBOARD.md` dan keputusan urutan eksekusi yang paling aman.
 
 ## Executive Decision
@@ -159,4 +164,3 @@ Scope dashboard dianggap modular jika semua ini terpenuhi:
 1. Ini bukan usulan big-bang rewrite.
 2. Ini urutan untuk mengurangi risiko sambil tetap mengejar timeline blueprint.
 3. Jika M0 dilewati, biaya perubahan fase 1-4 akan naik tajam.
-

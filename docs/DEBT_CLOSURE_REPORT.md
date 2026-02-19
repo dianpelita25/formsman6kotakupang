@@ -43,8 +43,14 @@ Catat output ringkas command berikut (dengan timestamp bila perlu):
 
 Referensi CI strict:
 
-1. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169385161` (base `backup/wip-20260218-1746`, SHA `603516979203de94f637c8bb89df053004b5c297`)
-2. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169349454` (branch `debt/f0-close-d04-d05`, SHA `603516979203de94f637c8bb89df053004b5c297`)
+1. Commit proof referensi closure:
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/603516979203de94f637c8bb89df053004b5c297`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/2c29e9c1e08e75031f4e6de9a5534c145fc952aa`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/b7797ab06f6cba27454c1e4868f9cf454d0d7772`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/5bec9c71ff9a28a6013dbf1a87ad97236f571805`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/a6a9a21491ca960f93d44abe85df037e388fa584`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/6e95fbaaa25dd7b6572f9127f4e91377ebde2971`
+2. Bukti check-run per commit tersimpan di tab Checks pada commit proof di atas, dan diringkas per debt pada kolom `Commands Proof`.
 
 ## Residual Debt / New Findings
 
