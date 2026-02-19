@@ -6,8 +6,8 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 
 - Tanggal: 2026-02-19
 - Penanggung jawab: Codex
-- Scope release/PR: F0 closure D01..D09 (D10 governance evidence masih berjalan)
-- Catatan umum: D01-D09 sudah resmi ditutup setelah gate lokal PASS dan commit proof sudah masuk ke `backup/wip-20260218-1746` serta `main`.
+- Scope release/PR: F0 closure D01..D10
+- Catatan umum: D01-D10 sudah resmi ditutup setelah gate lokal PASS, commit proof sudah masuk ke `backup/wip-20260218-1746` serta `main`, dan branch protection required checks tervalidasi.
 
 ## Daftar Debt Ditutup
 
@@ -22,6 +22,7 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 | D07 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:dashboard:pdf` PASS<br>`pnpm visual:legacy-dashboard:diff` PASS<br>`pnpm visual:questionnaire-dashboard:diff` PASS<br>`pnpm smoke:admin:ui` PASS<br>`GitHub check-runs` PASS | 6 file grandfathered budget sudah dipecah + hard exact-path lock aktif |
 | D08 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`GitHub check-runs` PASS | Canonical shared validation aktif, facade validation tidak lagi duplikat implementasi |
 | D09 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:modularity` PASS<br>`pnpm check:cycles` PASS<br>`pnpm check:architecture` PASS<br>`GitHub check-runs` PASS | Checker boundary/cycle/deps sudah memproses `export ... from ...` |
+| D10 | CLOSED | `5bec9c71ff9a28a6013dbf1a87ad97236f571805` | `GET /branches/main/protection` 200<br>`GET /branches/backup/wip-20260218-1746/protection` 200<br>`required_status_checks.contexts` memuat `check-architecture`, `smoke-e2e`, `smoke-dashboard-pdf`, `smoke-admin-ui`, `visual-regression-legacy-dashboard` | Branch protection rule sudah aktif di `main` dan `backup/wip-20260218-1746` |
 
 ## Bukti Gate
 
@@ -52,25 +53,13 @@ Jika ada temuan baru saat implementasi:
 | --- | --- | --- | --- |
 | - | - | - | - |
 
-## Progress D10 (Belum Ditutup)
+## Verifikasi D10
 
-| Debt ID | Status Saat Ini | Bukti Gate Lokal | Catatan |
-| --- | --- | --- | --- |
-| D10 | IN_PROGRESS | `pnpm check:architecture` PASS | Menunggu bukti manual admin branch protection (`main` + `backup/wip-20260218-1746`) |
-
-### Checklist Evidence D10 (Admin)
-
-1. Screenshot branch protection `main` yang menampilkan required checks.
-2. Screenshot branch protection `backup/wip-20260218-1746` yang menampilkan required checks.
-3. Daftar required checks minimal:
+1. Branch protection API untuk `main` dan `backup/wip-20260218-1746` sudah mengembalikan `200`.
+2. `required_status_checks.contexts` pada kedua branch sudah memuat 5 required checks policy:
    - `check-architecture`
    - `smoke-e2e`
    - `smoke-dashboard-pdf`
    - `smoke-admin-ui`
    - `visual-regression-legacy-dashboard`
-4. URL settings branch protection dicatat di laporan closure final F0.
-
-Catatan kendala otomatis:
-
-1. PAT saat ini dapat push branch + baca check-runs, tetapi tidak bisa akses endpoint branch protection (`403 Resource not accessible by personal access token`).
-2. Karena itu bukti D10 tetap wajib dari admin repo (screenshot/settings) agar status bisa diubah ke `CLOSED`.
+3. Gate arsitektur tetap PASS setelah penguncian rule branch protection.
