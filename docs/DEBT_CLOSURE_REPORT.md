@@ -7,7 +7,7 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 - Tanggal: 2026-02-19
 - Penanggung jawab: Codex
 - Scope release/PR: D04 (scope predicate lock) + D05 (budget ratchet + hotspot split)
-- Catatan umum: Status debt D04 dan D05 sudah `READY_FOR_CLOSE`; final `CLOSED` menunggu proof commit saat PR di-merge.
+- Catatan umum: D04 dan D05 resmi ditutup setelah perubahan masuk ke base `backup/wip-20260218-1746` dan CI strict hijau.
 
 ## Daftar Debt Ditutup
 
@@ -16,8 +16,8 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 | D01 | - | - | - | - |
 | D02 | - | - | - | - |
 | D03 | - | - | - | - |
-| D04 | READY_FOR_CLOSE | pending-commit-proof | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS | Scope predicate tunggal aktif + forbiddenPattern checker aktif |
-| D05 | READY_FOR_CLOSE | pending-commit-proof | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS | 4 target D05 sudah <=220 dengan hard exact-path budget |
+| D04 | CLOSED | `2c29e9c1e08e75031f4e6de9a5534c145fc952aa` | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS<br>`GitHub Actions #11` PASS | Scope predicate tunggal aktif + forbiddenPattern checker aktif |
+| D05 | CLOSED | `2c29e9c1e08e75031f4e6de9a5534c145fc952aa` | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`GitHub Actions #11` PASS | 4 target D05 sudah <=220 dengan hard exact-path budget |
 | D06 | - | - | - | - |
 
 ## Bukti Gate
@@ -31,6 +31,11 @@ Catat output ringkas command berikut (dengan timestamp bila perlu):
 5. `pnpm smoke:dashboard:pdf` (jika scope dashboard/PDF)
 6. `pnpm visual:legacy-dashboard:diff` (jika scope dashboard/PDF)
 7. `pnpm visual:questionnaire-dashboard:diff` (jika scope dashboard/PDF)
+
+Referensi CI strict:
+
+1. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169258171` (base `backup/wip-20260218-1746`, SHA `2c29e9c1...`)
+2. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169261663` (branch `integration/f0-strict-ci`, SHA `2c29e9c1...`)
 
 ## Residual Debt / New Findings
 
