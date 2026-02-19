@@ -6,6 +6,12 @@ on:
       - '**'
   pull_request:
 
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
+  SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
+
 jobs:
   check-architecture:
     runs-on: ubuntu-latest
@@ -50,13 +56,8 @@ jobs:
   smoke-dashboard-pdf:
     needs:
       - check-architecture
-    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
-      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -92,13 +93,8 @@ jobs:
   smoke-e2e:
     needs:
       - check-architecture
-    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
-      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -123,13 +119,8 @@ jobs:
   smoke-admin-ui:
     needs:
       - check-architecture
-    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
-      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -160,13 +151,9 @@ jobs:
       - smoke-dashboard-pdf
       - smoke-e2e
       - smoke-admin-ui
-    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    if: ${{ env.DATABASE_URL != '' && env.SESSION_SECRET != '' && env.SUPERADMIN_EMAIL != '' && env.SUPERADMIN_PASSWORD != '' }}
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
-      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
       VISUAL_DIFF_MAX_RATIO: '0.03'
     steps:
       - name: Checkout
