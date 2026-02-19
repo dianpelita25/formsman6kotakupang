@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "notes": "Locked canonical declaration policy. No new declaration points allowed outside allowlist.",
+  "defaults": {
+    "scanRoots": [
+      "src",
+      "public"
+    ],
+    "includeExtensions": [
+      ".js"
+    ],
+    "ignorePathPrefixes": [
+      "src/legacy/"
+    ]
+  },
+  "rules": [
+    {
+      "id": "slugify-declarations",
+      "debtId": "D03",
+      "description": "slugify declaration points must stay locked until canonical migration.",
+      "declarationPattern": "(?:export\\s+)?function\\s+slugify\\(|(?:const|let|var)\\s+slugify\\s*=",
+      "allowedDeclarationFiles": [
+        "src/modules/shared/text/slugify.js"
+      ],
+      "maxAllowedDeclarations": 1,
+      "enforceExactFiles": true
+    },
+    {
+      "id": "escape-csv-value-declarations",
+      "debtId": "D03",
+      "description": "escapeCsvValue declaration points must stay locked until canonical migration.",
+      "declarationPattern": "(?:export\\s+)?function\\s+escapeCsvValue\\(|(?:const|let|var)\\s+escapeCsvValue\\s*=",
+      "allowedDeclarationFiles": [
+        "src/modules/shared/csv/escape-csv-value.js"
+      ],
+      "maxAllowedDeclarations": 1,
+      "enforceExactFiles": true
+    },
+    {
+      "id": "legacy-school-slug-declarations",
+      "debtId": "D03",
+      "description": "LEGACY_SCHOOL_SLUG declaration points must stay locked until canonical runtime constants are unified.",
+      "declarationPattern": "(?:export\\s+)?const\\s+LEGACY_SCHOOL_SLUG\\s*=",
+      "allowedDeclarationFiles": [
+        "src/lib/db/bootstrap/constants.js",
+        "public/shared/constants/legacy.js"
+      ],
+      "maxAllowedDeclarations": 2,
+      "enforceExactFiles": true
+    },
+    {
+      "id": "parse-json-declarations",
+      "debtId": "D03",
+      "description": "parseJson declaration points must stay locked until policy-based canonical split is complete.",
+      "declarationPattern": "(?:export\\s+)?function\\s+parseJson\\(|(?:const|let|var)\\s+parseJson\\s*=",
+      "allowedDeclarationFiles": [
+        "src/lib/db/bootstrap/json-utils.js",
+        "src/modules/forms/repository-json.js",
+        "src/modules/questionnaires/repositories/shared.js"
+      ],
+      "maxAllowedDeclarations": 3,
+      "enforceExactFiles": true
+    },
+    {
+      "id": "ai-prompts-inline-scope-predicate",
+      "type": "forbiddenPattern",
+      "debtId": "D04",
+      "description": "Inline scope predicate berbasis ${target.scope} dilarang; wajib pakai scope-predicate builder tunggal.",
+      "forbiddenPattern": "\\(\\$\\{target\\.scope\\}\\s*=\\s*'global'\\s+AND\\s+tenant_id\\s+IS\\s+NULL\\s+AND\\s+questionnaire_id\\s+IS\\s+NULL\\)",
+      "targetFiles": [
+        "src/modules/ai-prompts/repositories/read-repository.js",
+        "src/modules/ai-prompts/repositories/draft-repository.js",
+        "src/modules/ai-prompts/repositories/publish-repository.js"
+      ],
+      "maxAllowedMatches": 0
+    }
+  ]
+}
