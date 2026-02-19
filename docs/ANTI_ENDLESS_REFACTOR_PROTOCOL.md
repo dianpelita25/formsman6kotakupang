@@ -1,6 +1,7 @@
 # Anti-Endless Refactor Protocol
 
 Dokumen ini adalah kontrak eksekusi agar refactor tidak menjadi loop tanpa akhir.
+Blueprint aktif siklus saat ini: `docs/BLUEPRINT_D07_D10_CLOSURE.md`.
 
 ## Tujuan
 1. Menutup temuan secara objektif, bukan by-claim.
