@@ -29,5 +29,5 @@ pnpm check:modularity
 
 ## Referensi
 - Rule detail: `docs/MODULAR_MONOLITH_GUARDRAILS.md`
+- Protocol anti-loop closure: `docs/ANTI_ENDLESS_REFACTOR_PROTOCOL.md`
 - Checker: `scripts/check-modular-boundaries.js`
-

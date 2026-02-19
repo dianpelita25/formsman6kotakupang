@@ -1,6 +1,7 @@
 # Modular Monolith Guardrails
 
 Dokumen ini adalah kontrak arsitektur agar boundary module tetap bersih saat code berubah.
+Untuk closure debt agar tidak loop tanpa akhir, wajib ikuti `docs/ANTI_ENDLESS_REFACTOR_PROTOCOL.md`.
 
 ## Tujuan
 1. Mencegah kebocoran dependency antar module.
