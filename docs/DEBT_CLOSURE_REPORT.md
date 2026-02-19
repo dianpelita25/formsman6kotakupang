@@ -27,7 +27,7 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 | D12 | CLOSED | `a6a9a21491ca960f93d44abe85df037e388fa584` | `pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS<br>Contract probe: invalid pair => 400, compare => 200<br>`GitHub check-runs` PASS | Endpoint `segment-compare`, `dataQuality`, dan contract drilldown/filter segment aktif |
 | D13 | CLOSED | `a6a9a21491ca960f93d44abe85df037e388fa584` | `pnpm check:architecture` PASS<br>`pnpm smoke:dashboard:pdf` PASS<br>`pnpm visual:questionnaire-dashboard:diff` PASS<br>`pnpm smoke:admin:ui` PASS<br>`GitHub check-runs` PASS | UX compare/drilldown segment + migrasi preferences `dashboard_visual_prefs_v2` aktif |
 | D14 | CLOSED | `a6a9a21491ca960f93d44abe85df037e388fa584` | `pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS<br>Hardening probe: login attempt #6 => 429, AI analyze => reused=true<br>`GitHub check-runs` PASS | Hardening hybrid WAF+app fallback login throttle dan AI cooldown/dedup aktif |
-| D15 | CLOSED | `a6a9a21491ca960f93d44abe85df037e388fa584` | `pnpm check:debt-register` PASS<br>`pnpm check:architecture` PASS<br>`GitHub check-runs` PASS | Closure governance D11-D14 tervalidasi dengan proof commit di base branch protected |
+| D15 | CLOSED | `6e95fbaaa25dd7b6572f9127f4e91377ebde2971` | `pnpm check:debt-register` PASS<br>`pnpm check:architecture` PASS<br>`GitHub check-runs` PASS | Closure governance D11-D14 tervalidasi dengan proof commit di base branch protected |
 
 ## Bukti Gate
 
