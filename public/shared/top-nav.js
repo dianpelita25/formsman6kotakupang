@@ -1,3 +1,5 @@
+import { LEGACY_SCHOOL_SLUG } from '/forms-static/shared/constants/legacy.js';
+
 function safeDecode(segment) {
   try {
     return decodeURIComponent(String(segment || '').trim());
@@ -5,8 +7,6 @@ function safeDecode(segment) {
     return String(segment || '').trim();
   }
 }
-
-const LEGACY_SCHOOL_SLUG = 'sman6-kotakupang';
 
 function resolveFormsContext(pathname) {
   const parts = String(pathname || '')

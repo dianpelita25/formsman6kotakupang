@@ -1,5 +1,4 @@
 import { getSqlClient } from '../../lib/db/sql.js';
-import { ensureDraftVersion, ensurePublishedVersion } from '../../lib/db/bootstrap.js';
 
 export async function findSchoolBySlug(env, slug) {
   const sql = getSqlClient(env);
@@ -50,7 +49,7 @@ export async function listActiveSchoolsPublic(env) {
   `;
 }
 
-export async function createSchool(env, { slug, name, createdBy }) {
+export async function createSchool(env, { slug, name }) {
   const sql = getSqlClient(env);
   const schoolId = crypto.randomUUID();
   const rows = await sql`
@@ -58,20 +57,7 @@ export async function createSchool(env, { slug, name, createdBy }) {
     VALUES (${schoolId}, ${slug}, ${name}, TRUE)
     RETURNING id, slug, name, is_active, created_at;
   `;
-  const school = rows[0];
-  await sql`
-    INSERT INTO tenants (id, slug, name, tenant_type, is_active)
-    VALUES (${school.id}, ${school.slug}, ${school.name}, 'school', ${school.is_active})
-    ON CONFLICT (id) DO UPDATE
-    SET
-      slug = EXCLUDED.slug,
-      name = EXCLUDED.name,
-      tenant_type = 'school',
-      is_active = EXCLUDED.is_active;
-  `;
-  await ensurePublishedVersion(sql, school.id, createdBy);
-  await ensureDraftVersion(sql, school.id, createdBy);
-  return school;
+  return rows[0] || null;
 }
 
 export async function updateSchool(env, schoolId, payload) {
@@ -85,18 +71,5 @@ export async function updateSchool(env, schoolId, payload) {
     WHERE id = ${schoolId}
     RETURNING id, slug, name, is_active, created_at;
   `;
-  const updated = rows[0] || null;
-  if (updated) {
-    await sql`
-      INSERT INTO tenants (id, slug, name, tenant_type, is_active)
-      VALUES (${updated.id}, ${updated.slug}, ${updated.name}, 'school', ${updated.is_active})
-      ON CONFLICT (id) DO UPDATE
-      SET
-        slug = EXCLUDED.slug,
-        name = EXCLUDED.name,
-        tenant_type = 'school',
-        is_active = EXCLUDED.is_active;
-    `;
-  }
-  return updated;
+  return rows[0] || null;
 }

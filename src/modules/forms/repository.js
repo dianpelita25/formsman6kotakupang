@@ -1,15 +1,6 @@
 import { getSqlClient } from '../../lib/db/sql.js';
-import { ensureDraftVersion, ensurePublishedVersion } from '../../lib/db/bootstrap.js';
-
-function parseJson(value, fallback) {
-  if (!value) return fallback;
-  if (typeof value === 'object') return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
+import { parseJson } from './repository-json.js';
+import { ensureDraftVersion, ensurePublishedVersion } from './repository-version-lifecycle.js';
 
 function normalizeVersionRow(row) {
   if (!row) return null;

@@ -1,16 +1,10 @@
 import { createSchool, findSchoolById, findSchoolBySlug, listActiveSchoolsPublic, listSchools, updateSchool } from './repository.js';
-import { createUser, findUserByEmail, grantSchoolAdminRole, grantTenantAdminRole } from '../auth/repository.js';
-import { hashPassword, randomSalt } from '../../lib/security/hash.js';
+import { ensureUserForAdminAccount, grantSchoolAdminAccess, grantTenantAdminAccess } from '../auth/service.js';
+import { ensureLegacySchoolFormVersions } from '../forms/service.js';
 import { ensureTenantQuestionnaireInitialized } from '../questionnaires/service.js';
-import { syncTenantSuperadmins } from '../tenants/repository.js';
-
-function slugify(input) {
-  return String(input || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+import { slugify } from '../shared/text/slugify.js';
+import { syncTenantFromSchool } from '../tenant-school-sync/service.js';
+import { syncTenantSuperadminsForTenant } from '../tenants/service.js';
 
 export async function resolveSchoolBySlug(env, slug, { onlyActive = false } = {}) {
   const normalizedSlug = slugify(slug);
@@ -29,6 +23,10 @@ export async function listPublicSchools(env) {
   return listActiveSchoolsPublic(env);
 }
 
+export async function getSchoolById(env, schoolId) {
+  return findSchoolById(env, schoolId);
+}
+
 export async function createNewSchool(env, payload, actorId) {
   const name = String(payload?.name || '').trim();
   const slug = slugify(payload?.slug || payload?.name);
@@ -43,7 +41,9 @@ export async function createNewSchool(env, payload, actorId) {
 
   try {
     const school = await createSchool(env, { name, slug, createdBy: actorId });
-    await syncTenantSuperadmins(env, school.id);
+    await syncTenantFromSchool(env, school);
+    await ensureLegacySchoolFormVersions(env, school.id, actorId);
+    await syncTenantSuperadminsForTenant(env, school.id);
     await ensureTenantQuestionnaireInitialized(env, school.id, actorId);
     return { ok: true, status: 201, data: school };
   } catch (error) {
@@ -77,6 +77,7 @@ export async function patchSchool(env, schoolId, payload) {
   try {
     const updated = await updateSchool(env, schoolId, next);
     if (!updated) return { ok: false, status: 404, message: 'Sekolah tidak ditemukan.' };
+    await syncTenantFromSchool(env, updated);
     return { ok: true, status: 200, data: updated };
   } catch (error) {
     if (String(error?.message || '').includes('duplicate key')) {
@@ -103,26 +104,14 @@ export async function createSchoolAdminAccount(env, schoolId, payload) {
     return { ok: false, status: 400, message: 'Password minimal 8 karakter.' };
   }
 
-  const existing = await findUserByEmail(env, email);
-  let userId = existing?.id || null;
-
-  if (!userId) {
-    const salt = randomSalt();
-    const hash = await hashPassword(password, salt);
-    const created = await createUser(env, {
-      id: crypto.randomUUID(),
-      email,
-      passwordHash: hash,
-      passwordSalt: salt,
-    });
-    if (!created) {
-      return { ok: false, status: 500, message: 'Gagal membuat user admin.' };
-    }
-    userId = created.id;
+  const userResult = await ensureUserForAdminAccount(env, { email, password });
+  if (!userResult.ok) {
+    return userResult;
   }
 
-  await grantSchoolAdminRole(env, userId, schoolId);
-  await grantTenantAdminRole(env, userId, schoolId);
+  const userId = userResult.data.userId;
+  await grantSchoolAdminAccess(env, userId, schoolId);
+  await grantTenantAdminAccess(env, userId, schoolId);
   return {
     ok: true,
     status: 201,

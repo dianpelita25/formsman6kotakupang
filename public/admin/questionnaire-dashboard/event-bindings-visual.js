@@ -1,0 +1,100 @@
+import { createVisualModeEventBinder } from './event-bindings-visual-mode.js';
+import { createVisualOrderEventBinder } from './event-bindings-visual-order.js';
+
+export function createVisualEventBinder({
+  state,
+  VISUAL_CARD_CONFIG,
+  VISUAL_PRESET_CONFIG,
+  visualOrderDragState,
+  radioQuestionSelectEl,
+  segmentDimensionSelectEl,
+  advancedVizTabsContainerEl,
+  visualVisibilityInputEls,
+  visualLayoutApplyBtnEl,
+  visualLayoutPresetEl,
+  visualOrderListEl,
+  visualVisibilityResetBtnEl,
+  visualVisibilitySettingsEl,
+  criteriaSummaryListEl,
+  questionDetailCloseBtnEl,
+  renderRadioDistributionChart,
+  renderAdvancedVizChart,
+  countVisibleVisualCards,
+  saveVisualCardVisibility,
+  setVisualLayoutPresetSelection,
+  resolveMatchingVisualPresetId,
+  applyVisualCardVisibility,
+  applyVisualPreset,
+  moveVisualCardOrder,
+  findVisualOrderRowByKey,
+  resetVisualOrderDragState,
+  reorderVisualCardOrder,
+  createDefaultVisualCardVisibility,
+  createDefaultVisualCardOrder,
+  saveVisualCardOrder,
+  syncVisualVisibilityInputs,
+  renderVisualOrderList,
+  applyVisualCardOrder,
+  findQuestionByCode,
+  renderQuestionDetail,
+  setStatus,
+} = {}) {
+  const { bindVisualModeEvents } = createVisualModeEventBinder({
+    state,
+    VISUAL_CARD_CONFIG,
+    VISUAL_PRESET_CONFIG,
+    radioQuestionSelectEl,
+    segmentDimensionSelectEl,
+    advancedVizTabsContainerEl,
+    visualVisibilityInputEls,
+    visualLayoutApplyBtnEl,
+    visualLayoutPresetEl,
+    renderRadioDistributionChart,
+    renderAdvancedVizChart,
+    countVisibleVisualCards,
+    saveVisualCardVisibility,
+    setVisualLayoutPresetSelection,
+    resolveMatchingVisualPresetId,
+    applyVisualCardVisibility,
+    applyVisualPreset,
+    setStatus,
+  });
+
+  const { bindVisualOrderEvents } = createVisualOrderEventBinder({
+    state,
+    VISUAL_CARD_CONFIG,
+    visualOrderDragState,
+    visualOrderListEl,
+    visualVisibilityResetBtnEl,
+    visualVisibilitySettingsEl,
+    criteriaSummaryListEl,
+    questionDetailCloseBtnEl,
+    renderAdvancedVizChart,
+    moveVisualCardOrder,
+    findVisualOrderRowByKey,
+    resetVisualOrderDragState,
+    reorderVisualCardOrder,
+    createDefaultVisualCardVisibility,
+    createDefaultVisualCardOrder,
+    saveVisualCardVisibility,
+    saveVisualCardOrder,
+    syncVisualVisibilityInputs,
+    renderVisualOrderList,
+    applyVisualCardOrder,
+    applyVisualCardVisibility,
+    setVisualLayoutPresetSelection,
+    resolveMatchingVisualPresetId,
+    findQuestionByCode,
+    renderQuestionDetail,
+    setStatus,
+  });
+
+  function bindVisualEvents() {
+    bindVisualModeEvents();
+    bindVisualOrderEvents();
+  }
+
+  return {
+    bindVisualEvents,
+  };
+}

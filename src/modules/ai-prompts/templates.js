@@ -1,4 +1,4 @@
-import { AI_ANALYSIS_MODES } from '../ai/modes.js';
+import { AI_ANALYSIS_MODES } from '../shared/ai-modes.js';
 
 const DEFAULT_PROMPT_TEMPLATES = Object.freeze({
   [AI_ANALYSIS_MODES.INTERNAL]: [

@@ -1,5 +1,11 @@
 import { normalizeDraftInput } from './schema.js';
-import { getDraftFormBySchoolId, getPublishedFormBySchoolId, publishDraftForm, saveDraftForm } from './repository.js';
+import {
+  ensureSchoolFormsInitialized,
+  getDraftFormBySchoolId,
+  getPublishedFormBySchoolId,
+  publishDraftForm,
+  saveDraftForm,
+} from './repository.js';
 
 export async function getPublishedFormSchema(env, schoolId) {
   const published = await getPublishedFormBySchoolId(env, schoolId);
@@ -75,4 +81,8 @@ export async function publishDraft(env, schoolId, actorId) {
     status: 200,
     data: published,
   };
+}
+
+export async function ensureLegacySchoolFormVersions(env, schoolId, createdBy = null) {
+  await ensureSchoolFormsInitialized(env, schoolId, createdBy);
 }

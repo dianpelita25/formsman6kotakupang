@@ -1,7 +1,10 @@
+import { getCookie } from 'hono/cookie';
+import { SESSION_COOKIE_NAME } from '../../lib/http/session-cookie.js';
 import { canAccessSchool, hasSuperadmin, hasTenantAccess, resolveAuthContext } from './service.js';
 
 export async function attachAuth(c, next) {
-  const auth = await resolveAuthContext(c);
+  const cookieValue = getCookie(c, SESSION_COOKIE_NAME);
+  const auth = await resolveAuthContext(c.env, cookieValue);
   c.set('auth', auth);
   await next();
 }

@@ -239,3 +239,21 @@ public/
 - Legacy snapshot UI root (`public/index.html`, `public/script.js`, `public/styles.css`, `public/dashboard.*`) dipertahankan agar migrasi bertahap aman.
 - Runtime utama sekarang Cloudflare Worker.
 - Route sekolah lama tetap hidup sebagai compat mode, sementara jalur v2 berjalan paralel.
+
+## 10) Guardrails Modular Monolith
+
+Jalankan checker boundary sebelum merge:
+
+```bash
+pnpm check:modularity
+```
+
+Mode strict (tanpa waiver backlog):
+
+```bash
+pnpm check:modularity:strict
+```
+
+Panduan lengkap rule + waiver policy:
+
+- `docs/MODULAR_MONOLITH_GUARDRAILS.md`

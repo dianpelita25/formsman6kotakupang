@@ -1,7 +1,6 @@
-import { createUser, findUserByEmail, grantTenantAdminRole } from '../auth/repository.js';
-import { hashPassword, randomSalt } from '../../lib/security/hash.js';
-import { getSqlClient } from '../../lib/db/sql.js';
-import { ensureDraftVersion, ensurePublishedVersion } from '../../lib/db/bootstrap.js';
+import { ensureUserForAdminAccount, grantTenantAdminAccess } from '../auth/service.js';
+import { slugify } from '../shared/text/slugify.js';
+import { syncSchoolFromTenant } from '../tenant-school-sync/service.js';
 import {
   createTenant,
   findTenantById,
@@ -13,14 +12,6 @@ import {
 } from './repository.js';
 
 const VALID_TENANT_TYPES = new Set(['school', 'business', 'government', 'class', 'community', 'event', 'other']);
-
-function slugify(input) {
-  return String(input || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 function normalizeTenantType(value) {
   const tenantType = String(value || 'school')
@@ -46,6 +37,14 @@ export async function listPublicTenants(env) {
   return listActiveTenants(env);
 }
 
+export async function getTenantById(env, tenantId) {
+  return findTenantById(env, tenantId);
+}
+
+export async function syncTenantSuperadminsForTenant(env, tenantId) {
+  await syncTenantSuperadmins(env, tenantId);
+}
+
 export async function createNewTenant(env, payload) {
   const name = String(payload?.name || '').trim();
   const slug = slugify(payload?.slug || payload?.name);
@@ -68,20 +67,7 @@ export async function createNewTenant(env, payload) {
     });
     await syncTenantSuperadmins(env, created.id);
 
-    if (tenantType === 'school') {
-      const sql = getSqlClient(env);
-      await sql`
-        INSERT INTO schools (id, slug, name, is_active)
-        VALUES (${created.id}, ${created.slug}, ${created.name}, ${created.is_active})
-        ON CONFLICT (id) DO UPDATE
-        SET
-          slug = EXCLUDED.slug,
-          name = EXCLUDED.name,
-          is_active = EXCLUDED.is_active;
-      `;
-      await ensurePublishedVersion(sql, created.id, null);
-      await ensureDraftVersion(sql, created.id, null);
-    }
+    await syncSchoolFromTenant(env, created);
 
     return { ok: true, status: 201, data: created };
   } catch (error) {
@@ -121,18 +107,7 @@ export async function patchTenantById(env, tenantId, payload) {
     const updated = await updateTenant(env, tenantId, next);
     if (!updated) return { ok: false, status: 404, message: 'Organisasi tidak ditemukan.' };
 
-    if (updated.tenant_type === 'school') {
-      const sql = getSqlClient(env);
-      await sql`
-        INSERT INTO schools (id, slug, name, is_active)
-        VALUES (${updated.id}, ${updated.slug}, ${updated.name}, ${updated.is_active})
-        ON CONFLICT (id) DO UPDATE
-        SET
-          slug = EXCLUDED.slug,
-          name = EXCLUDED.name,
-          is_active = EXCLUDED.is_active;
-      `;
-    }
+    await syncSchoolFromTenant(env, updated);
 
     return { ok: true, status: 200, data: updated };
   } catch (error) {
@@ -160,24 +135,16 @@ export async function createTenantAdminAccount(env, tenantId, payload) {
     return { ok: false, status: 400, message: 'Password minimal 8 karakter.' };
   }
 
-  const existing = await findUserByEmail(env, email);
-  let userId = existing?.id || null;
-  if (!userId) {
-    const salt = randomSalt();
-    const hash = await hashPassword(password, salt);
-    const created = await createUser(env, {
-      id: crypto.randomUUID(),
-      email,
-      passwordHash: hash,
-      passwordSalt: salt,
-    });
-    if (!created) {
+  const userResult = await ensureUserForAdminAccount(env, { email, password });
+  if (!userResult.ok) {
+    if (userResult.status === 500) {
       return { ok: false, status: 500, message: 'Gagal membuat user admin organisasi.' };
     }
-    userId = created.id;
+    return userResult;
   }
 
-  await grantTenantAdminRole(env, userId, tenant.id);
+  const userId = userResult.data.userId;
+  await grantTenantAdminAccess(env, userId, tenant.id);
   return {
     ok: true,
     status: 201,
