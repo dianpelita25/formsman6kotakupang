@@ -33,12 +33,20 @@ function parseImports(sourceCode) {
   const imports = [];
   const fromRegex = /^\s*import\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
   const sideEffectRegex = /^\s*import\s+['"]([^'"]+)['"]/gm;
+  const namedReExportRegex = /^\s*export\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
+  const starReExportRegex = /^\s*export\s+\*\s+from\s+['"]([^'"]+)['"]/gm;
   const dynamicImportRegex = /import\(\s*['"]([^'"]+)['"]\s*\)/gm;
 
   for (const match of sourceCode.matchAll(fromRegex)) {
     imports.push(String(match[1] || '').trim());
   }
   for (const match of sourceCode.matchAll(sideEffectRegex)) {
+    imports.push(String(match[1] || '').trim());
+  }
+  for (const match of sourceCode.matchAll(namedReExportRegex)) {
+    imports.push(String(match[1] || '').trim());
+  }
+  for (const match of sourceCode.matchAll(starReExportRegex)) {
     imports.push(String(match[1] || '').trim());
   }
   for (const match of sourceCode.matchAll(dynamicImportRegex)) {
