@@ -8,6 +8,16 @@ export function buildQuestionSegmentDimensions(fields = [], responseRows = [], s
   const candidates = (Array.isArray(fields) ? fields : [])
     .filter((field) => {
       const type = String(field?.type || '').trim();
+      const segmentRole = String(field?.segmentRole || 'auto')
+        .trim()
+        .toLowerCase();
+      const isSensitive = field?.isSensitive === true;
+      if (isSensitive || segmentRole === 'exclude') return false;
+
+      if (segmentRole === 'dimension') {
+        return type === 'radio' || type === 'checkbox';
+      }
+
       return type === 'radio' || type === 'checkbox' || type === 'text';
     })
     .map((field, index) => ({ ...field, _index: index }));
@@ -78,7 +88,7 @@ export function buildQuestionSegmentDimensions(fields = [], responseRows = [], s
       });
 
     const questionCode = String(field.questionCode || '').trim();
-    const labelText = String(field.label || '').trim();
+    const labelText = String(field.segmentLabel || field.label || '').trim();
     const label = questionCode && labelText ? `${questionCode} - ${labelText}` : questionCode || labelText || field.name;
     dimensions.push({
       id: `question:${field.name}`,
@@ -87,6 +97,7 @@ export function buildQuestionSegmentDimensions(fields = [], responseRows = [], s
       key: field.name,
       questionCode,
       metric,
+      drilldownEligible: true,
       buckets,
     });
   });

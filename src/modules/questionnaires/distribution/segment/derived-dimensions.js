@@ -13,6 +13,7 @@ export function buildCriterionSegmentDimension(criteriaSummary = []) {
     kind: 'criteria',
     label: 'Kriteria Soal',
     metric: 'avg_scale',
+    drilldownEligible: false,
     buckets,
   };
 }

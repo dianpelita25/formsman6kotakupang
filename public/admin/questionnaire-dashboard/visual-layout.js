@@ -1,5 +1,6 @@
 import {
   buildVisualOrderStorageKey,
+  buildVisualPreferencesStorageKey,
   buildVisualVisibilityStorageKey,
   normalizeVisualCardOrder as normalizeVisualCardOrderHelper,
 } from './visual-layout-helpers.js';
@@ -26,6 +27,10 @@ export function createVisualLayoutController({
 
   function getVisualOrderStorageKey() {
     return buildVisualOrderStorageKey(state.tenantSlug, state.questionnaireSlug);
+  }
+
+  function getVisualPreferencesStorageKey() {
+    return buildVisualPreferencesStorageKey(state.tenantSlug, state.questionnaireSlug);
   }
 
   function normalizeVisualCardOrder(candidateOrder = []) {
@@ -90,6 +95,7 @@ export function createVisualLayoutController({
   }
 
   function initializeVisualCardVisibility() {
+    state.visualPreferencesStorageKey = getVisualPreferencesStorageKey();
     state.visualVisibilityStorageKey = getVisualVisibilityStorageKey();
     state.visualOrderStorageKey = getVisualOrderStorageKey();
     state.visualCardVisibility = visibilityManager.loadVisualCardVisibility();

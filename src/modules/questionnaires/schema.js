@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const VALID_TYPES = ['text', 'radio', 'checkbox', 'scale'];
+const VALID_SEGMENT_ROLES = ['auto', 'dimension', 'exclude'];
 
 const metaSchema = z.object({
   title: z.string().trim().min(1),
@@ -17,6 +18,9 @@ const baseFieldSchema = z.object({
   label: z.string().trim().min(1),
   criterion: z.string().trim().max(64).optional(),
   required: z.boolean().optional().default(true),
+  segmentRole: z.enum(VALID_SEGMENT_ROLES).optional().default('auto'),
+  segmentLabel: z.string().trim().max(64).optional(),
+  isSensitive: z.boolean().optional().default(false),
 });
 
 const textFieldSchema = baseFieldSchema.extend({
@@ -57,6 +61,7 @@ export function normalizeQuestionnaireDraftInput(input) {
   }
 
   const uniqueNames = new Set();
+  const normalizedFields = [];
   for (const field of parsed.data.fields) {
     if (uniqueNames.has(field.name)) {
       return {
@@ -65,15 +70,34 @@ export function normalizeQuestionnaireDraftInput(input) {
       };
     }
     uniqueNames.add(field.name);
+
+    const normalizedType = String(field.type || '').trim();
+    const normalizedSegmentRole = String(field.segmentRole || 'auto')
+      .trim()
+      .toLowerCase();
+    const resolvedSegmentRole =
+      normalizedSegmentRole === 'exclude'
+        ? 'exclude'
+        : normalizedSegmentRole === 'dimension' && (normalizedType === 'radio' || normalizedType === 'checkbox')
+          ? 'dimension'
+          : 'auto';
+    const resolvedSegmentLabel = String(field.segmentLabel || '').trim();
+
+    normalizedFields.push({
+      ...field,
+      segmentRole: resolvedSegmentRole,
+      segmentLabel: resolvedSegmentLabel || undefined,
+      isSensitive: field.isSensitive === true,
+    });
   }
 
   return {
     ok: true,
     data: {
       meta: parsed.data.meta,
-      fields: parsed.data.fields,
+      fields: normalizedFields,
       schema: {
-        fields: parsed.data.fields,
+        fields: normalizedFields,
       },
     },
   };

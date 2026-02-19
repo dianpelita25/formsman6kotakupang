@@ -205,6 +205,20 @@
                 <span>Dimensi Segmentasi</span>
                 <select id="segment-dimension-select"></select>
               </label>
+              <label class="field">
+                <span>Bucket Drilldown</span>
+                <select id="segment-bucket-select"></select>
+              </label>
+              <div class="segment-controls__actions">
+                <button id="segment-apply-filter-btn" type="button" class="ghost">Terapkan Drilldown</button>
+                <button id="segment-clear-filter-btn" type="button" class="ghost">Clear Filter</button>
+              </div>
+              <label class="field">
+                <span>Bandingkan Bucket (maks 3)</span>
+                <select id="segment-compare-buckets" multiple size="3"></select>
+              </label>
+              <button id="segment-compare-btn" type="button" class="ghost">Bandingkan Bucket</button>
+              <p id="segment-filter-chip" class="small segment-filter-chip">Filter segment belum aktif.</p>
             </div>
             <p id="advanced-viz-help" class="small">
               Panel ini menyajikan visual tambahan berbasis data yang sama, agar pembacaan hasil lebih cepat dan tidak panjang.

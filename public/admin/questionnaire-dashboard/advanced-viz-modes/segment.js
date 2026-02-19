@@ -6,11 +6,20 @@ export function renderSegmentMode({
   formatNumber,
   advancedVizHelpEl,
   renderAdvancedVizInsights,
+  onBucketClick,
 } = {}) {
   if (!dimension) return false;
 
   const metric = String(dimension.metric || '').trim() === 'avg_scale' ? 'avg_scale' : 'count';
-  const buckets = Array.isArray(dimension.buckets) ? dimension.buckets : [];
+  const compareResult = state.segmentCompareResult && state.segmentCompareResult.dimensionId === dimension.id ? state.segmentCompareResult : null;
+  const baseBuckets = Array.isArray(dimension.buckets) ? dimension.buckets : [];
+  const buckets = compareResult?.buckets?.length
+    ? compareResult.buckets.map((bucket) => ({
+        label: String(bucket.label || '').trim(),
+        total: Number(bucket.totalResponses || 0),
+        avgScale: Number(bucket.avgScaleOverall || 0),
+      }))
+    : baseBuckets;
   if (!buckets.length) return false;
 
   const labels = buckets.map((bucket) => truncateText(String(bucket.label || '-'), 36));
@@ -48,6 +57,16 @@ export function renderSegmentMode({
           },
         },
       },
+      onClick: (_, elements) => {
+        const first = Array.isArray(elements) && elements.length ? elements[0] : null;
+        if (!first) return;
+        const bucket = buckets[first.index];
+        if (!bucket || typeof onBucketClick !== 'function') return;
+        onBucketClick({
+          dimensionId: dimension.id,
+          bucketLabel: String(bucket.label || '').trim(),
+        });
+      },
     },
   });
 
@@ -56,7 +75,10 @@ export function renderSegmentMode({
   const top = buckets[topIndex] || null;
   const bottom = buckets[bottomIndex] || null;
   if (advancedVizHelpEl) {
-    advancedVizHelpEl.textContent = `Segmentasi aktif: ${dimension.label}. Gunakan dropdown untuk pindah dimensi lain yang tersedia otomatis.`;
+    const compareNote = compareResult?.buckets?.length
+      ? ` Menampilkan compare ${compareResult.buckets.length} bucket terpilih.`
+      : '';
+    advancedVizHelpEl.textContent = `Segmentasi aktif: ${dimension.label}. Klik batang untuk drilldown responses.${compareNote}`;
   }
 
   if (metric === 'avg_scale') {

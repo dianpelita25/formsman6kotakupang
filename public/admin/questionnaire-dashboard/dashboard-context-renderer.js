@@ -12,6 +12,14 @@ export function createDashboardContextRenderer({
   formatDateTime,
   formatVersionShort,
 } = {}) {
+  function formatDataQualitySummary(dataQuality = null) {
+    const quality = dataQuality && typeof dataQuality === 'object' ? dataQuality : null;
+    if (!quality) return '-';
+    const confidence = String(quality.confidence || 'low').trim().toUpperCase();
+    const warnings = Array.isArray(quality.warnings) ? quality.warnings.length : 0;
+    return `${confidence} (${warnings} warning)`;
+  }
+
   function renderSummary() {
     const summary = state.summary || {};
     if (kpiTotalEl) kpiTotalEl.textContent = formatNumber(summary.totalResponses || 0);
@@ -46,7 +54,9 @@ export function createDashboardContextRenderer({
       return;
     }
 
-    contextNoteEl.textContent = `Dashboard ini membaca data spesifik untuk versi aktif (${formatVersionShort(versionId)}).`;
+    contextNoteEl.textContent = `Dashboard ini membaca data spesifik untuk versi aktif (${formatVersionShort(
+      versionId
+    )}) | Kualitas data: ${formatDataQualitySummary(state.summary?.dataQuality || state.dataQuality)}.`;
   }
 
   return {

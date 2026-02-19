@@ -37,7 +37,8 @@ export function wireDashboardData({
     api,
   });
 
-  const { loadSummaryAndCharts, refreshDashboardData } = createDashboardDataController({
+  const { loadSummaryAndCharts, refreshDashboardData, applySegmentDrilldown, clearSegmentDrilldown, runSegmentCompare } =
+    createDashboardDataController({
     state,
     filterVersionEl: domRefs.filterVersionEl,
     scaleQuestionHelpEl: domRefs.scaleQuestionHelpEl,
@@ -64,6 +65,9 @@ export function wireDashboardData({
     normalizeQuestionCriterion,
     resolveSegmentDimensions: chartApi.resolveSegmentDimensions,
     renderSegmentDimensionOptions: chartApi.renderSegmentDimensionOptions,
+    renderSegmentBucketOptions: chartApi.renderSegmentBucketOptions,
+    renderSegmentFilterChip: chartApi.renderSegmentFilterChip,
+    getSelectedCompareBuckets: chartApi.getSelectedCompareBuckets,
     renderScaleAverageChart: chartApi.renderScaleAverageChart,
     renderRadioQuestionOptions: chartApi.renderRadioQuestionOptions,
     renderRadioDistributionChart: chartApi.renderRadioDistributionChart,
@@ -77,11 +81,14 @@ export function wireDashboardData({
     setStatus,
     setError,
     presentError,
-  });
+    });
 
   return {
     loadResponses,
     loadSummaryAndCharts,
     refreshDashboardData,
+    applySegmentDrilldown,
+    clearSegmentDrilldown,
+    runSegmentCompare,
   };
 }

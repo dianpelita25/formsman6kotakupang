@@ -66,6 +66,7 @@ export function buildRespondentSegmentDimensions(responseRows = [], scaleNames =
       label: titleCaseSegmentKey(key),
       key,
       metric,
+      drilldownEligible: true,
       buckets,
     });
   });

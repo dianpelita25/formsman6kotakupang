@@ -1,3 +1,10 @@
+import {
+  checkLoginThrottle,
+  recordLoginFailure,
+  resetLoginThrottle,
+  resolveLoginThrottleIp,
+} from '../../lib/security/login-throttle.js';
+
 export function registerAdminApiRoutes(app, deps) {
   const {
     requireAuth,
@@ -29,10 +36,38 @@ export function registerAdminApiRoutes(app, deps) {
 
   app.post('/forms/admin/api/login', async (c) => {
     const payload = await c.req.json().catch(() => null);
+    const normalizedEmail = String(payload?.email || '')
+      .trim()
+      .toLowerCase();
+    const ipAddress = resolveLoginThrottleIp(c.req);
+    const throttleState = checkLoginThrottle({
+      ipAddress,
+      email: normalizedEmail,
+    });
+    if (throttleState.blocked) {
+      return c.json(
+        {
+          message: `Terlalu banyak percobaan login gagal. Coba lagi dalam ${throttleState.retryAfterSeconds} detik.`,
+          retryAfterSeconds: throttleState.retryAfterSeconds,
+        },
+        429
+      );
+    }
+
     const result = await loginWithEmailPassword(c.env, payload);
     if (!result.ok) {
+      if (result.status === 401) {
+        recordLoginFailure({
+          ipAddress,
+          email: normalizedEmail,
+        });
+      }
       return jsonError(c, result.status, result.message);
     }
+    resetLoginThrottle({
+      ipAddress,
+      email: normalizedEmail,
+    });
     setCookie(c, SESSION_COOKIE_NAME, result.sessionToken, buildSessionCookieOptions(c.req.url));
     return c.json({
       message: 'Login berhasil.',

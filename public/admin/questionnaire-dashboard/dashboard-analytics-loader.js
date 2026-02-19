@@ -10,6 +10,8 @@ export function createDashboardAnalyticsLoader({
   normalizeQuestionCriterion,
   resolveSegmentDimensions,
   renderSegmentDimensionOptions,
+  renderSegmentBucketOptions,
+  renderSegmentFilterChip,
   renderScaleAverageChart,
   renderRadioQuestionOptions,
   renderRadioDistributionChart,
@@ -22,6 +24,7 @@ export function createDashboardAnalyticsLoader({
   renderContextInfo,
 } = {}) {
   async function loadSummaryAndCharts() {
+    state.segmentCompareResult = null;
     const baseQuery = buildCommonQuery().toString();
     const [summaryPayload, distributionPayload, trendPayload] = await Promise.all([
       api(
@@ -44,6 +47,7 @@ export function createDashboardAnalyticsLoader({
     state.summary = summaryPayload.data;
     state.distribution = distributionPayload.data;
     state.trend = trendPayload.data;
+    state.dataQuality = summaryPayload.data?.dataQuality || distributionPayload.data?.dataQuality || null;
     state.questionnaireVersionId = summaryPayload.data?.questionnaireVersionId || state.questionnaireVersionId;
 
     const allQuestions = Array.isArray(distributionPayload.data?.questions) ? distributionPayload.data.questions : [];
@@ -88,8 +92,12 @@ export function createDashboardAnalyticsLoader({
       !availableSegmentDimensions.some((dimension) => dimension.id === state.selectedSegmentDimension)
     ) {
       state.selectedSegmentDimension = availableSegmentDimensions[0]?.id || '';
+      state.selectedSegmentBucket = '';
+      state.selectedSegmentCompareBuckets = [];
     }
     renderSegmentDimensionOptions();
+    renderSegmentBucketOptions();
+    renderSegmentFilterChip();
 
     renderSummary();
     renderScaleAverageChart(scaleAverages);

@@ -136,7 +136,12 @@ export function createAiRuntimeController({
           state.latestAi = payload.data || null;
           setAiOutput(payload.data?.analysis || 'Analisis kosong.');
           if (aiPdfBtn) aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
-          setStatus('Analisis AI selesai diproses.', 'success');
+          if (payload.data?.reused) {
+            const remaining = Number(payload.data?.cooldownSeconds || 0);
+            setStatus(`Analisis AI memakai hasil terbaru (cooldown ${remaining} detik).`, 'success');
+          } else {
+            setStatus('Analisis AI selesai diproses.', 'success');
+          }
           setError(null);
         } catch (error) {
           if (previousAnalysisText) {

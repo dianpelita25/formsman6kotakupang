@@ -38,6 +38,7 @@ export function buildScoreBandSegmentDimension(fields = [], responseRows = []) {
     kind: 'derived',
     label: 'Band Skor Respons',
     metric: 'count',
+    drilldownEligible: true,
     buckets: buckets.map((item) => ({
       label: item.label,
       total: Number(item.total || 0),
