@@ -6,8 +6,8 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 
 - Tanggal: 2026-02-19
 - Penanggung jawab: Codex
-- Scope release/PR: F0 closure D01 + D02 + D03 + D06 (lanjutan dari D04 + D05)
-- Catatan umum: D01, D02, D03, dan D06 resmi ditutup setelah gate lokal PASS dan CI strict hijau di base `backup/wip-20260218-1746`.
+- Scope release/PR: F0 closure D01..D09 (D10 governance evidence masih berjalan)
+- Catatan umum: D01-D09 sudah resmi ditutup setelah gate lokal PASS dan commit proof sudah masuk ke `backup/wip-20260218-1746` serta `main`.
 
 ## Daftar Debt Ditutup
 
@@ -19,6 +19,9 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 | D04 | CLOSED | `2c29e9c1e08e75031f4e6de9a5534c145fc952aa` | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS<br>`GitHub Actions #11` PASS | Scope predicate tunggal aktif + forbiddenPattern checker aktif |
 | D05 | CLOSED | `2c29e9c1e08e75031f4e6de9a5534c145fc952aa` | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`GitHub Actions #11` PASS | 4 target D05 sudah <=220 dengan hard exact-path budget |
 | D06 | CLOSED | `603516979203de94f637c8bb89df053004b5c297` | `pnpm check:modularity` PASS<br>`pnpm check:cycles` PASS<br>`pnpm check:architecture` PASS<br>`GitHub Actions #13` PASS | Checker guardrail sudah mencakup dynamic import literal dan menolak non-literal |
+| D07 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:dashboard:pdf` PASS<br>`pnpm visual:legacy-dashboard:diff` PASS<br>`pnpm visual:questionnaire-dashboard:diff` PASS<br>`pnpm smoke:admin:ui` PASS<br>`GitHub check-runs` PASS | 6 file grandfathered budget sudah dipecah + hard exact-path lock aktif |
+| D08 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`GitHub check-runs` PASS | Canonical shared validation aktif, facade validation tidak lagi duplikat implementasi |
+| D09 | CLOSED | `b7797ab06f6cba27454c1e4868f9cf454d0d7772` | `pnpm check:modularity` PASS<br>`pnpm check:cycles` PASS<br>`pnpm check:architecture` PASS<br>`GitHub check-runs` PASS | Checker boundary/cycle/deps sudah memproses `export ... from ...` |
 
 ## Bukti Gate
 
@@ -49,13 +52,10 @@ Jika ada temuan baru saat implementasi:
 | --- | --- | --- | --- |
 | - | - | - | - |
 
-## Progress D07-D10 (Belum Ditutup)
+## Progress D10 (Belum Ditutup)
 
 | Debt ID | Status Saat Ini | Bukti Gate Lokal | Catatan |
 | --- | --- | --- | --- |
-| D07 | READY_FOR_CLOSE | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:dashboard:pdf` PASS<br>`pnpm visual:legacy-dashboard:diff` PASS<br>`pnpm visual:questionnaire-dashboard:diff` PASS<br>`pnpm smoke:admin:ui` PASS | Proof commit saat ini: `1718564` (closure final menunggu merge CI hijau) |
-| D08 | READY_FOR_CLOSE | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS | Proof commit saat ini: `4ec4794` (closure final menunggu merge CI hijau) |
-| D09 | READY_FOR_CLOSE | `pnpm check:modularity` PASS<br>`pnpm check:cycles` PASS<br>`pnpm check:architecture` PASS | Proof commit saat ini: `d080f8e` (closure final menunggu merge CI hijau) |
 | D10 | IN_PROGRESS | `pnpm check:architecture` PASS | Menunggu bukti manual admin branch protection (`main` + `backup/wip-20260218-1746`) |
 
 ### Checklist Evidence D10 (Admin)
@@ -69,3 +69,8 @@ Jika ada temuan baru saat implementasi:
    - `smoke-admin-ui`
    - `visual-regression-legacy-dashboard`
 4. URL settings branch protection dicatat di laporan closure final F0.
+
+Catatan kendala otomatis:
+
+1. PAT saat ini dapat push branch + baca check-runs, tetapi tidak bisa akses endpoint branch protection (`403 Resource not accessible by personal access token`).
+2. Karena itu bukti D10 tetap wajib dari admin repo (screenshot/settings) agar status bisa diubah ke `CLOSED`.
