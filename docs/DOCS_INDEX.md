@@ -26,6 +26,8 @@ Mode susunan docs saat ini:
    Ownership module/table/API/UI.
 6. `docs/LEGACY_BOUNDARY.md`  
    Policy rollback-only untuk stack legacy.
+7. `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md`  
+   Blueprint siklus berikutnya (post-dashboard) dengan scope sempit anti-loop.
 
 ## Dokumen Operasional (Aktif saat rilis/UAT/incident)
 
@@ -35,6 +37,7 @@ Mode susunan docs saat ini:
 4. `docs/INCIDENT_LOG_TEMPLATE.md`
 5. `docs/PRODUCTION_CUTOVER_REPORT_2026-02-16.md`
 6. `docs/MONITORING_72H_RUN_2026-02-17.md`
+7. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md`
 
 ## Dokumen Referensi Historis (Jangan jadi status final)
 

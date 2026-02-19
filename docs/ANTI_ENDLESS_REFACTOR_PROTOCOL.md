@@ -9,6 +9,14 @@ Blueprint D07-D10 sudah selesai dan diarsipkan di `docs/_archive/BLUEPRINT_D07_D
 2. Mencegah pola "tutup 1 lubang, buka 3 lubang baru".
 3. Menetapkan titik akhir yang terukur sebelum pindah ke pekerjaan lain.
 
+## Freeze Scope Dashboard (Locked)
+1. Scope dashboard completion D11-D15 dianggap selesai dan freeze.
+2. Dilarang refactor/dashboard feature churn tanpa Debt ID baru yang eksplisit.
+3. Perubahan dashboard pasca-D15 hanya boleh untuk:
+   - bug fix produksi,
+   - security patch,
+   - requirement baru yang tercatat sebagai debt/feature ID baru.
+
 ## Prinsip Kunci
 1. Satu sumber kebenaran debt: `docs/DEBT_REGISTER_LOCKED.md`.
 2. Closure sah hanya jika `gate + proof`.

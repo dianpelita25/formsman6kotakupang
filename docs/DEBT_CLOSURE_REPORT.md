@@ -62,7 +62,7 @@ Jika ada temuan baru saat implementasi:
 
 | Debt ID Baru | Ringkasan | Scope | Action Selanjutnya |
 | --- | --- | --- | --- |
-| - | - | - | - |
+| D16 | Post-dashboard hardening cycle | CSRF enforce, PBKDF2 migration safe rollout, analytics scaling large dataset | Jalankan sesuai `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md` (micro PR, 1 Debt ID focus, no dashboard scope creep) |
 
 ## Verifikasi D10
 
