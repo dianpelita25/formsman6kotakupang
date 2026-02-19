@@ -9,12 +9,29 @@
     "deploy": "wrangler deploy src/worker.js",
     "deploy:staging": "wrangler deploy src/worker.js --env staging",
     "deploy:production": "wrangler deploy src/worker.js --env production",
+    "check:modularity": "node scripts/check-modular-boundaries.js",
+    "check:modularity:strict": "node scripts/check-modular-boundaries.js --strict",
+    "check:modularity:update-waivers": "node scripts/check-modular-boundaries.js --update-waivers",
+    "report:module-deps": "node scripts/report-module-deps.js",
+    "check:cycles": "node scripts/check-module-cycles.js",
+    "check:file-budgets": "node scripts/check-file-budgets.js",
+    "check:frontend-boundary": "node scripts/check-frontend-boundaries.js",
+    "check:legacy-boundary": "node scripts/check-legacy-boundary.js",
+    "check:duplication": "node scripts/check-duplication-canonicals.js",
+    "check:debt-register": "node scripts/check-debt-register.js",
+    "check:architecture": "pnpm check:modularity && pnpm check:modularity:strict && pnpm check:cycles && pnpm check:file-budgets && pnpm check:frontend-boundary && pnpm check:legacy-boundary && pnpm check:duplication && pnpm check:debt-register",
     "migrate:multi": "node scripts/migrate-to-multi-tenant.js",
     "seed:superadmin": "node scripts/bootstrap-superadmin.js",
     "smoke:e2e": "node scripts/smoke-e2e.js",
     "smoke:e2e:full": "node scripts/smoke-e2e.js --with-writes",
-    "legacy:dev": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node --watch src/server.js",
-    "legacy:start": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node src/server.js"
+    "smoke:dashboard:pdf": "node scripts/smoke-dashboard-pdf-playwright.js",
+    "visual:legacy-dashboard:diff": "node scripts/visual-legacy-dashboard-diff.js",
+    "visual:questionnaire-dashboard:diff": "node scripts/visual-questionnaire-dashboard-diff.js",
+    "legacy:dev": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node --watch src/legacy/server.js",
+    "legacy:start": "echo [ROLLBACK_ONLY] Menjalankan server Express legacy untuk rollback && node src/legacy/server.js",
+    "smoke:admin:superadmin": "node scripts/smoke-admin-superadmin-playwright.js",
+    "smoke:admin:builder": "node scripts/smoke-admin-builder-playwright.js",
+    "smoke:admin:ui": "pnpm smoke:admin:superadmin && pnpm smoke:admin:builder"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
@@ -24,6 +41,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.55.0",
+    "pngjs": "^7.0.0",
     "wrangler": "^4.49.1"
   },
   "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"

@@ -1,0 +1,206 @@
+name: Modularity Guardrails
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  check-architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build module dependency map
+        run: pnpm report:module-deps
+
+      - name: Check canonical duplication lock
+        run: pnpm check:duplication
+
+      - name: Check debt register lock
+        run: pnpm check:debt-register
+
+      - name: Check architecture guardrails
+        run: pnpm check:architecture
+
+      - name: Upload modularity map artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modularity-map
+          path: artifacts/modularity/
+          if-no-files-found: ignore
+
+  smoke-dashboard-pdf:
+    needs:
+      - check-architecture
+    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
+      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium
+
+      - name: Run dashboard PDF smoke test
+        run: pnpm smoke:dashboard:pdf
+
+      - name: Upload dashboard PDF artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-pdf-smoke
+          path: artifacts/dashboard-pdf/
+          if-no-files-found: ignore
+
+  smoke-e2e:
+    needs:
+      - check-architecture
+    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
+      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run smoke E2E
+        run: pnpm smoke:e2e
+
+  smoke-admin-ui:
+    needs:
+      - check-architecture
+    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
+      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium
+
+      - name: Run admin UI smoke tests
+        run: pnpm smoke:admin:ui
+
+  visual-regression-legacy-dashboard:
+    needs:
+      - check-architecture
+      - smoke-dashboard-pdf
+      - smoke-e2e
+      - smoke-admin-ui
+    if: ${{ secrets.DATABASE_URL != '' && secrets.SESSION_SECRET != '' && secrets.SUPERADMIN_EMAIL != '' && secrets.SUPERADMIN_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SUPERADMIN_EMAIL: ${{ secrets.SUPERADMIN_EMAIL }}
+      SUPERADMIN_PASSWORD: ${{ secrets.SUPERADMIN_PASSWORD }}
+      VISUAL_DIFF_MAX_RATIO: '0.03'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium
+
+      - name: Run visual regression (legacy dashboard)
+        run: pnpm visual:legacy-dashboard:diff
+
+      - name: Run visual regression (questionnaire dashboard)
+        run: pnpm visual:questionnaire-dashboard:diff
+
+      - name: Upload visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-dashboard-visual-diff
+          path: |
+            artifacts/visual-legacy-dashboard/
+            artifacts/visual-questionnaire-dashboard/
+          if-no-files-found: ignore

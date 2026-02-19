@@ -1,0 +1,26 @@
+# Debt Register Locked
+
+Register ini menjadi sumber kebenaran tunggal untuk closure debt arsitektur. Item debt hanya boleh ditutup lewat bukti gate otomatis + proof command.
+
+## State Machine
+
+Transisi status yang sah:
+
+`OPEN -> IN_PROGRESS -> READY_FOR_CLOSE -> CLOSED`
+
+Aturan closure:
+
+1. Status `CLOSED` hanya sah jika semua gate pada kolom `Gate Lock` PASS.
+2. Status `CLOSED` wajib punya `Proof Commit`, `Proof Commands`, dan `Tanggal Tutup`.
+3. Jika checker belum mengunci regresi, status maksimal `READY_FOR_CLOSE`.
+
+## Locked Debt Items
+
+| ID | Judul | Kategori | Severity | Owner | Scope Files | Gate Lock | Exit Criteria | Status | Proof Commit | Proof Commands | Tanggal Tutup |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| D01 | Budget blind spot coverage belum lengkap | Guardrail | High | Architecture | `src/lib/**/*.js`<br>`public/shared/dashboard-legacy/**/*.js`<br>`public/script.js` | `pnpm check:file-budgets`<br>`pnpm check:architecture` | Rule budget mencakup seluruh scope blind spot dan tidak ada growth di atas baseline | READY_FOR_CLOSE | - | - | - |
+| D02 | Duplikasi lifecycle form version (published/draft ensure) | Logic Duplication | High | Forms + DB Bootstrap | `src/modules/forms/repository.js`<br>`src/lib/db/bootstrap/legacy-sync.js` | `pnpm check:architecture`<br>`pnpm smoke:e2e` | Satu source-of-truth lifecycle dipakai kedua file dengan perilaku idempotent identik | READY_FOR_CLOSE | - | - | - |
+| D03 | Duplikasi canonical util/constants | Duplication | High | Architecture + Shared Utilities | `slugify`, `escapeCsvValue`, `LEGACY_SCHOOL_SLUG`, `parseJson` declaration points | `pnpm check:duplication`<br>`pnpm check:architecture` | Deklarasi canonical sesuai policy, tidak ada deklarasi baru di luar allowlist/policy | READY_FOR_CLOSE | - | - | - |
+| D04 | Repetisi scope predicate pada ai-prompts repositories | Maintainability | Medium | AI Prompts | `src/modules/ai-prompts/repositories/read-repository.js`<br>`src/modules/ai-prompts/repositories/draft-repository.js`<br>`src/modules/ai-prompts/repositories/publish-repository.js` | `pnpm check:duplication`<br>`pnpm check:architecture`<br>`pnpm smoke:e2e`<br>`pnpm smoke:e2e:full` | Predicate builder tunggal dipakai semua query terkait tanpa perubahan semantics | READY_FOR_CLOSE | - | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS | - |
+| D05 | Hotspot file backend over-budget tersisa | File Budget | Medium | Module Owners | `src/modules/questionnaires/repositories/version-repository.js`<br>`src/modules/forms/repository.js`<br>`src/modules/submissions/service.js`<br>`src/modules/auth/service.js` | `pnpm check:file-budgets`<br>`pnpm check:architecture`<br>`pnpm smoke:e2e` | Semua target D05 wajib <=220 dengan hard exact-path budget | READY_FOR_CLOSE | - | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS | - |
+| D06 | Checker belum mengunci dynamic import di module guardrails | Guardrail | High | Architecture Tooling | `scripts/check-modular-boundaries.js`<br>`scripts/check-module-cycles.js`<br>`scripts/report-module-deps.js` | `pnpm check:modularity`<br>`pnpm check:cycles`<br>`pnpm check:architecture` | Dynamic import literal terdeteksi checker, non-literal dynamic import di `src/modules/**` ditolak | READY_FOR_CLOSE | - | - | - |
