@@ -1,56 +1,21 @@
-import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import {
+  createUser,
   findUserByEmail,
+  grantSchoolAdminRole,
+  grantTenantAdminRole,
   getSessionByTokenHash,
   getUserMemberships,
   getUserTenantMemberships,
   insertSession,
   revokeSessionByTokenHash,
 } from './repository.js';
-import { buildSessionCookieOptions, SESSION_COOKIE_NAME, SESSION_TTL_SECONDS } from '../../lib/http/session-cookie.js';
-import { randomToken, sha256Hex, verifyPassword } from '../../lib/security/hash.js';
+import { SESSION_TTL_SECONDS } from '../../lib/http/session-cookie.js';
+import { hashPassword, randomSalt, randomToken, sha256Hex, verifyPassword } from '../../lib/security/hash.js';
 import { buildSignedToken, getSessionSecret, splitSignedToken, verifySignedToken } from '../../lib/security/signature.js';
+import { mapMemberships, mapTenantMemberships } from './membership-utils.js';
+export { canAccessSchool, hasSuperadmin, hasTenantAccess, mapMemberships, mapTenantMemberships } from './membership-utils.js';
 
-export function mapMemberships(rows) {
-  return rows.map((row) => ({
-    role: row.role,
-    schoolId: row.school_id || null,
-    schoolSlug: row.school_slug || null,
-    schoolName: row.school_name || null,
-    schoolActive: row.school_is_active ?? null,
-  }));
-}
-
-export function mapTenantMemberships(rows) {
-  return rows.map((row) => ({
-    role: row.role,
-    tenantId: row.tenant_id,
-    tenantSlug: row.tenant_slug,
-    tenantName: row.tenant_name,
-    tenantType: row.tenant_type,
-    tenantActive: row.tenant_is_active ?? null,
-  }));
-}
-
-export function hasSuperadmin(memberships) {
-  return memberships.some((membership) => membership.role === 'superadmin');
-}
-
-export function canAccessSchool(memberships, schoolId) {
-  if (hasSuperadmin(memberships)) return true;
-  return memberships.some((membership) => membership.role === 'school_admin' && membership.schoolId === schoolId);
-}
-
-export function hasTenantAccess(tenantMemberships, tenantId, allowedRoles = ['tenant_admin', 'analyst']) {
-  return tenantMemberships.some(
-    (membership) =>
-      membership.tenantId === tenantId &&
-      (membership.role === 'superadmin' || allowedRoles.includes(membership.role))
-  );
-}
-
-export async function loginWithEmailPassword(c) {
-  const env = c.env;
+export async function loginWithEmailPassword(env, payload) {
   let sessionSecret;
   try {
     sessionSecret = getSessionSecret(env);
@@ -59,7 +24,6 @@ export async function loginWithEmailPassword(c) {
     return { ok: false, status: 500, message: 'Konfigurasi session belum siap.' };
   }
 
-  const payload = await c.req.json().catch(() => null);
   const email = String(payload?.email || '')
     .trim()
     .toLowerCase();
@@ -103,8 +67,6 @@ export async function loginWithEmailPassword(c) {
     expiresAt,
   });
 
-  setCookie(c, SESSION_COOKIE_NAME, signedToken, buildSessionCookieOptions(c.req.url));
-
   return {
     ok: true,
     user: {
@@ -113,16 +75,16 @@ export async function loginWithEmailPassword(c) {
     },
     memberships,
     tenantMemberships,
+    sessionToken: signedToken,
   };
 }
 
-export async function resolveAuthContext(c) {
-  const cookieValue = getCookie(c, SESSION_COOKIE_NAME);
+export async function resolveAuthContext(env, cookieValue) {
   if (!cookieValue) return null;
 
   let sessionSecret;
   try {
-    sessionSecret = getSessionSecret(c.env);
+    sessionSecret = getSessionSecret(env);
   } catch {
     return null;
   }
@@ -130,30 +92,30 @@ export async function resolveAuthContext(c) {
   const parsed = splitSignedToken(cookieValue);
   if (!parsed) {
     const legacyTokenHash = await sha256Hex(cookieValue);
-    await revokeSessionByTokenHash(c.env, legacyTokenHash);
+    await revokeSessionByTokenHash(env, legacyTokenHash);
     return null;
   }
 
   const signatureValid = await verifySignedToken(parsed.token, parsed.signature, sessionSecret);
   if (!signatureValid) {
     const invalidTokenHash = await sha256Hex(parsed.token);
-    await revokeSessionByTokenHash(c.env, invalidTokenHash);
+    await revokeSessionByTokenHash(env, invalidTokenHash);
     return null;
   }
 
   const tokenHash = await sha256Hex(parsed.token);
-  const session = await getSessionByTokenHash(c.env, tokenHash);
+  const session = await getSessionByTokenHash(env, tokenHash);
   if (!session) return null;
 
   const expired = new Date(session.expires_at).getTime() <= Date.now();
   if (session.revoked_at || expired || !session.is_active) {
-    await revokeSessionByTokenHash(c.env, tokenHash);
+    await revokeSessionByTokenHash(env, tokenHash);
     return null;
   }
 
   const [membershipsRows, tenantMembershipRows] = await Promise.all([
-    getUserMemberships(c.env, session.user_id),
-    getUserTenantMemberships(c.env, session.user_id),
+    getUserMemberships(env, session.user_id),
+    getUserTenantMemberships(env, session.user_id),
   ]);
   const memberships = mapMemberships(membershipsRows);
   const tenantMemberships = mapTenantMemberships(tenantMembershipRows);
@@ -170,18 +132,69 @@ export async function resolveAuthContext(c) {
   };
 }
 
-export async function logout(c) {
-  const cookieValue = getCookie(c, SESSION_COOKIE_NAME);
-  const cookieOptions = buildSessionCookieOptions(c.req.url);
+export async function logout(env, cookieValue) {
   const parsed = splitSignedToken(cookieValue || '');
   const tokenForHash = parsed?.token || cookieValue;
   if (tokenForHash) {
     const tokenHash = await sha256Hex(tokenForHash);
-    await revokeSessionByTokenHash(c.env, tokenHash);
+    await revokeSessionByTokenHash(env, tokenHash);
   }
-  deleteCookie(c, SESSION_COOKIE_NAME, {
-    path: '/',
-    secure: cookieOptions.secure,
-    sameSite: 'Lax',
+}
+
+export async function ensureUserForAdminAccount(env, { email, password }) {
+  const normalizedEmail = String(email || '')
+    .trim()
+    .toLowerCase();
+  const rawPassword = String(password || '');
+  if (!normalizedEmail || !rawPassword) {
+    return {
+      ok: false,
+      status: 400,
+      message: 'Email dan password wajib diisi.',
+    };
+  }
+
+  const existing = await findUserByEmail(env, normalizedEmail);
+  if (existing?.id) {
+    return {
+      ok: true,
+      data: {
+        userId: existing.id,
+        email: normalizedEmail,
+      },
+    };
+  }
+
+  const salt = randomSalt();
+  const hash = await hashPassword(rawPassword, salt);
+  const created = await createUser(env, {
+    id: crypto.randomUUID(),
+    email: normalizedEmail,
+    passwordHash: hash,
+    passwordSalt: salt,
   });
+
+  if (!created?.id) {
+    return {
+      ok: false,
+      status: 500,
+      message: 'Gagal membuat user admin.',
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      userId: created.id,
+      email: normalizedEmail,
+    },
+  };
+}
+
+export async function grantTenantAdminAccess(env, userId, tenantId) {
+  await grantTenantAdminRole(env, userId, tenantId);
+}
+
+export async function grantSchoolAdminAccess(env, userId, schoolId) {
+  await grantSchoolAdminRole(env, userId, schoolId);
 }
