@@ -48,3 +48,24 @@ Jika ada temuan baru saat implementasi:
 | Debt ID Baru | Ringkasan | Scope | Action Selanjutnya |
 | --- | --- | --- | --- |
 | - | - | - | - |
+
+## Progress D07-D10 (Belum Ditutup)
+
+| Debt ID | Status Saat Ini | Bukti Gate Lokal | Catatan |
+| --- | --- | --- | --- |
+| D07 | READY_FOR_CLOSE | `pnpm check:file-budgets` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:dashboard:pdf` PASS<br>`pnpm visual:legacy-dashboard:diff` PASS<br>`pnpm visual:questionnaire-dashboard:diff` PASS<br>`pnpm smoke:admin:ui` PASS | Proof commit saat ini: `1718564` (closure final menunggu merge CI hijau) |
+| D08 | READY_FOR_CLOSE | `pnpm check:duplication` PASS<br>`pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS | Proof commit saat ini: `4ec4794` (closure final menunggu merge CI hijau) |
+| D09 | READY_FOR_CLOSE | `pnpm check:modularity` PASS<br>`pnpm check:cycles` PASS<br>`pnpm check:architecture` PASS | Proof commit saat ini: `d080f8e` (closure final menunggu merge CI hijau) |
+| D10 | IN_PROGRESS | `pnpm check:architecture` PASS | Menunggu bukti manual admin branch protection (`main` + `backup/wip-20260218-1746`) |
+
+### Checklist Evidence D10 (Admin)
+
+1. Screenshot branch protection `main` yang menampilkan required checks.
+2. Screenshot branch protection `backup/wip-20260218-1746` yang menampilkan required checks.
+3. Daftar required checks minimal:
+   - `check-architecture`
+   - `smoke-e2e`
+   - `smoke-dashboard-pdf`
+   - `smoke-admin-ui`
+   - `visual-regression-legacy-dashboard`
+4. URL settings branch protection dicatat di laporan closure final F0.
