@@ -7,6 +7,7 @@ export function registerTenantAdminAnalyticsRoutes(app, deps) {
     getTenantQuestionnaireAnalyticsSummary,
     getTenantQuestionnaireAnalyticsDistribution,
     getTenantQuestionnaireAnalyticsTrend,
+    getTenantQuestionnaireAnalyticsSegmentCompare,
   } = deps;
 
   app.get(
@@ -46,6 +47,25 @@ export function registerTenantAdminAnalyticsRoutes(app, deps) {
       const tenant = c.get('tenant');
       const questionnaireSlug = c.req.param('questionnaireSlug');
       const result = await getTenantQuestionnaireAnalyticsTrend(c.env, tenant.id, questionnaireSlug, c.req.query());
+      if (!result.ok) return jsonError(c, result.status, result.message);
+      return c.json({ data: result.data }, result.status);
+    }
+  );
+
+  app.get(
+    '/forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/segment-compare',
+    tenantMiddleware,
+    requireAuth(),
+    requireTenantAccessFromParam(),
+    async (c) => {
+      const tenant = c.get('tenant');
+      const questionnaireSlug = c.req.param('questionnaireSlug');
+      const result = await getTenantQuestionnaireAnalyticsSegmentCompare(
+        c.env,
+        tenant.id,
+        questionnaireSlug,
+        c.req.query()
+      );
       if (!result.ok) return jsonError(c, result.status, result.message);
       return c.json({ data: result.data }, result.status);
     }

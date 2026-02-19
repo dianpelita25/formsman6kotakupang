@@ -87,8 +87,26 @@ export function createQuestionListController({
       state.fields[index].required = Boolean(fieldInput.checked);
     } else if (key === 'criterion') {
       state.fields[index].criterion = String(value || '').trim();
+    } else if (key === 'segmentRole') {
+      state.fields[index].segmentRole = String(value || 'auto').trim().toLowerCase();
+      if (state.fields[index].isSensitive) {
+        state.fields[index].segmentRole = 'exclude';
+      }
+    } else if (key === 'segmentLabel') {
+      const normalized = String(value || '').trim();
+      state.fields[index].segmentLabel = normalized ? normalized.slice(0, 64) : undefined;
+    } else if (key === 'isSensitive') {
+      state.fields[index].isSensitive = Boolean(fieldInput.checked);
+      if (state.fields[index].isSensitive) {
+        state.fields[index].segmentRole = 'exclude';
+      } else if (state.fields[index].segmentRole === 'exclude') {
+        state.fields[index].segmentRole = 'auto';
+      }
     } else if (key === 'type') {
       state.fields[index].type = value;
+      if (value !== 'radio' && value !== 'checkbox' && state.fields[index].segmentRole === 'dimension') {
+        state.fields[index].segmentRole = 'auto';
+      }
       if (value === 'radio' || value === 'checkbox') {
         state.fields[index].options = Array.isArray(state.fields[index].options) ? state.fields[index].options : ['Ya', 'Tidak'];
         delete state.fields[index].fromLabel;

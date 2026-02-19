@@ -6,6 +6,35 @@ function parseJsonDate(value) {
   return date;
 }
 
+const SEGMENT_DIMENSION_ID_PATTERN = /^(question:[a-z][a-zA-Z0-9_]{1,63}|respondent:[a-zA-Z0-9_.-]{1,64}|score_band|criteria)$/;
+
+export function normalizeSegmentDimensionId(rawSegmentDimensionId) {
+  const value = String(rawSegmentDimensionId || '').trim();
+  if (!value) return null;
+  if (!SEGMENT_DIMENSION_ID_PATTERN.test(value)) return null;
+  return value;
+}
+
+export function normalizeSegmentBucket(rawSegmentBucket) {
+  const value = String(rawSegmentBucket || '').trim();
+  if (!value) return null;
+  return value.length > 80 ? `${value.slice(0, 77)}...` : value;
+}
+
+export function normalizeSegmentBucketsCsv(rawSegmentBuckets) {
+  const raw = String(rawSegmentBuckets || '').trim();
+  if (!raw) return [];
+  const unique = new Set();
+  const buckets = [];
+  raw.split(',').forEach((item) => {
+    const normalized = normalizeSegmentBucket(item);
+    if (!normalized || unique.has(normalized)) return;
+    unique.add(normalized);
+    buckets.push(normalized);
+  });
+  return buckets;
+}
+
 export function normalizeFromFilter(rawFrom) {
   const date = parseJsonDate(rawFrom);
   return date ? date.toISOString() : null;

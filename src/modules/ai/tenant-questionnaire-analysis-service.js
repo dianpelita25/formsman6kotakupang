@@ -3,6 +3,7 @@ import { resolveRenderedPrompt } from '../ai-prompts/service.js';
 import { getTenantQuestionnaireAnalyticsBundle } from '../questionnaires/service.js';
 import { AI_ANALYSIS_MODES, normalizeAiMode } from '../shared/ai-modes.js';
 import { callGemini } from './gemini-client.js';
+import { buildAiInputSignature, getAiAnalyzeCooldownSeconds, resolveReusableAnalysis } from './cooldown-policy.js';
 import { buildPromptLegacy } from './prompt-fallback.js';
 
 export async function analyzeTenantQuestionnaireAi(
@@ -35,6 +36,34 @@ export async function analyzeTenantQuestionnaireAi(
   const summary = analyticsBundle.data.summary || {};
   const distribution = analyticsBundle.data.distribution || {};
   const responses = analyticsBundle.data.responses || [];
+  const inputSignature = buildAiInputSignature({
+    mode: normalizedMode,
+    questionnaireVersionId: selectedVersionId,
+    from: normalizedFromFilter,
+    to: normalizedToFilter,
+    totalResponses: Number(summary?.totalResponses || 0),
+    lastSubmittedAt: summary?.lastSubmittedAt || null,
+  });
+  const cooldownSeconds = getAiAnalyzeCooldownSeconds(env);
+  const latest = await getLatestAiAnalysisV2(env, {
+    tenantId: tenant.id,
+    questionnaireId: questionnaire.id,
+    questionnaireVersionId: selectedVersionId,
+    from: normalizedFromFilter,
+    to: normalizedToFilter,
+    mode: normalizedMode,
+  });
+  const reuseState = resolveReusableAnalysis(latest, inputSignature, cooldownSeconds);
+  if (reuseState.reused) {
+    return {
+      mode: latest.mode,
+      analysis: latest.analysis,
+      meta: latest.meta || null,
+      createdAt: latest.created_at || null,
+      reused: true,
+      cooldownSeconds: reuseState.cooldownSeconds,
+    };
+  }
 
   let prompt = '';
   try {
@@ -72,6 +101,7 @@ export async function analyzeTenantQuestionnaireAi(
       from: normalizedFromFilter,
       to: normalizedToFilter,
     },
+    inputSignature,
   };
 
   const saved = await insertAiAnalysisV2(env, {
@@ -88,6 +118,8 @@ export async function analyzeTenantQuestionnaireAi(
     analysis,
     meta,
     createdAt: saved?.created_at || null,
+    reused: false,
+    cooldownSeconds: 0,
   };
 }
 

@@ -16,12 +16,39 @@ export function ensureUniqueFieldKey(preferred, fields, excludedKey = null) {
   return `${base}_${index}`;
 }
 
+function normalizeSegmentRole(rawRole, type) {
+  const role = String(rawRole || 'auto')
+    .trim()
+    .toLowerCase();
+  const normalizedType = String(type || '').trim();
+  if (role === 'exclude') return 'exclude';
+  if (role === 'dimension' && (normalizedType === 'radio' || normalizedType === 'checkbox')) return 'dimension';
+  return 'auto';
+}
+
+function normalizeSegmentLabel(rawLabel) {
+  const label = String(rawLabel || '').trim();
+  if (!label) return undefined;
+  return label.slice(0, 64);
+}
+
+function normalizeSegmentMetadata(rawField, type) {
+  const isSensitive = rawField?.isSensitive === true;
+  const segmentRole = normalizeSegmentRole(rawField?.segmentRole, type);
+  return {
+    segmentRole: isSensitive ? 'exclude' : segmentRole,
+    segmentLabel: normalizeSegmentLabel(rawField?.segmentLabel),
+    isSensitive,
+  };
+}
+
 export function normalizeBuilderField(rawField, fields = [], excludedKey = null) {
   const type = String(rawField?.type || 'text').trim();
   const label = String(rawField?.label || '').trim();
   const name = ensureUniqueFieldKey(rawField?.name || label, fields, excludedKey);
   const criterion = String(rawField?.criterion || '').trim();
   const required = rawField?.required !== false;
+  const segmentMetadata = normalizeSegmentMetadata(rawField, type);
 
   if (!label) {
     throw new Error('Label pertanyaan wajib diisi.');
@@ -31,7 +58,7 @@ export function normalizeBuilderField(rawField, fields = [], excludedKey = null)
   }
 
   if (type === 'text') {
-    return { type, name, label, criterion, required };
+    return { type, name, label, criterion, required, ...segmentMetadata };
   }
 
   if (type === 'radio' || type === 'checkbox') {
@@ -44,7 +71,7 @@ export function normalizeBuilderField(rawField, fields = [], excludedKey = null)
     if (options.length < 2) {
       throw new Error(`Pertanyaan "${label}" tipe pilihan harus memiliki minimal 2 opsi.`);
     }
-    return { type, name, label, criterion, required, options };
+    return { type, name, label, criterion, required, options, ...segmentMetadata };
   }
 
   return {
@@ -55,5 +82,6 @@ export function normalizeBuilderField(rawField, fields = [], excludedKey = null)
     required,
     fromLabel: String(rawField?.fromLabel || 'Tidak Setuju').trim() || 'Tidak Setuju',
     toLabel: String(rawField?.toLabel || 'Sangat Setuju').trim() || 'Sangat Setuju',
+    ...segmentMetadata,
   };
 }

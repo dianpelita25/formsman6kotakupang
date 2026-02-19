@@ -21,6 +21,12 @@ export function buildVisualOrderStorageKey(tenantSlug = '', questionnaireSlug = 
   return `aiti:dashboard:visual-order:${tenant}:${questionnaire}`;
 }
 
+export function buildVisualPreferencesStorageKey(tenantSlug = '', questionnaireSlug = '') {
+  const tenant = String(tenantSlug || '').trim().toLowerCase();
+  const questionnaire = String(questionnaireSlug || '').trim().toLowerCase();
+  return `dashboard_visual_prefs_v2:${tenant}:${questionnaire}`;
+}
+
 export function normalizeVisualCardOrder(candidateOrder = [], visualCardConfig = {}, visualCardKeys = []) {
   const source = Array.isArray(candidateOrder) ? candidateOrder : [];
   const normalized = [];

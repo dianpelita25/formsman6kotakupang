@@ -9,6 +9,9 @@ export function createAdvancedVizController({
   advancedVizHelpEl,
   segmentControlsEl,
   segmentDimensionSelectEl,
+  segmentBucketSelectEl,
+  segmentCompareBucketsEl,
+  segmentFilterChipEl,
   formatNumber,
   truncateText,
   destroyChart,
@@ -24,6 +27,9 @@ export function createAdvancedVizController({
     state,
     segmentControlsEl,
     segmentDimensionSelectEl,
+    segmentBucketSelectEl,
+    segmentCompareBucketsEl,
+    segmentFilterChipEl,
   });
 
   const dispatcher = createAdvancedVizRenderDispatcher({
@@ -39,6 +45,9 @@ export function createAdvancedVizController({
   return {
     renderAdvancedVizChart: dispatcher.renderAdvancedVizChart,
     renderSegmentDimensionOptions: segmentControls.renderSegmentDimensionOptions,
+    renderSegmentBucketOptions: segmentControls.renderSegmentBucketOptions,
+    renderSegmentFilterChip: segmentControls.renderSegmentFilterChip,
+    getSelectedCompareBuckets: segmentControls.getSelectedCompareBuckets,
     resolveSegmentDimensions: segmentControls.resolveSegmentDimensionsForState,
   };
 }

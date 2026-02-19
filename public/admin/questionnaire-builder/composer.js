@@ -11,6 +11,16 @@ export function createQuestionComposer({
     refs.newQuestionOptionsWrapEl.hidden = !['radio', 'checkbox'].includes(type);
     refs.newQuestionFromWrapEl.hidden = type !== 'scale';
     refs.newQuestionToWrapEl.hidden = type !== 'scale';
+    const segmentRoleEl = refs.newQuestionSegmentRoleEl;
+    if (!segmentRoleEl) return;
+    const dimensionOption = segmentRoleEl.querySelector('option[value="dimension"]');
+    const allowDimension = type === 'radio' || type === 'checkbox';
+    if (dimensionOption) {
+      dimensionOption.disabled = !allowDimension;
+    }
+    if (!allowDimension && String(segmentRoleEl.value || '').trim() === 'dimension') {
+      segmentRoleEl.value = 'auto';
+    }
   }
 
   function addQuestionFromComposer() {
@@ -25,6 +35,9 @@ export function createQuestionComposer({
       label,
       name: slugToKey(label),
       criterion: String(refs.newQuestionCriterionEl?.value || '').trim(),
+      segmentRole: String(refs.newQuestionSegmentRoleEl?.value || 'auto').trim().toLowerCase(),
+      segmentLabel: String(refs.newQuestionSegmentLabelEl?.value || '').trim(),
+      isSensitive: Boolean(refs.newQuestionSensitiveEl?.checked),
       required: Boolean(refs.newQuestionRequiredEl?.checked ?? true),
     };
 
@@ -44,6 +57,9 @@ export function createQuestionComposer({
 
     refs.newQuestionLabelEl.value = '';
     if (refs.newQuestionCriterionEl) refs.newQuestionCriterionEl.value = '';
+    if (refs.newQuestionSegmentRoleEl) refs.newQuestionSegmentRoleEl.value = 'auto';
+    if (refs.newQuestionSegmentLabelEl) refs.newQuestionSegmentLabelEl.value = '';
+    if (refs.newQuestionSensitiveEl) refs.newQuestionSensitiveEl.checked = false;
     refs.newQuestionOptionsEl.value = '';
     refs.newQuestionFromEl.value = '';
     refs.newQuestionToEl.value = '';

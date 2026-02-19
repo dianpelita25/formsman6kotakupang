@@ -1435,6 +1435,24 @@ pre {
   font-weight: 600;
 }
 
+.questionnaire-dashboard-page .segment-controls__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.questionnaire-dashboard-page .segment-filter-chip {
+  margin: 2px 0 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(106, 164, 255, 0.35);
+  background: rgba(13, 26, 53, 0.52);
+  color: #cfe0fb;
+  display: inline-flex;
+  width: fit-content;
+}
+
 .questionnaire-dashboard-page .dashboard-chart-card canvas {
   width: 100%;
   max-height: 220px;
