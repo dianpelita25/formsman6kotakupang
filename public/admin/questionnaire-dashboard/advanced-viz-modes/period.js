@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function renderPeriodMode({
   state,
   canvas,
@@ -7,6 +9,7 @@ export function renderPeriodMode({
   renderAdvancedVizInsights,
 } = {}) {
   if (!comparison) return false;
+  const palette = getDashboardThemePalette();
 
   const previousLabel = `Periode Sebelumnya (${comparison.previousCount} hari)`;
   const currentLabel = `Periode Saat Ini (${comparison.currentCount} hari)`;
@@ -19,8 +22,8 @@ export function renderPeriodMode({
           label: 'Total Respons',
           data: [comparison.previousTotal, comparison.currentTotal],
           borderRadius: 10,
-          backgroundColor: ['rgba(126, 155, 255, 0.58)', 'rgba(47, 198, 229, 0.68)'],
-          borderColor: ['rgba(126, 155, 255, 1)', 'rgba(47, 198, 229, 1)'],
+          backgroundColor: [palette.contrastFill, palette.primaryBackground],
+          borderColor: [palette.contrastLine, palette.primaryBorder],
           borderWidth: 1,
         },
       ],
@@ -33,7 +36,9 @@ export function renderPeriodMode({
           beginAtZero: true,
           ticks: {
             precision: 0,
+            color: palette.tickColor,
           },
+          grid: { color: palette.gridColor },
         },
       },
     },

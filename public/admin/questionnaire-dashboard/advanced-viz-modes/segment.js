@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function renderSegmentMode({
   state,
   canvas,
@@ -9,6 +11,7 @@ export function renderSegmentMode({
   onBucketClick,
 } = {}) {
   if (!dimension) return false;
+  const palette = getDashboardThemePalette();
 
   const metric = String(dimension.metric || '').trim() === 'avg_scale' ? 'avg_scale' : 'count';
   const compareResult = state.segmentCompareResult && state.segmentCompareResult.dimensionId === dimension.id ? state.segmentCompareResult : null;
@@ -33,8 +36,8 @@ export function renderSegmentMode({
           label: metric === 'avg_scale' ? 'Rata-rata Skor' : 'Jumlah Respons',
           data: values,
           borderRadius: 8,
-          backgroundColor: 'rgba(47, 198, 229, 0.62)',
-          borderColor: 'rgba(47, 198, 229, 1)',
+          backgroundColor: palette.primaryBackground,
+          borderColor: palette.primaryBorder,
           borderWidth: 1,
         },
       ],
@@ -44,7 +47,10 @@ export function renderSegmentMode({
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: metric === 'avg_scale' ? { beginAtZero: true, max: 5 } : { beginAtZero: true, ticks: { precision: 0 } },
+        x:
+          metric === 'avg_scale'
+            ? { beginAtZero: true, max: 5, ticks: { color: palette.tickColor }, grid: { color: palette.gridColor } }
+            : { beginAtZero: true, ticks: { precision: 0, color: palette.tickColor }, grid: { color: palette.gridColor } },
       },
       plugins: {
         tooltip: {

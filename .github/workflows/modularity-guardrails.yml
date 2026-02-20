@@ -263,6 +263,48 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:ux:mobile
 
+  smoke-ux-theme:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping theme UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run theme UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:theme
+
   visual-regression-legacy-dashboard:
     needs:
       - check-architecture
@@ -271,6 +313,7 @@ jobs:
       - smoke-e2e
       - smoke-admin-ui
       - smoke-ux-mobile
+      - smoke-ux-theme
     runs-on: ubuntu-latest
     env:
       VISUAL_DIFF_MAX_RATIO: '0.03'

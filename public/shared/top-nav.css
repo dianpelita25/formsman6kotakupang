@@ -3,8 +3,8 @@
   top: 0;
   z-index: 40;
   backdrop-filter: blur(10px);
-  background: rgba(4, 10, 24, 0.78);
-  border-bottom: 1px solid rgba(106, 164, 255, 0.28);
+  background: var(--theme-nav-bg, rgba(4, 10, 24, 0.78));
+  border-bottom: 1px solid var(--theme-nav-border, rgba(106, 164, 255, 0.28));
 }
 
 .global-nav__inner {
@@ -22,47 +22,58 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #dff0ff;
+  color: var(--theme-nav-brand-text, #dff0ff);
   text-decoration: none;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid rgba(48, 228, 255, 0.34);
+  border: 1px solid var(--theme-nav-brand-border, rgba(48, 228, 255, 0.34));
   border-radius: 999px;
   min-height: 44px;
   padding: 8px 12px;
-  background: rgba(15, 42, 78, 0.6);
+  background: var(--theme-nav-brand-bg, rgba(15, 42, 78, 0.6));
 }
 
 .global-nav__link,
-.global-nav__logout {
+.global-nav__logout,
+.global-nav__theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #d8e8ff;
+  color: var(--theme-nav-link-text, #d8e8ff);
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(106, 164, 255, 0.3);
+  border: 1px solid var(--theme-nav-link-border, rgba(106, 164, 255, 0.3));
   border-radius: 10px;
-  background: rgba(12, 26, 54, 0.7);
+  background: var(--theme-nav-link-bg, rgba(12, 26, 54, 0.7));
   min-height: 44px;
   padding: 10px 12px;
 }
 
-.global-nav__logout {
+.global-nav__logout,
+.global-nav__theme-toggle {
   cursor: pointer;
 }
 
 .global-nav__link:hover,
-.global-nav__logout:hover {
-  border-color: rgba(48, 228, 255, 0.48);
-  background: rgba(18, 36, 72, 0.88);
+.global-nav__logout:hover,
+.global-nav__theme-toggle:hover {
+  border-color: var(--theme-nav-link-hover-border, rgba(48, 228, 255, 0.48));
+  background: var(--theme-nav-link-hover-bg, rgba(18, 36, 72, 0.88));
 }
 
 .global-nav__link.is-hidden {
   display: none;
+}
+
+.global-nav__theme-slot {
+  display: inline-flex;
+}
+
+.global-nav__theme-toggle {
+  white-space: nowrap;
 }
 
 @media (max-width: 860px) {

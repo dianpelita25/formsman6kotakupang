@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme-scope="modern">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
     <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260218-3" />
   </head>
   <body>
@@ -18,9 +19,12 @@
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-top">
           <div class="brand">AITI GLOBAL NEXUS</div>
-          <a id="admin-login-link" class="admin-entry-link" href="/forms/admin/login" title="Masuk admin">
-            Login
-          </a>
+          <div class="hero-top-actions">
+            <span class="theme-toggle-slot" data-theme-toggle></span>
+            <a id="admin-login-link" class="admin-entry-link" href="/forms/admin/login" title="Masuk admin">
+              Login
+            </a>
+          </div>
         </div>
         <h1 id="form-title">Memuat judul form...</h1>
         <div class="greeting-block">

@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function createAdvancedVizUi({
   state,
   advancedVizTabButtons,
@@ -44,6 +46,7 @@ export function createAdvancedVizUi({
   }
 
   function renderEmptyAdvancedVizChart(canvas, message = 'Belum ada data untuk visual ini.') {
+    const palette = getDashboardThemePalette();
     state.charts.advancedViz = new Chart(canvas, {
       type: 'bar',
       data: {
@@ -53,8 +56,8 @@ export function createAdvancedVizUi({
             label: 'Nilai',
             data: [0],
             borderRadius: 8,
-            backgroundColor: 'rgba(88, 157, 255, 0.45)',
-            borderColor: 'rgba(88, 157, 255, 0.95)',
+            backgroundColor: palette.emptyBackground,
+            borderColor: palette.emptyBorder,
           },
         ],
       },

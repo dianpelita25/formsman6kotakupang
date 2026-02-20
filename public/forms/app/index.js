@@ -1,4 +1,5 @@
 import { bindRuntimeErrorHandlers, normalizeUiError } from '/forms-static/shared/ux.js';
+import { initThemeRuntime, mountThemeToggleSlots } from '/forms-static/shared/theme/theme-runtime.js';
 import { createFormStatusController } from './status.js';
 import { bindFormSubmit } from './form-submit.js';
 import { loadSchema } from './schema-loader.js';
@@ -19,6 +20,8 @@ const mobileSubmitBtn = document.getElementById('mobile-submit-btn');
 
 let activeFields = [];
 const { setStatus } = createFormStatusController(statusMessage, statusDebugWrap, statusDebug);
+initThemeRuntime();
+mountThemeToggleSlots('[data-theme-toggle]');
 const mobileMediaQuery =
   typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 720px)') : null;
 

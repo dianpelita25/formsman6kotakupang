@@ -74,6 +74,7 @@ export function createDashboardAnalyticsLoader({
         : scaleAveragesFromDistribution.length > 0
           ? scaleAveragesFromDistribution
           : buildScaleAveragesFallback(summaryPayload.data?.questionAverages || {}, normalizedQuestions);
+    state.scaleAverages = scaleAverages;
 
     state.criteriaSummary = Array.isArray(distributionPayload.data?.criteriaSummary)
       ? distributionPayload.data.criteriaSummary
@@ -100,7 +101,7 @@ export function createDashboardAnalyticsLoader({
     renderSegmentFilterChip();
 
     renderSummary();
-    renderScaleAverageChart(scaleAverages);
+    renderScaleAverageChart(state.scaleAverages);
     state.questionTypeStats = {
       total: normalizedQuestions.length,
       scale: scaleQuestions.length,

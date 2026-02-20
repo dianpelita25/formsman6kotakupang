@@ -1,4 +1,5 @@
 import { LEGACY_SCHOOL_SLUG } from '/forms-static/shared/constants/legacy.js';
+import { initThemeRuntime, mountTopNavThemeToggle } from '/forms-static/shared/theme/theme-runtime.js';
 
 function safeDecode(segment) {
   try {
@@ -139,3 +140,5 @@ function bindLogoutButtons() {
 
 updateContextLinks();
 bindLogoutButtons();
+initThemeRuntime();
+mountTopNavThemeToggle();
