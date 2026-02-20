@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function renderLikertMode({
   state,
   canvas,
@@ -7,6 +9,7 @@ export function renderLikertMode({
   renderAdvancedVizInsights,
 } = {}) {
   if (!likert || Number(likert.totalAnswers || 0) <= 0) return false;
+  const palette = getDashboardThemePalette();
 
   const labels = ['Skor 1', 'Skor 2', 'Skor 3', 'Skor 4', 'Skor 5'];
   state.charts.advancedViz = new Chart(canvas, {
@@ -17,8 +20,8 @@ export function renderLikertMode({
         {
           label: 'Total jawaban',
           data: likert.totals,
-          backgroundColor: ['#1f6feb', '#2276f5', '#2d9bff', '#2bd4f6', '#2ce3a8'],
-          borderColor: 'rgba(8, 18, 36, 0.6)',
+          backgroundColor: palette.palette.slice(0, 5),
+          borderColor: palette.pointBorder,
           borderWidth: 1,
         },
       ],
@@ -29,6 +32,10 @@ export function renderLikertMode({
       scales: {
         r: {
           beginAtZero: true,
+          ticks: { color: palette.tickColor, backdropColor: 'transparent' },
+          grid: { color: palette.gridColor },
+          angleLines: { color: palette.gridColor },
+          pointLabels: { color: palette.tickColor },
         },
       },
     },

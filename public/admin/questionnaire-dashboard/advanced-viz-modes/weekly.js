@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function renderWeeklyMode({
   state,
   canvas,
@@ -7,6 +9,7 @@ export function renderWeeklyMode({
   renderAdvancedVizInsights,
 } = {}) {
   if (!weekly || Number(weekly.totalResponses || 0) <= 0) return false;
+  const palette = getDashboardThemePalette();
 
   state.charts.advancedViz = new Chart(canvas, {
     type: 'radar',
@@ -16,10 +19,10 @@ export function renderWeeklyMode({
         {
           label: 'Rata-rata respons per hari',
           data: weekly.averages,
-          borderColor: '#33d9ff',
-          backgroundColor: 'rgba(51, 217, 255, 0.2)',
-          pointBackgroundColor: '#82f7ff',
-          pointBorderColor: '#082039',
+          borderColor: palette.trendLine,
+          backgroundColor: palette.trendFill,
+          pointBackgroundColor: palette.pointBackground,
+          pointBorderColor: palette.pointBorder,
           pointRadius: 3,
         },
       ],
@@ -32,7 +35,11 @@ export function renderWeeklyMode({
           beginAtZero: true,
           ticks: {
             backdropColor: 'transparent',
+            color: palette.tickColor,
           },
+          grid: { color: palette.gridColor },
+          angleLines: { color: palette.gridColor },
+          pointLabels: { color: palette.tickColor },
         },
       },
     },

@@ -79,6 +79,7 @@ export function createDashboardState() {
     summary: null,
     distribution: null,
     trend: null,
+    scaleAverages: [],
     dataQuality: null,
     responses: [],
     latestAi: null,

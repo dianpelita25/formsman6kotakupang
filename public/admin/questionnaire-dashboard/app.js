@@ -29,6 +29,10 @@ const runtime = wireDashboardControllers({
   baseApiPath,
 });
 
+window.addEventListener('aiti-theme-change', () => {
+  runtime.rerenderChartsForTheme?.();
+});
+
 bindDashboardRuntimeErrors({
   bindRuntimeErrorHandlers,
   runtime,

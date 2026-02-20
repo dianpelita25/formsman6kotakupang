@@ -96,7 +96,7 @@ Jika ada temuan baru saat implementasi:
 | --- | --- | --- | --- |
 | D16 | Post-dashboard hardening cycle | CSRF enforce, PBKDF2 migration safe rollout, analytics scaling large dataset | Jalankan sesuai `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md` (micro PR, 1 Debt ID focus, no dashboard scope creep) |
 | D22 | Desktop builder UX clarity | Builder desktop layout clarity, dropdown type clarity, remember-last-type behavior, dan desktop UX smoke gate | CLOSED. Proof commit `d87d67c7de65f3190f4ad03ff85492a9459d4dd9`; deploy production sukses (`Version 8761a9c0-4136-4c05-b603-d322ebc27a4e`) dan smoke live builder desktop PASS |
-| D23 | Dual theme dark/light app-wide | Global theming token + light overrides + theme toggle persistence | Ditahan terpisah (OPEN) setelah D22 selesai untuk hindari scope creep |
+| D23 | Dual theme dark/light app-wide | Global theming token + light overrides + theme toggle persistence | CLOSED. Proof commit `7e0869954267c3873d1733cb665c04082aee2687`; `pnpm check:architecture` PASS, `pnpm smoke:e2e` PASS, `pnpm smoke:admin:ui` PASS, `pnpm smoke:ux:mobile` PASS, `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link` PASS, `pnpm smoke:ux:theme -- --base-url https://aitiglobal.link` PASS; deploy production sukses (`Version ee51e1ff-121a-4045-ad84-979ac0357f79`). |
 
 ## Verifikasi D10
 

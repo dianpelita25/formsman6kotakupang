@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from '../theme-palette.js';
+
 export function renderCriteriaMode({
   state,
   canvas,
@@ -8,6 +10,7 @@ export function renderCriteriaMode({
   renderAdvancedVizInsights,
 } = {}) {
   if (!Array.isArray(rows) || !rows.length) return false;
+  const palette = getDashboardThemePalette();
 
   const labels = rows.map((item) => truncateText(item.label, 26));
   state.charts.advancedViz = new Chart(canvas, {
@@ -21,8 +24,8 @@ export function renderCriteriaMode({
           yAxisID: 'y',
           data: rows.map((item) => item.avgScale),
           borderRadius: 8,
-          backgroundColor: 'rgba(47, 198, 229, 0.62)',
-          borderColor: 'rgba(47, 198, 229, 1)',
+          backgroundColor: palette.primaryBackground,
+          borderColor: palette.primaryBorder,
           borderWidth: 1,
         },
         {
@@ -30,8 +33,8 @@ export function renderCriteriaMode({
           label: 'Jumlah Soal',
           yAxisID: 'y1',
           data: rows.map((item) => item.totalQuestions),
-          borderColor: '#8b8cff',
-          backgroundColor: 'rgba(139, 140, 255, 0.18)',
+          borderColor: palette.secondaryBorder,
+          backgroundColor: palette.secondaryBackground,
           borderWidth: 2,
           pointRadius: 3,
           tension: 0.22,
@@ -55,12 +58,15 @@ export function renderCriteriaMode({
         y: {
           beginAtZero: true,
           max: 5,
+          ticks: { color: palette.tickColor },
+          grid: { color: palette.gridColor },
           title: { display: true, text: 'Skor rata-rata' },
         },
         y1: {
           position: 'right',
           beginAtZero: true,
-          grid: { drawOnChartArea: false },
+          ticks: { color: palette.tickColor },
+          grid: { drawOnChartArea: false, color: palette.gridColor },
           title: { display: true, text: 'Jumlah soal' },
         },
       },
