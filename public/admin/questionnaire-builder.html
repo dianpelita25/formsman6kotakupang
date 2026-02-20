@@ -82,24 +82,27 @@
           </div>
 
           <div class="builder-add-question">
-            <label class="field">
+            <label class="field field--label">
               <span>Label Pertanyaan</span>
               <input id="new-question-label" placeholder="Contoh: Seberapa puas Anda?" />
             </label>
-            <label class="field">
+            <label class="field field--type">
               <span>Tipe</span>
               <select id="new-question-type">
-                <option value="text">Teks</option>
-                <option value="radio">Pilihan Tunggal</option>
-                <option value="checkbox">Pilihan Ganda (Centang)</option>
+                <option value="text">Teks bebas</option>
+                <option value="radio">Pilihan tunggal</option>
+                <option value="checkbox">Pilihan ganda (centang)</option>
                 <option value="scale">Skala 1-5</option>
               </select>
+              <small class="small builder-type-help">
+                Tipe menentukan field lanjutan: pilihan memakai opsi, skala memakai label kiri/kanan.
+              </small>
             </label>
-            <label class="field">
+            <label class="field field--criterion">
               <span>Kriteria (opsional, disarankan)</span>
               <input id="new-question-criterion" placeholder="Contoh: A / B / C" />
             </label>
-            <label class="field">
+            <label class="field field--segment-role">
               <span>Peran Segmentasi</span>
               <select id="new-question-segment-role">
                 <option value="auto">Auto</option>
@@ -107,27 +110,27 @@
                 <option value="exclude">Exclude</option>
               </select>
             </label>
-            <label class="field">
+            <label class="field field--segment-label">
               <span>Label Segmentasi (opsional)</span>
               <input id="new-question-segment-label" placeholder="Contoh: Jenjang Kelas" maxlength="64" />
             </label>
-            <label class="builder-required-toggle builder-required-toggle--composer">
+            <label class="builder-required-toggle builder-required-toggle--composer field--sensitive">
               <input id="new-question-sensitive" type="checkbox" />
               <span>Data Sensitif (exclude dari segmentasi)</span>
             </label>
-            <label class="builder-required-toggle builder-required-toggle--composer">
+            <label class="builder-required-toggle builder-required-toggle--composer field--required">
               <input id="new-question-required" type="checkbox" checked />
               <span>Wajib diisi</span>
             </label>
-            <label class="field" id="new-question-options-wrap">
+            <label class="field field--options" id="new-question-options-wrap">
               <span>Opsi Pilihan (pisahkan koma)</span>
               <input id="new-question-options" placeholder="Sangat setuju, Setuju, Netral, Tidak setuju" />
             </label>
-            <label class="field" id="new-question-from-wrap" hidden>
+            <label class="field field--from" id="new-question-from-wrap" hidden>
               <span>Label Skala Kiri</span>
               <input id="new-question-from" placeholder="Tidak setuju" />
             </label>
-            <label class="field" id="new-question-to-wrap" hidden>
+            <label class="field field--to" id="new-question-to-wrap" hidden>
               <span>Label Skala Kanan</span>
               <input id="new-question-to" placeholder="Sangat setuju" />
             </label>

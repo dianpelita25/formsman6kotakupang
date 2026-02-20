@@ -29,7 +29,8 @@ export function createQuestionComposer({
       throw new Error('Label pertanyaan baru wajib diisi.');
     }
 
-    const type = String(refs.newQuestionTypeEl.value || 'text').trim();
+    const selectedType = String(refs.newQuestionTypeEl.value || 'text').trim();
+    const type = selectedType;
     const candidate = {
       type,
       label,
@@ -63,7 +64,7 @@ export function createQuestionComposer({
     refs.newQuestionOptionsEl.value = '';
     refs.newQuestionFromEl.value = '';
     refs.newQuestionToEl.value = '';
-    refs.newQuestionTypeEl.value = 'text';
+    refs.newQuestionTypeEl.value = selectedType;
     if (refs.newQuestionRequiredEl) refs.newQuestionRequiredEl.checked = true;
     setComposerQuestionTypeVisibility();
     pushActivity('success', 'Tambah pertanyaan', normalized.label);
