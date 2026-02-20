@@ -72,6 +72,19 @@ Catat output ringkas command berikut (dengan timestamp bila perlu):
 6. `pnpm visual:legacy-dashboard:diff` (jika scope dashboard/PDF)
 7. `pnpm visual:questionnaire-dashboard:diff` (jika scope dashboard/PDF)
 
+### Bukti Baseline Release D27 (D28-2)
+
+1. Merge commit baseline D27: `565345f99f3ccff7271fc7233289120eef6df293`  
+   `https://github.com/dianpelita25/formsman6kotakupang/commit/565345f99f3ccff7271fc7233289120eef6df293`
+2. Tag final baseline: `release-d27-final-2026-02-20` -> menunjuk ke commit `565345f99f3ccff7271fc7233289120eef6df293`.
+3. Worker version baseline: `24d2e0d6-e6d4-405e-bc02-cd98e0f4a37f`.
+4. Rujukan bukti existing di report ini:
+   - Tabel `Residual Debt / New Findings` item `D24`: deploy proof `24d2e0d6-e6d4-405e-bc02-cd98e0f4a37f`.
+   - Tabel `Residual Debt / New Findings` item `D25`.
+   - Tabel `Residual Debt / New Findings` item `D26`.
+   - Tabel `Residual Debt / New Findings` item `D27`: gate contrast/nav live PASS + deploy production SUCCESS.
+5. Tanggal lock baseline: `2026-02-20`.
+
 Referensi CI strict:
 
 1. Commit proof referensi closure:
