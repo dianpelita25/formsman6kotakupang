@@ -5,19 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Admin Forms</title>
     <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
-    <link rel="stylesheet" href="/forms-static/shared/top-nav.css" />
+    <link rel="stylesheet" href="/forms-static/shared/top-nav.css?v=20260220-2" />
     <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260217-2" />
   </head>
   <body>
-    <nav class="global-nav">
+        <nav class="global-nav" data-auth-state="guest" data-nav-open="false">
       <div class="global-nav__inner">
-        <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
-        <a class="global-nav__link" href="/forms/admin/login">Admin Login</a>
-        <a class="global-nav__link" href="/forms/admin/">Superadmin</a>
-        <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
-        <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
-        <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
-        <span class="global-nav__theme-slot" data-theme-toggle></span>
+        <div class="global-nav__group global-nav__group--primary">
+          <a class="global-nav__brand" href="/forms">AITI Forms Portal</a>
+        </div>
+        <button
+          class="global-nav__menu-toggle"
+          type="button"
+          aria-label="Buka menu navigasi"
+          aria-expanded="false"
+          aria-controls="global-nav-drawer"
+        >
+          Menu
+        </button>
+        <div class="global-nav__drawer" id="global-nav-drawer">
+          <div class="global-nav__group global-nav__group--context is-hidden">
+            <a class="global-nav__link is-hidden" data-nav-link="form" href="#">Form Publik</a>
+            <a class="global-nav__link is-hidden" data-nav-link="panel" href="#">Panel Organisasi</a>
+            <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
+          </div>
+          <div class="global-nav__group global-nav__group--utility">
+            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Admin Login</a>
+            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Superadmin</a>
+            <span class="global-nav__theme-slot" data-theme-toggle></span>
+            <button class="global-nav__logout is-hidden" type="button">Logout</button>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -55,7 +73,10 @@
         </form>
       </section>
     </main>
-    <script type="module" src="/forms-static/shared/top-nav.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/shared/top-nav.js?v=20260220-2"></script>
     <script type="module" src="/forms-static/admin/login.js?v=20260216-6"></script>
   </body>
 </html>
+
+
+

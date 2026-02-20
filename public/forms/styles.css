@@ -253,12 +253,12 @@ body::after {
   margin: 0 0 8px;
   font-size: 20px;
   font-weight: 700;
-  color: #d8e7ff;
+  color: var(--text);
 }
 
 .greeting-block p {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-soft);
   line-height: 1.75;
   font-size: 15px;
 }
@@ -406,16 +406,16 @@ input[type='text']:focus {
 
 input[type='radio'] {
   accent-color: var(--accent);
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
 }
 
 input[type='checkbox'] {
   accent-color: var(--accent);
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
 }
 
 .scale-wrap {

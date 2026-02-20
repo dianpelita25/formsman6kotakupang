@@ -1079,15 +1079,26 @@ pre {
 }
 
 .builder-page .builder-preview-meta {
-  border: 1px solid rgba(106, 164, 255, 0.28);
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(11, 20, 40, 0.56);
+  background: var(--surface-soft);
+  color: var(--text-soft);
 }
 
 .builder-page .builder-preview-greeting-title {
   margin: 8px 0 4px;
   font-weight: 700;
+  color: var(--text);
+}
+
+.builder-page .builder-preview-meta h3 {
+  color: var(--text);
+}
+
+.builder-page .builder-preview-meta .small,
+.builder-page #preview-greeting-text {
+  color: var(--text-soft);
 }
 
 .builder-page .builder-preview-fields {
@@ -2162,4 +2173,15 @@ pre {
   background: rgba(233, 242, 255, 0.92);
   border-color: rgba(83, 129, 204, 0.36);
   color: var(--text-soft);
+}
+
+:root[data-theme-scope='modern'][data-theme='light'] .builder-page .builder-preview-meta {
+  background: var(--surface-soft);
+  border-color: var(--line);
+  color: var(--text-soft);
+}
+
+:root[data-theme-scope='modern'][data-theme='light'] .builder-page .builder-preview-meta h3,
+:root[data-theme-scope='modern'][data-theme='light'] .builder-page .builder-preview-greeting-title {
+  color: var(--text);
 }
