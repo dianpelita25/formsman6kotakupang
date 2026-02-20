@@ -46,6 +46,7 @@ export function wireDashboardControllers({
     inlineStatusEl: domRefs.inlineStatusEl,
     inlineActionsEl: domRefs.inlineActionsEl,
     errorDebugEl: domRefs.errorDebugEl,
+    errorDebugWrapEl: domRefs.errorDebugWrapEl,
     filterFromEl: domRefs.filterFromEl,
     filterToEl: domRefs.filterToEl,
     filterDaysEl: domRefs.filterDaysEl,

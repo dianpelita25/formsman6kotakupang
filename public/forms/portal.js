@@ -10,17 +10,26 @@ const schoolGrid = document.getElementById('school-grid');
 const schoolSearch = document.getElementById('school-search');
 const portalStatus = document.getElementById('portal-status');
 const portalErrorDebug = document.getElementById('portal-error-debug');
+const portalErrorDebugWrap = document.getElementById('portal-error-debug-wrap');
 
 let tenantCache = [];
 
 function setStatus(message, kind = 'info', error = null) {
   setInlineStatus(portalStatus, message, kind);
   if (error) {
+    if (portalErrorDebugWrap) {
+      portalErrorDebugWrap.hidden = false;
+      portalErrorDebugWrap.open = false;
+    }
     setErrorDebugPanel(portalErrorDebug, error);
     return;
   }
   if (portalErrorDebug) {
     portalErrorDebug.textContent = 'Belum ada error.';
+  }
+  if (portalErrorDebugWrap) {
+    portalErrorDebugWrap.hidden = true;
+    portalErrorDebugWrap.open = false;
   }
 }
 

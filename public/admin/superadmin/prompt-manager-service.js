@@ -1,10 +1,4 @@
-import {
-  renderPromptEffective,
-  renderPromptHistoryRows,
-  resolveDraftTemplate,
-  resolvePublishedTemplate,
-  updatePromptDraftMeta as renderPromptDraftMeta,
-} from './prompt-manager-view.js';
+import { renderPromptEffective, renderPromptHistoryRows, resolveDraftTemplate, resolvePublishedTemplate, updatePromptDraftMeta as renderPromptDraftMeta } from './prompt-manager-view.js';
 
 export function createPromptManagerService({
   refs,
@@ -86,6 +80,15 @@ export function createPromptManagerService({
       questionnaireCache: state.questionnaireCache,
     });
   }
+
+  function revealErrorDebug(error) {
+    if (refs.errorDebugWrapEl) {
+      refs.errorDebugWrapEl.hidden = false;
+      refs.errorDebugWrapEl.open = false;
+    }
+    setErrorDebugPanel(refs.errorDebugEl, error);
+  }
+
   async function loadPromptManager() {
     syncPromptScopeUi();
     const selection = getPromptSelection();
@@ -144,8 +147,8 @@ export function createPromptManagerService({
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
-      setErrorDebugPanel(refs.errorDebugEl, error);
-      pushActivity('error', 'Load prompt manager', `${normalized.method} ${normalized.path} (status ${normalized.status})`);
+      revealErrorDebug(error);
+      pushActivity('error', 'Load prompt manager', normalized.message);
     }
   }
   async function savePromptDraft() {
@@ -166,8 +169,8 @@ export function createPromptManagerService({
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
-      setErrorDebugPanel(refs.errorDebugEl, error);
-      pushActivity('error', 'Save prompt draft', `${normalized.method} ${normalized.path} (status ${normalized.status})`);
+      revealErrorDebug(error);
+      pushActivity('error', 'Save prompt draft', normalized.message);
     }
   }
   async function publishPrompt() {
@@ -186,8 +189,8 @@ export function createPromptManagerService({
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
-      setErrorDebugPanel(refs.errorDebugEl, error);
-      pushActivity('error', 'Publish prompt', `${normalized.method} ${normalized.path} (status ${normalized.status})`);
+      revealErrorDebug(error);
+      pushActivity('error', 'Publish prompt', normalized.message);
     }
   }
   function resetPromptToPublished() {

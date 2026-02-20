@@ -34,18 +34,21 @@
             </label>
             <label>
               Email
-              <input type="email" id="email" required />
+              <input type="email" id="email" autocomplete="username" required />
             </label>
             <label>
               Password
-              <input type="password" id="password" required />
+              <input type="password" id="password" autocomplete="current-password" required />
             </label>
             <button type="submit">Login</button>
           </div>
           <div class="status-panel field-block">
             <h3>Status Login</h3>
             <p id="status" class="status" aria-live="polite"></p>
-            <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+            <details id="error-debug-wrap" class="status-debug-wrap" hidden>
+              <summary>Detail error teknis</summary>
+              <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+            </details>
           </div>
         </form>
       </section>

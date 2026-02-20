@@ -24,6 +24,8 @@
     "seed:superadmin": "node scripts/bootstrap-superadmin.js",
     "smoke:e2e": "node scripts/smoke-e2e.js",
     "smoke:e2e:full": "node scripts/smoke-e2e.js --with-writes",
+    "smoke:dashboard:parity": "node scripts/smoke-dashboard-parity.js",
+    "smoke:ux:mobile": "node scripts/smoke-ux-mobile.js",
     "smoke:dashboard:pdf": "node scripts/smoke-dashboard-pdf-playwright.js",
     "visual:legacy-dashboard:diff": "node scripts/visual-legacy-dashboard-diff.js",
     "visual:questionnaire-dashboard:diff": "node scripts/visual-questionnaire-dashboard-diff.js",

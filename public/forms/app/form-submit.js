@@ -1,7 +1,7 @@
 import { normalizeUiError, requestJson } from '/forms-static/shared/ux.js';
 import { collectFormData, focusFirstCheckboxByField, validateRequiredCheckboxGroups } from './form-validation.js';
 
-export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFields } = {}) {
+export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFields, setSubmitting, onAfterSubmit } = {}) {
   feedbackForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -19,6 +19,7 @@ export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFi
     }
 
     submitBtn.disabled = true;
+    if (typeof setSubmitting === 'function') setSubmitting(true);
     setStatus('Mengirim data...');
 
     try {
@@ -30,11 +31,13 @@ export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFi
       });
       setStatus(result.message || 'Terima kasih, feedback berhasil dikirim.', 'success');
       feedbackForm.reset();
+      if (typeof onAfterSubmit === 'function') onAfterSubmit();
     } catch (error) {
       const normalized = normalizeUiError(error, 'Gagal mengirim feedback.');
       setStatus(normalized.message, 'error', error);
     } finally {
       submitBtn.disabled = false;
+      if (typeof setSubmitting === 'function') setSubmitting(false);
     }
   });
 }

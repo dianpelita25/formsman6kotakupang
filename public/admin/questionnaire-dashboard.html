@@ -295,14 +295,25 @@
           <p id="ai-progress-note" class="small">Estimasi 10-45 detik, tergantung jumlah data dan mode analisis.</p>
           <div class="ai-progress__bar" aria-hidden="true"></div>
         </div>
-        <pre id="ai-output">Belum ada analisis.</pre>
+        <div class="ai-output-stack">
+          <p id="ai-output-summary" class="small ai-output-summary">
+            Belum ada analisis. Klik "Jalankan Analisis" untuk membuat ringkasan.
+          </p>
+          <details id="ai-output-details" class="ai-output-details" hidden>
+            <summary>Lihat detail analisis lengkap</summary>
+            <pre id="ai-output">Belum ada analisis.</pre>
+          </details>
+        </div>
       </section>
 
       <section class="panel">
         <div class="status-panel">
           <h3>Status Dashboard</h3>
           <p id="status" class="status" aria-live="polite"></p>
-          <pre id="error-debug">Belum ada error.</pre>
+          <details id="error-debug-wrap" class="status-debug-wrap" hidden>
+            <summary>Detail error teknis</summary>
+            <pre id="error-debug">Belum ada error.</pre>
+          </details>
         </div>
       </section>
     </main>

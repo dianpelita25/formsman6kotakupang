@@ -4,13 +4,13 @@ export function createFormStatusController(statusMessage, statusDebugWrap, statu
   function setDebug(error = null) {
     if (!statusDebugWrap || !statusDebug) return;
     if (!error) {
-      statusDebugWrap.style.display = 'none';
+      statusDebugWrap.hidden = true;
       statusDebugWrap.open = false;
       statusDebug.textContent = 'Belum ada error.';
       return;
     }
-    statusDebugWrap.style.display = 'block';
-    statusDebugWrap.open = true;
+    statusDebugWrap.hidden = false;
+    statusDebugWrap.open = false;
     setErrorDebugPanel(statusDebug, error);
   }
 
