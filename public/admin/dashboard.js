@@ -28,17 +28,30 @@ function initDashboardLinks() {
 }
 
 const errorDebugEl = document.getElementById('error-debug');
+const errorDebugWrapEl = document.getElementById('error-debug-wrap');
+
+function showErrorDebug(error) {
+  if (errorDebugWrapEl) {
+    errorDebugWrapEl.hidden = false;
+    errorDebugWrapEl.open = false;
+  }
+  setErrorDebugPanel(errorDebugEl, error);
+}
 
 initLegacyDashboard({
   apiBase: getAdminApiBase(),
   requestJson,
   normalizeError: normalizeUiError,
   onBeforeInit: initDashboardLinks,
-  onStatusError: (error) => setErrorDebugPanel(errorDebugEl, error),
-  onAiStatusError: (error) => setErrorDebugPanel(errorDebugEl, error),
+  onStatusError: (error) => showErrorDebug(error),
+  onAiStatusError: (error) => showErrorDebug(error),
   onStatusClear: () => {
     if (errorDebugEl) {
       errorDebugEl.textContent = 'Belum ada error.';
+    }
+    if (errorDebugWrapEl) {
+      errorDebugWrapEl.hidden = true;
+      errorDebugWrapEl.open = false;
     }
   },
   bindRuntimeErrors: bindRuntimeErrorHandlers,

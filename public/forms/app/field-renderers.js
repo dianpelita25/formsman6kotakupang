@@ -7,7 +7,7 @@ function createQuestionShell(field, index) {
 
   const badge = document.createElement('span');
   badge.className = 'question-kicker';
-  badge.textContent = `AI Prompt ${index + 1}`;
+  badge.textContent = `Pertanyaan ${index + 1}`;
 
   const title = document.createElement('div');
   title.className = 'question-title';

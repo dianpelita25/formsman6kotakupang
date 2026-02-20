@@ -29,6 +29,37 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 | D14 | CLOSED | `a6a9a21491ca960f93d44abe85df037e388fa584` | `pnpm check:architecture` PASS<br>`pnpm smoke:e2e` PASS<br>`pnpm smoke:e2e:full` PASS<br>Hardening probe: login attempt #6 => 429, AI analyze => reused=true<br>`GitHub check-runs` PASS | Hardening hybrid WAF+app fallback login throttle dan AI cooldown/dedup aktif |
 | D15 | CLOSED | `6e95fbaaa25dd7b6572f9127f4e91377ebde2971` | `pnpm check:debt-register` PASS<br>`pnpm check:architecture` PASS<br>`GitHub check-runs` PASS | Closure governance D11-D14 tervalidasi dengan proof commit di base branch protected |
 
+## Eksekusi D17-D21 (Status Terkini)
+
+Status real-time implementasi `Blueprint Final D17-D21`:
+
+| Debt ID | Status Saat Ini | Bukti Saat Ini | Blocker Closure |
+| --- | --- | --- | --- |
+| D17 | READY_FOR_CLOSE | `pnpm check:architecture` PASS (local)<br>`pnpm smoke:e2e` PASS (local)<br>`pnpm smoke:dashboard:parity` PASS (local)<br>`pnpm smoke:dashboard:parity -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev` PASS<br>`pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link` PASS | Menunggu proof commit merge di base branch untuk transisi `CLOSED` |
+| D18 | READY_FOR_CLOSE | `pnpm check:architecture` PASS (local)<br>`pnpm smoke:admin:ui` PASS (local)<br>`pnpm smoke:ux:mobile` PASS (local)<br>`pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link` PASS<br>Manual mobile audit 390x844 lulus pada login/admin/legacy dashboard/builder | Menunggu proof commit merge di base branch untuk transisi `CLOSED` |
+| D19 | READY_FOR_CLOSE | `pnpm check:architecture` PASS (local)<br>`pnpm smoke:e2e` PASS (local)<br>`pnpm smoke:ux:mobile` PASS (local)<br>`pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link` PASS<br>Manual mobile audit `/forms/kota/feedback-utama/`: overflow residual hilang (`doc/body scrollWidth == clientWidth`) | Menunggu proof commit merge di base branch untuk transisi `CLOSED` |
+| D20 | READY_FOR_CLOSE | `pnpm check:architecture` PASS (local)<br>`pnpm smoke:dashboard:pdf` PASS (local)<br>`pnpm visual:legacy-dashboard:diff` PASS (local)<br>`pnpm visual:questionnaire-dashboard:diff` PASS (local)<br>`pnpm smoke:admin:ui` PASS (local)<br>`pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link` PASS<br>Debug wrappers hidden-by-default tervalidasi di portal/legacy dashboard/builder | Menunggu proof commit merge di base branch untuk transisi `CLOSED` |
+| D21 | IN_PROGRESS | Register/report dan evidence runtime/UX sudah terisi untuk D17-D20 | Menunggu merge D17-D20 lalu isi `Proof Commit` + `Tanggal Tutup` pada register/report |
+
+### Snapshot Audit Live (2026-02-20, pasca patch residual UX)
+
+Audit browser live (`https://aitiglobal.link`) menunjukkan:
+
+1. Parity contract D17 sudah hidup:
+   - `segment-compare` tidak 404
+   - `summary.dataQuality` ada
+   - invalid pair filter segment -> `400` konsisten
+2. Overflow mobile mayoritas sudah hilang:
+   - `/forms` overflow=false
+   - `/forms/admin/login` overflow=false
+   - `/forms/kota/admin/` overflow=false
+   - `/forms/kota/admin/questionnaires/feedback-utama/dashboard/` overflow=false
+3. Residual yang sebelumnya ditemukan sudah tertutup:
+   - `/forms/kota/feedback-utama/` overflow residual sudah hilang (`doc/body scrollWidth == clientWidth`)
+   - `/forms/sman6-kotakupang/admin/dashboard/` tombol `ai-segment` dan `btn` sudah >=44px
+   - `/forms/.../builder/` tombol langkah (`.builder-step`) sudah >=44px
+4. Technical detail wrapper kini hidden-by-default konsisten pada `portal`, `legacy dashboard`, dan `builder`; panel debug hanya muncul saat error.
+
 ## Bukti Gate
 
 Catat output ringkas command berikut (dengan timestamp bila perlu):
@@ -43,8 +74,14 @@ Catat output ringkas command berikut (dengan timestamp bila perlu):
 
 Referensi CI strict:
 
-1. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169385161` (base `backup/wip-20260218-1746`, SHA `603516979203de94f637c8bb89df053004b5c297`)
-2. `https://github.com/dianpelita25/formsman6kotakupang/actions/runs/22169349454` (branch `debt/f0-close-d04-d05`, SHA `603516979203de94f637c8bb89df053004b5c297`)
+1. Commit proof referensi closure:
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/603516979203de94f637c8bb89df053004b5c297`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/2c29e9c1e08e75031f4e6de9a5534c145fc952aa`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/b7797ab06f6cba27454c1e4868f9cf454d0d7772`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/5bec9c71ff9a28a6013dbf1a87ad97236f571805`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/a6a9a21491ca960f93d44abe85df037e388fa584`
+   - `https://github.com/dianpelita25/formsman6kotakupang/commit/6e95fbaaa25dd7b6572f9127f4e91377ebde2971`
+2. Bukti check-run per commit tersimpan di tab Checks pada commit proof di atas, dan diringkas per debt pada kolom `Commands Proof`.
 
 ## Residual Debt / New Findings
 
@@ -56,7 +93,8 @@ Jika ada temuan baru saat implementasi:
 
 | Debt ID Baru | Ringkasan | Scope | Action Selanjutnya |
 | --- | --- | --- | --- |
-| - | - | - | - |
+| D16 | Post-dashboard hardening cycle | CSRF enforce, PBKDF2 migration safe rollout, analytics scaling large dataset | Jalankan sesuai `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md` (micro PR, 1 Debt ID focus, no dashboard scope creep) |
+| D21 | Final closure D17-D20 | governance proof register/report | Tutup setelah D17-D20 punya proof commit merge + gate + live smoke PASS |
 
 ## Verifikasi D10
 

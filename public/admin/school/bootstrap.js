@@ -1,5 +1,6 @@
 import { requestJson } from '/forms-static/shared/ux.js';
 import { renderQuestionnaireList, renderQuestionnairePromptOptions } from './questionnaire-ui.js';
+import { LEGACY_SCHOOL_SLUG } from './state.js';
 
 export function createSchoolBootstrap({
   state,
@@ -16,6 +17,14 @@ export function createSchoolBootstrap({
   loadPromptBundle,
 } = {}) {
   async function detectLegacyCompat() {
+    if (state.tenantSlug !== LEGACY_SCHOOL_SLUG) {
+      state.legacyCompatEnabled = false;
+      legacySections.forEach((section) => {
+        section.style.display = 'none';
+      });
+      return;
+    }
+
     try {
       const response = await requestJson(`/forms/${encodeURIComponent(state.tenantSlug)}/api/form-schema`);
       state.legacyCompatEnabled = Boolean(response?.meta && response?.fields);

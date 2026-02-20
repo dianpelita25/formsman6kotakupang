@@ -5,6 +5,7 @@ export function createSuperadminDomRefs(doc = document) {
     userInfoEl: byId('user-info'),
     statusEl: byId('status'),
     errorDebugEl: byId('error-debug'),
+    errorDebugWrapEl: byId('error-debug-wrap'),
     tenantsBody: byId('tenants-body'),
     tenantSelectEl: byId('tenant-select'),
     activityFeedEl: byId('activity-feed'),

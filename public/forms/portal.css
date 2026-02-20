@@ -71,6 +71,9 @@ p {
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: #fff;
   background: linear-gradient(125deg, #2563eb 0%, #0891b2 45%, #8b5cf6 100%);
@@ -79,6 +82,7 @@ p {
   font-weight: 700;
   font-size: 13px;
   border: 1px solid transparent;
+  min-height: 44px;
 }
 
 .btn.ghost {
@@ -103,6 +107,7 @@ p {
   border-radius: 10px;
   padding: 10px 12px;
   outline: none;
+  min-height: 44px;
 }
 
 .portal-panel__head input:focus {
@@ -141,6 +146,9 @@ p {
 }
 
 .school-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: #dce8ff;
   border: 1px solid rgba(106, 164, 255, 0.32);
@@ -149,15 +157,19 @@ p {
   padding: 8px 10px;
   font-size: 13px;
   font-weight: 600;
+  min-height: 44px;
 }
 
 .school-actions .action-disabled {
+  display: inline-flex;
+  align-items: center;
   color: #8aa2c8;
   border: 1px dashed rgba(106, 164, 255, 0.3);
   border-radius: 10px;
   background: rgba(12, 22, 44, 0.55);
   padding: 8px 10px;
   font-size: 13px;
+  min-height: 44px;
 }
 
 .status {
@@ -178,7 +190,7 @@ p {
   color: #ffd479;
 }
 
-.status-panel {
+.status-debug-wrap {
   margin-top: 10px;
   border: 1px dashed rgba(106, 164, 255, 0.26);
   border-radius: 12px;
@@ -186,13 +198,19 @@ p {
   background: rgba(9, 18, 36, 0.45);
 }
 
-.status-panel h3 {
+.status-debug-wrap[hidden] {
+  display: none !important;
+}
+
+.status-debug-wrap summary {
+  cursor: pointer;
   margin: 0 0 8px;
   font-size: 13px;
   color: #bed6ff;
+  font-weight: 700;
 }
 
-.status-panel pre {
+.status-debug-wrap pre {
   margin: 0;
   min-height: 72px;
   border: 1px solid rgba(106, 164, 255, 0.28);

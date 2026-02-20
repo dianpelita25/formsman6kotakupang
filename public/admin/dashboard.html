@@ -152,8 +152,10 @@
 
       <p id="status" class="status" aria-live="polite"></p>
       <section class="chart-card">
-        <h3>Detail Error (Jika Ada)</h3>
-        <pre id="error-debug">Belum ada error.</pre>
+        <details id="error-debug-wrap" class="status-debug-wrap" hidden>
+          <summary>Detail Teknis (Debug)</summary>
+          <pre id="error-debug">Belum ada error.</pre>
+        </details>
       </section>
     </main>
 

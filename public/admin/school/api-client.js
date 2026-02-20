@@ -29,7 +29,7 @@ export function createSchoolAdminApi({ state, setStatus, setError, pushActivity 
       const normalized = normalizeUiError(error, 'Terjadi kesalahan.');
       setStatus(normalized.message, 'error');
       setError(error);
-      pushActivity('error', actionLabel, `${normalized.method} ${normalized.path} (${normalized.status})`);
+      pushActivity('error', actionLabel, normalized.message);
       throw error;
     });
   }

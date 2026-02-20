@@ -8,6 +8,8 @@ const AI_MODE_LABELS = Object.freeze({
 export function createAiRuntimeController({
   state,
   aiModeEl,
+  aiOutputSummaryEl,
+  aiOutputDetailsEl,
   aiOutputEl,
   aiLoadBtn,
   aiRunBtn,
@@ -37,9 +39,45 @@ export function createAiRuntimeController({
     return AI_MODE_LABELS[String(mode || '').trim()] || String(mode || 'Internal').trim();
   }
 
-  function setAiOutput(message) {
+  function stripAiMarkup(text) {
+    return String(text || '')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/^\s*[-*]\s+/gm, '')
+      .replace(/^\s*\d+[.)]\s+/gm, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function summarizeAiOutput(message) {
+    const normalized = stripAiMarkup(message);
+    if (!normalized) {
+      return 'Belum ada analisis. Klik "Jalankan Analisis" untuk membuat ringkasan.';
+    }
+    if (normalized.length <= 260) return normalized;
+    return `${normalized.slice(0, 257)}...`;
+  }
+
+  function setAiOutput(message, options = {}) {
+    const { showDetails = true } = options || {};
+    const normalized = String(message || '').trim();
+    const finalText = normalized || 'Belum ada analisis.';
+    const hasRealAnalysis = Boolean(normalized) && !normalized.toLowerCase().startsWith('belum ada analisis');
+
     if (!aiOutputEl) return;
-    aiOutputEl.textContent = message || 'Belum ada analisis.';
+    aiOutputEl.textContent = finalText;
+    if (aiOutputSummaryEl) {
+      aiOutputSummaryEl.textContent = summarizeAiOutput(finalText);
+    }
+    if (aiOutputDetailsEl) {
+      aiOutputDetailsEl.hidden = !(showDetails && hasRealAnalysis);
+      if (!showDetails || !hasRealAnalysis) {
+        aiOutputDetailsEl.open = false;
+      }
+    }
   }
 
   function formatElapsedLabel(totalSeconds) {
@@ -114,7 +152,7 @@ export function createAiRuntimeController({
         const previousAnalysisText = String(state.latestAi?.analysis || '').trim();
         if (aiPdfBtn) aiPdfBtn.disabled = true;
         startAiProgressIndicator();
-        setAiOutput('Sedang memproses analisis AI. Mohon tunggu...');
+        setAiOutput('Sedang memproses analisis AI. Mohon tunggu...', { showDetails: false });
         setStatus('Analisis AI dimulai. Estimasi 10-45 detik.', 'warning');
         try {
           const payload = await api(

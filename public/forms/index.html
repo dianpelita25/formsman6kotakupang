@@ -32,14 +32,19 @@
       <form id="feedback-form" class="form-card" novalidate>
         <div id="fields-container" class="fields-stack"></div>
         <div class="submit-row">
+          <p id="form-progress" class="form-progress" aria-live="polite">0/0 pertanyaan terisi</p>
           <button id="submit-btn" type="submit">Kirim</button>
           <p id="status-message" class="status-message" aria-live="polite"></p>
-          <details id="status-debug-wrap" class="status-debug-wrap">
+          <details id="status-debug-wrap" class="status-debug-wrap" hidden>
             <summary>Detail error teknis</summary>
             <pre id="status-debug">Belum ada error.</pre>
           </details>
         </div>
       </form>
+      <div id="mobile-submit-bar" class="mobile-submit-bar" hidden>
+        <p id="mobile-submit-progress" class="mobile-submit-bar__progress">0/0 terisi</p>
+        <button id="mobile-submit-btn" type="button">Kirim</button>
+      </div>
     </main>
 
     <script type="module" src="/forms-static/forms/app.js?v=20260218-3"></script>

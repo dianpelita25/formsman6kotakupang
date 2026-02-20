@@ -214,14 +214,17 @@
         <div class="section-head">
           <div>
             <h2>Diagnostic & Aktivitas</h2>
-            <p class="small">Jika terjadi error, detail teknis akan tampil di sini agar tidak menebak-nebak.</p>
+            <p class="small">Status utama ditampilkan dalam bahasa ramah. Detail teknis bersifat opsional.</p>
           </div>
         </div>
 
         <div class="status-panel">
           <h3>Status terakhir</h3>
           <p id="status" class="status" aria-live="polite"></p>
-          <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+          <details id="error-debug-wrap" class="status-debug-wrap" hidden>
+            <summary>Detail error teknis</summary>
+            <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+          </details>
         </div>
 
         <div class="field-block">

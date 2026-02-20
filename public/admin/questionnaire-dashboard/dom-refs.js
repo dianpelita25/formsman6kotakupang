@@ -8,6 +8,7 @@ export function createDashboardDomRefs(documentRef = document) {
     inlineActionsEl: root.getElementById('dashboard-inline-actions'),
     retryBtnEl: root.getElementById('dashboard-retry-btn'),
     errorDebugEl: root.getElementById('error-debug'),
+    errorDebugWrapEl: root.getElementById('error-debug-wrap'),
 
     backBuilderLink: root.getElementById('back-builder-link'),
     openFormLink: root.getElementById('open-form-link'),
@@ -64,6 +65,8 @@ export function createDashboardDomRefs(documentRef = document) {
     responseSearchBtn: root.getElementById('response-search-btn'),
 
     aiModeEl: root.getElementById('ai-mode'),
+    aiOutputSummaryEl: root.getElementById('ai-output-summary'),
+    aiOutputDetailsEl: root.getElementById('ai-output-details'),
     aiOutputEl: root.getElementById('ai-output'),
     aiLoadBtn: root.getElementById('ai-load-btn'),
     aiRunBtn: root.getElementById('ai-run-btn'),

@@ -15,6 +15,7 @@ const titleEl = document.getElementById('school-title');
 const userInfoEl = document.getElementById('user-info');
 const statusEl = document.getElementById('status');
 const errorDebugEl = document.getElementById('error-debug');
+const errorDebugWrapEl = document.getElementById('error-debug-wrap');
 const activityFeedEl = document.getElementById('activity-feed');
 
 const questionnaireNameEl = document.getElementById('questionnaire-name');
@@ -41,7 +42,15 @@ function setStatus(message, kind = 'info') {
 function setError(error = null) {
   if (!error) {
     errorDebugEl.textContent = 'Belum ada error.';
+    if (errorDebugWrapEl) {
+      errorDebugWrapEl.hidden = true;
+      errorDebugWrapEl.open = false;
+    }
     return;
+  }
+  if (errorDebugWrapEl) {
+    errorDebugWrapEl.hidden = false;
+    errorDebugWrapEl.open = false;
   }
   setErrorDebugPanel(errorDebugEl, error);
 }
