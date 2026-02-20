@@ -10,9 +10,10 @@ import {
   revokeSessionByTokenHash,
 } from './repository.js';
 import { SESSION_TTL_SECONDS } from '../../lib/http/session-cookie.js';
-import { hashPassword, randomSalt, randomToken, sha256Hex, verifyPassword } from '../../lib/security/hash.js';
+import { randomToken, sha256Hex } from '../../lib/security/hash.js';
 import { buildSignedToken, getSessionSecret, splitSignedToken, verifySignedToken } from '../../lib/security/signature.js';
 import { mapMemberships, mapTenantMemberships } from './membership-utils.js';
+import { buildPasswordCredential, verifyAndMaybeUpgradePassword } from './password-upgrade.js';
 export { canAccessSchool, hasSuperadmin, hasTenantAccess, mapMemberships, mapTenantMemberships } from './membership-utils.js';
 
 export async function loginWithEmailPassword(env, payload) {
@@ -38,8 +39,8 @@ export async function loginWithEmailPassword(env, payload) {
     return { ok: false, status: 401, message: 'Email atau password salah.' };
   }
 
-  const passwordValid = await verifyPassword(password, user.password_salt, user.password_hash);
-  if (!passwordValid) {
+  const passwordCheck = await verifyAndMaybeUpgradePassword(env, user, password, email);
+  if (!passwordCheck.ok) {
     return { ok: false, status: 401, message: 'Email atau password salah.' };
   }
 
@@ -165,13 +166,11 @@ export async function ensureUserForAdminAccount(env, { email, password }) {
     };
   }
 
-  const salt = randomSalt();
-  const hash = await hashPassword(rawPassword, salt);
+  const credential = await buildPasswordCredential(env, rawPassword);
   const created = await createUser(env, {
     id: crypto.randomUUID(),
     email: normalizedEmail,
-    passwordHash: hash,
-    passwordSalt: salt,
+    ...credential,
   });
 
   if (!created?.id) {

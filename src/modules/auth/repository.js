@@ -1,14 +1,36 @@
 import { getSqlClient } from '../../lib/db/sql.js';
 
+function isMissingPasswordIterationsColumnError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('password_iterations') && message.includes('column');
+}
+
 export async function findUserByEmail(env, email) {
   const sql = getSqlClient(env);
-  const rows = await sql`
-    SELECT id, email, password_hash, password_salt, is_active
-    FROM users
-    WHERE email = ${email}
-    LIMIT 1;
-  `;
-  return rows[0] || null;
+  try {
+    const rows = await sql`
+      SELECT id, email, password_hash, password_salt, password_iterations, is_active
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1;
+    `;
+    return rows[0] || null;
+  } catch (error) {
+    if (!isMissingPasswordIterationsColumnError(error)) {
+      throw error;
+    }
+    const fallbackRows = await sql`
+      SELECT id, email, password_hash, password_salt, is_active
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1;
+    `;
+    if (!fallbackRows[0]) return null;
+    return {
+      ...fallbackRows[0],
+      password_iterations: 10000,
+    };
+  }
 }
 
 export async function findUserById(env, userId) {
@@ -89,29 +111,59 @@ export async function revokeSessionByTokenHash(env, tokenHash) {
   `;
 }
 
-export async function createUser(env, { id, email, passwordHash, passwordSalt, isActive = true }) {
+export async function createUser(env, { id, email, passwordHash, passwordSalt, passwordIterations = 10000, isActive = true }) {
   const sql = getSqlClient(env);
-  const rows = await sql`
-    INSERT INTO users (id, email, password_hash, password_salt, is_active)
-    VALUES (${id}, ${email}, ${passwordHash}, ${passwordSalt}, ${isActive})
-    ON CONFLICT (email) DO NOTHING
-    RETURNING id, email, is_active;
-  `;
-  return rows[0] || null;
+  try {
+    const rows = await sql`
+      INSERT INTO users (id, email, password_hash, password_salt, password_iterations, is_active)
+      VALUES (${id}, ${email}, ${passwordHash}, ${passwordSalt}, ${passwordIterations}, ${isActive})
+      ON CONFLICT (email) DO NOTHING
+      RETURNING id, email, is_active;
+    `;
+    return rows[0] || null;
+  } catch (error) {
+    if (!isMissingPasswordIterationsColumnError(error)) {
+      throw error;
+    }
+    const fallbackRows = await sql`
+      INSERT INTO users (id, email, password_hash, password_salt, is_active)
+      VALUES (${id}, ${email}, ${passwordHash}, ${passwordSalt}, ${isActive})
+      ON CONFLICT (email) DO NOTHING
+      RETURNING id, email, is_active;
+    `;
+    return fallbackRows[0] || null;
+  }
 }
 
-export async function updateUserPassword(env, { userId, passwordHash, passwordSalt }) {
+export async function updateUserPassword(env, { userId, passwordHash, passwordSalt, passwordIterations = 10000 }) {
   const sql = getSqlClient(env);
-  const rows = await sql`
-    UPDATE users
-    SET
-      password_hash = ${passwordHash},
-      password_salt = ${passwordSalt},
-      is_active = TRUE
-    WHERE id = ${userId}
-    RETURNING id, email, is_active;
-  `;
-  return rows[0] || null;
+  try {
+    const rows = await sql`
+      UPDATE users
+      SET
+        password_hash = ${passwordHash},
+        password_salt = ${passwordSalt},
+        password_iterations = ${passwordIterations},
+        is_active = TRUE
+      WHERE id = ${userId}
+      RETURNING id, email, is_active;
+    `;
+    return rows[0] || null;
+  } catch (error) {
+    if (!isMissingPasswordIterationsColumnError(error)) {
+      throw error;
+    }
+    const fallbackRows = await sql`
+      UPDATE users
+      SET
+        password_hash = ${passwordHash},
+        password_salt = ${passwordSalt},
+        is_active = TRUE
+      WHERE id = ${userId}
+      RETURNING id, email, is_active;
+    `;
+    return fallbackRows[0] || null;
+  }
 }
 
 export async function grantSuperadminRole(env, userId) {

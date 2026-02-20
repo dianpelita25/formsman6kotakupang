@@ -26,9 +26,15 @@ export async function createIdentityTables(sql) {
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       password_salt TEXT NOT NULL,
+      password_iterations INTEGER NOT NULL DEFAULT 10000,
       is_active BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `;
+
+  await sql`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS password_iterations INTEGER NOT NULL DEFAULT 10000;
   `;
 
   await sql`

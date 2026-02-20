@@ -25,6 +25,8 @@ import {
   listQuestionnaireResponsesForAggregation,
 } from './repository.js';
 
+const MAX_ANALYTICS_AGGREGATION_ROWS = 20000;
+
 function buildAnalyticsFilters(tenantId, questionnaireId, questionnaireVersionId, query = {}) {
   return {
     tenantId,
@@ -131,18 +133,24 @@ async function loadResponsesWithOptionalSegmentFilter(
   } = {}
 ) {
   const isSegmentActive = Boolean(segmentFilter?.segmentFilterActive);
+  const hasLimitOverride = Number.isFinite(Number(limitOverride));
+  const maxRows = hasLimitOverride || isSegmentActive ? MAX_SEGMENT_DRILLDOWN_ROWS : MAX_ANALYTICS_AGGREGATION_ROWS;
   const limit = Number.isFinite(Number(limitOverride))
     ? Math.max(1, Number(limitOverride))
     : isSegmentActive
       ? MAX_SEGMENT_DRILLDOWN_ROWS + 1
-      : null;
+      : MAX_ANALYTICS_AGGREGATION_ROWS + 1;
   const candidates = await listQuestionnaireResponsesForAggregation(env, filters, limit);
 
-  if ((isSegmentActive || limitOverride) && candidates.length > MAX_SEGMENT_DRILLDOWN_ROWS) {
+  if (candidates.length > maxRows) {
+    const message =
+      maxRows === MAX_SEGMENT_DRILLDOWN_ROWS
+        ? `Jumlah data terlalu besar untuk drilldown segment. Persempit filter (maksimal ${MAX_SEGMENT_DRILLDOWN_ROWS} respons).`
+        : `Jumlah data terlalu besar untuk analitik. Persempit rentang filter (maksimal ${MAX_ANALYTICS_AGGREGATION_ROWS} respons).`;
     return {
       ok: false,
       status: 422,
-      message: `Jumlah data terlalu besar untuk drilldown segment. Persempit filter (maksimal ${MAX_SEGMENT_DRILLDOWN_ROWS} respons).`,
+      message,
     };
   }
 
