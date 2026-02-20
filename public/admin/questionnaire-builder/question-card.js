@@ -24,33 +24,34 @@ export function createBuilderQuestionCard(field, index, totalFields) {
   keyRow.textContent = `Key: ${field.name} (otomatis)`;
 
   const requiredField = document.createElement('label');
-  requiredField.className = 'builder-required-toggle';
+  requiredField.className = 'builder-required-toggle field--required';
   requiredField.innerHTML = `
     <input data-field="required" type="checkbox"${field.required === false ? '' : ' checked'} />
     <span>Wajib diisi</span>
   `;
 
   const labelField = document.createElement('label');
-  labelField.className = 'field field-block';
+  labelField.className = 'field field-block field--label';
   labelField.innerHTML = `
     <span>Label Pertanyaan</span>
     <input data-field="label" value="${field.label.replace(/"/g, '&quot;')}" />
   `;
 
   const typeField = document.createElement('label');
-  typeField.className = 'field';
+  typeField.className = 'field field--type';
   typeField.innerHTML = `
     <span>Tipe</span>
     <select data-field="type">
-      <option value="text"${field.type === 'text' ? ' selected' : ''}>Teks</option>
-      <option value="radio"${field.type === 'radio' ? ' selected' : ''}>Pilihan Tunggal</option>
-      <option value="checkbox"${field.type === 'checkbox' ? ' selected' : ''}>Pilihan Ganda (Centang)</option>
+      <option value="text"${field.type === 'text' ? ' selected' : ''}>Teks bebas</option>
+      <option value="radio"${field.type === 'radio' ? ' selected' : ''}>Pilihan tunggal</option>
+      <option value="checkbox"${field.type === 'checkbox' ? ' selected' : ''}>Pilihan ganda (centang)</option>
       <option value="scale"${field.type === 'scale' ? ' selected' : ''}>Skala 1-5</option>
     </select>
+    <small class="small builder-type-help">Tipe menentukan field lanjutan: opsi atau label skala.</small>
   `;
 
   const criterionField = document.createElement('label');
-  criterionField.className = 'field';
+  criterionField.className = 'field field--criterion';
   criterionField.innerHTML = `
     <span>Kriteria (opsional, disarankan)</span>
     <input data-field="criterion" value="${String(field.criterion || '').replace(/"/g, '&quot;')}" placeholder="Contoh: A" />
@@ -58,7 +59,7 @@ export function createBuilderQuestionCard(field, index, totalFields) {
 
   const supportsForcedDimension = field.type === 'radio' || field.type === 'checkbox';
   const segmentRoleField = document.createElement('label');
-  segmentRoleField.className = 'field';
+  segmentRoleField.className = 'field field--segment-role';
   segmentRoleField.innerHTML = `
     <span>Peran Segmentasi</span>
     <select data-field="segmentRole">
@@ -71,14 +72,14 @@ export function createBuilderQuestionCard(field, index, totalFields) {
   `;
 
   const segmentLabelField = document.createElement('label');
-  segmentLabelField.className = 'field';
+  segmentLabelField.className = 'field field--segment-label';
   segmentLabelField.innerHTML = `
     <span>Label Segmentasi (opsional)</span>
     <input data-field="segmentLabel" maxlength="64" value="${String(field.segmentLabel || '').replace(/"/g, '&quot;')}" />
   `;
 
   const sensitiveField = document.createElement('label');
-  sensitiveField.className = 'builder-required-toggle';
+  sensitiveField.className = 'builder-required-toggle field--sensitive';
   sensitiveField.innerHTML = `
     <input data-field="isSensitive" type="checkbox"${field.isSensitive ? ' checked' : ''} />
     <span>Data sensitif (exclude dari segmentasi)</span>
@@ -106,6 +107,10 @@ export function createBuilderQuestionCard(field, index, totalFields) {
     `;
   }
 
-  card.append(topRow, keyRow, requiredField, labelField, typeField, criterionField, segmentRoleField, segmentLabelField, sensitiveField, dynamicWrap);
+  const editorGrid = document.createElement('div');
+  editorGrid.className = 'builder-question-card__editor-grid';
+  editorGrid.append(requiredField, labelField, typeField, criterionField, segmentRoleField, segmentLabelField, sensitiveField);
+
+  card.append(topRow, keyRow, editorGrid, dynamicWrap);
   return card;
 }
