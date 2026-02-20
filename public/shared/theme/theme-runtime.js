@@ -1,8 +1,11 @@
 const THEME_STORAGE_KEY = 'aiti_theme_preference_v1';
 const THEME_EVENT_NAME = 'aiti-theme-change';
 const THEME_SCOPE = 'modern';
+const THEME_SWITCHING_ATTR = 'data-theme-switching';
+const THEME_SWITCHING_WINDOW_MS = 240;
 
 let runtimeInitialized = false;
+let switchingResetTimer = null;
 
 function normalizeThemePreference(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -46,6 +49,19 @@ function resolveActiveTheme(preference = '') {
   return normalized || getSystemTheme();
 }
 
+function markThemeSwitchingWindow(durationMs = THEME_SWITCHING_WINDOW_MS) {
+  if (!isThemeEnabledForPage()) return;
+  const root = document.documentElement;
+  root.setAttribute(THEME_SWITCHING_ATTR, 'true');
+  if (switchingResetTimer) {
+    window.clearTimeout(switchingResetTimer);
+  }
+  switchingResetTimer = window.setTimeout(() => {
+    root.removeAttribute(THEME_SWITCHING_ATTR);
+    switchingResetTimer = null;
+  }, Math.max(120, Number(durationMs) || THEME_SWITCHING_WINDOW_MS));
+}
+
 function emitThemeChange(preference = '') {
   const detail = {
     theme: resolveActiveTheme(preference),
@@ -58,7 +74,7 @@ function emitThemeChange(preference = '') {
   );
 }
 
-export function applyThemePreference(preference = '', { persist = true, emit = true } = {}) {
+export function applyThemePreference(preference = '', { persist = true, emit = true, animateSwitch = true } = {}) {
   const normalized = normalizeThemePreference(preference);
   if (!isThemeEnabledForPage()) {
     return {
@@ -72,6 +88,11 @@ export function applyThemePreference(preference = '', { persist = true, emit = t
   }
 
   const root = document.documentElement;
+  const currentTheme = getActiveTheme();
+  const nextTheme = resolveActiveTheme(normalized);
+  if (animateSwitch && currentTheme !== nextTheme) {
+    markThemeSwitchingWindow();
+  }
   if (normalized) {
     root.setAttribute('data-theme', normalized);
   } else {
@@ -124,7 +145,7 @@ export function initThemeRuntime() {
 
   bindSystemThemeListener();
   const storedPreference = getStoredThemePreference();
-  return applyThemePreference(storedPreference, { persist: false, emit: false });
+  return applyThemePreference(storedPreference, { persist: false, emit: false, animateSwitch: false });
 }
 
 function formatThemeLabel(theme) {
