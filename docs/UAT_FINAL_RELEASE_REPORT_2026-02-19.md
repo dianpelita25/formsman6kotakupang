@@ -1,7 +1,10 @@
 # UAT Final Release Report (Post Dashboard Completion)
 
-Status: ACTIVE  
-Tanggal: 2026-02-19  
+Status: ARCHIVED (historical snapshot)  
+As of: 2026-02-20  
+Superseded by: `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md`  
+Catatan: isi dokumen ini merepresentasikan status UAT per 2026-02-19 dan dipertahankan sebagai snapshot historis in place.  
+Tanggal snapshot: 2026-02-19  
 Referensi checklist: `docs/UAT_CHECKLIST_HARDENING.md`
 
 ## Ringkasan

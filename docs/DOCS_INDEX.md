@@ -9,8 +9,9 @@ Dokumen ini adalah pintu masuk utama agar status proyek tidak membingungkan.
 Mode susunan docs saat ini:
 1. Dokumen aktif berada di folder `docs/`.
 2. Dokumen historical/archived berada di folder `docs/_archive/`.
-3. Pindah struktur folder docs hanya boleh setelah approval eksplisit owner repo.
-4. Dokumen di `docs/_archive/` tidak boleh dijadikan dasar status current tanpa verifikasi ulang ke register + closure report.
+3. Khusus keluarga `UAT_FINAL_RELEASE_REPORT_YYYY-MM-DD.md`, snapshot historis boleh tetap di `docs/` jika diberi marker `ARCHIVED` + `Superseded by`.
+4. Pindah struktur folder docs hanya boleh setelah approval eksplisit owner repo.
+5. Dokumen di `docs/_archive/` tidak boleh dijadikan dasar status current tanpa verifikasi ulang ke register + closure report.
 
 ## Dokumen Aktif (Wajib Acuan)
 
@@ -37,7 +38,8 @@ Mode susunan docs saat ini:
 4. `docs/INCIDENT_LOG_TEMPLATE.md`
 5. `docs/PRODUCTION_CUTOVER_REPORT_2026-02-16.md`
 6. `docs/MONITORING_72H_RUN_2026-02-17.md`
-7. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md`
+7. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md` (ACTIVE)
+8. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md` (ARCHIVED snapshot, in place)
 
 ## Dokumen Referensi Historis (Jangan jadi status final)
 
@@ -59,3 +61,4 @@ Mode susunan docs saat ini:
    - `DEBT_CLOSURE_REPORT`
    - hasil gate checker/CI
 3. Jangan menutup debt berdasarkan narasi dokumen lama; wajib berdasarkan gate lulus + proof commit.
+4. Untuk keluarga dokumen `UAT_FINAL_RELEASE_REPORT_*`, hanya boleh ada satu dokumen berstatus `ACTIVE` pada satu waktu.
