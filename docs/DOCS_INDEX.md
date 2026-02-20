@@ -29,6 +29,8 @@ Mode susunan docs saat ini:
    Policy rollback-only untuk stack legacy.
 7. `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md`  
    Blueprint siklus berikutnya (post-dashboard) dengan scope sempit anti-loop.
+8. `docs/PUBLIC_DASHBOARD_CONTRACT_D30.md`  
+   Contract lock dashboard publik read-only + privacy threshold (`minSampleSize=30`, `minBucketSize=10`).
 
 ## Dokumen Operasional (Aktif saat rilis/UAT/incident)
 
