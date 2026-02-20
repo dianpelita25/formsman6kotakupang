@@ -1,7 +1,8 @@
 const encoder = new TextEncoder();
 export const DEFAULT_PBKDF2_ITERATIONS = 10000;
-export const DEFAULT_PBKDF2_TARGET_ITERATIONS = 120000;
-const MAX_PBKDF2_ITERATIONS = 600000;
+export const DEFAULT_PBKDF2_TARGET_ITERATIONS = 100000;
+// Cloudflare Workers WebCrypto PBKDF2 currently supports up to 100000 iterations.
+const MAX_PBKDF2_ITERATIONS = 100000;
 
 function toHex(bytes) {
   return Array.from(new Uint8Array(bytes))

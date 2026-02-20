@@ -248,6 +248,10 @@ async function run() {
   const browser = await launchBrowser();
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
+  if (isExternal) {
+    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(60000);
+  }
 
   try {
     assertions.pass('mode', isExternal ? `external (${baseUrl})` : `local (${baseUrl})`);
