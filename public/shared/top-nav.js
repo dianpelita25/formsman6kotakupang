@@ -4,6 +4,15 @@ import { initThemeRuntime, mountTopNavThemeToggle } from '/forms-static/shared/t
 const AUTH_STATE_GUEST = 'guest';
 const AUTH_STATE_AUTHENTICATED = 'authenticated';
 const NAV_MOBILE_MAX_WIDTH = 960;
+const AUTH_CACHE_TTL_MS = 15 * 1000;
+const CONTEXT_CACHE_TTL_MS = 30 * 1000;
+const AUTH_CACHE_SESSION_KEY = 'aiti_top_nav_auth_cache_v1';
+const CONTEXT_CACHE_SESSION_KEY = 'aiti_top_nav_context_cache_v1';
+
+let authCacheMemory = null;
+let contextCacheLoaded = false;
+const contextCacheMemory = new Map();
+const contextInFlight = new Map();
 
 function safeDecode(segment) {
   try {
@@ -15,6 +24,121 @@ function safeDecode(segment) {
 
 function normalizeAuthState(state) {
   return String(state || '').trim() === AUTH_STATE_AUTHENTICATED ? AUTH_STATE_AUTHENTICATED : AUTH_STATE_GUEST;
+}
+
+function nowMs() {
+  return Date.now();
+}
+
+function safeReadSessionJson(key) {
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function safeWriteSessionJson(key, payload) {
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(payload));
+  } catch {
+    // ignore session storage quota/private mode errors
+  }
+}
+
+function safeRemoveSessionValue(key) {
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
+function getCachedAuthState() {
+  const now = nowMs();
+  if (authCacheMemory && Number(authCacheMemory.expiresAt || 0) > now) {
+    return normalizeAuthState(authCacheMemory.value);
+  }
+  const fromSession = safeReadSessionJson(AUTH_CACHE_SESSION_KEY);
+  if (!fromSession || Number(fromSession.expiresAt || 0) <= now) {
+    return '';
+  }
+  authCacheMemory = fromSession;
+  return normalizeAuthState(fromSession.value);
+}
+
+function setCachedAuthState(state, ttlMs = AUTH_CACHE_TTL_MS) {
+  const normalized = normalizeAuthState(state);
+  const payload = {
+    value: normalized,
+    expiresAt: nowMs() + Math.max(1000, Number(ttlMs) || AUTH_CACHE_TTL_MS),
+  };
+  authCacheMemory = payload;
+  safeWriteSessionJson(AUTH_CACHE_SESSION_KEY, payload);
+}
+
+function clearCachedAuthState() {
+  authCacheMemory = null;
+  safeRemoveSessionValue(AUTH_CACHE_SESSION_KEY);
+}
+
+function ensureContextCacheLoaded() {
+  if (contextCacheLoaded) return;
+  contextCacheLoaded = true;
+  const fromSession = safeReadSessionJson(CONTEXT_CACHE_SESSION_KEY);
+  const entries = fromSession && typeof fromSession.entries === 'object' ? fromSession.entries : {};
+  const now = nowMs();
+  Object.entries(entries).forEach(([tenantSlug, cacheItem]) => {
+    if (!tenantSlug || !cacheItem || Number(cacheItem.expiresAt || 0) <= now) return;
+    contextCacheMemory.set(tenantSlug, cacheItem);
+  });
+}
+
+function persistContextCache() {
+  const now = nowMs();
+  const entries = {};
+  contextCacheMemory.forEach((value, key) => {
+    if (!value || Number(value.expiresAt || 0) <= now) return;
+    entries[key] = value;
+  });
+  safeWriteSessionJson(CONTEXT_CACHE_SESSION_KEY, { entries });
+}
+
+function getCachedContextLinks(tenantSlug) {
+  const slug = String(tenantSlug || '').trim();
+  if (!slug) return null;
+  ensureContextCacheLoaded();
+  const value = contextCacheMemory.get(slug);
+  if (!value) return null;
+  if (Number(value.expiresAt || 0) <= nowMs()) {
+    contextCacheMemory.delete(slug);
+    persistContextCache();
+    return null;
+  }
+  return value.links || null;
+}
+
+function setCachedContextLinks(tenantSlug, links, ttlMs = CONTEXT_CACHE_TTL_MS) {
+  const slug = String(tenantSlug || '').trim();
+  if (!slug) return;
+  ensureContextCacheLoaded();
+  contextCacheMemory.set(slug, {
+    expiresAt: nowMs() + Math.max(2000, Number(ttlMs) || CONTEXT_CACHE_TTL_MS),
+    links: {
+      publicLink: String(links?.publicLink || '').trim(),
+      dashboardLink: String(links?.dashboardLink || '').trim(),
+    },
+  });
+  persistContextCache();
+}
+
+function clearCachedContextLinks() {
+  contextCacheMemory.clear();
+  contextInFlight.clear();
+  contextCacheLoaded = true;
+  safeRemoveSessionValue(CONTEXT_CACHE_SESSION_KEY);
 }
 
 function resolveFormsContext(pathname) {
@@ -209,6 +333,11 @@ async function resolveQuestionnaireLinks(tenantSlug, preferredQuestionnaireSlug 
   }
 
   const preferred = String(preferredQuestionnaireSlug || '').trim();
+  const fallbackLinks = {
+    publicLink: `/forms/${tenantSlug}/`,
+    dashboardLink: `/forms/${tenantSlug}/admin/`,
+  };
+
   if (tenantSlug === LEGACY_SCHOOL_SLUG) {
     return {
       publicLink: `/forms/${tenantSlug}/`,
@@ -217,45 +346,56 @@ async function resolveQuestionnaireLinks(tenantSlug, preferredQuestionnaireSlug 
   }
 
   if (preferred) {
-    return {
+    const links = {
       publicLink: `/forms/${tenantSlug}/${preferred}/`,
       dashboardLink: `/forms/${tenantSlug}/admin/questionnaires/${preferred}/dashboard/`,
     };
+    setCachedContextLinks(tenantSlug, links);
+    return links;
   }
 
-  try {
-    const response = await fetch(`/forms/${tenantSlug}/api/questionnaires/public`);
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      return {
-        publicLink: `/forms/${tenantSlug}/`,
-        dashboardLink: `/forms/${tenantSlug}/admin/`,
-      };
-    }
-    const list = Array.isArray(payload.data) ? payload.data : [];
-    if (!list.length) {
-      return {
-        publicLink: `/forms/${tenantSlug}/`,
-        dashboardLink: `/forms/${tenantSlug}/admin/`,
-      };
-    }
-    const first = list.find((item) => item.isDefault) || list[0];
-    if (!first?.slug) {
-      return {
-        publicLink: `/forms/${tenantSlug}/`,
-        dashboardLink: `/forms/${tenantSlug}/admin/`,
-      };
-    }
-    return {
-      publicLink: `/forms/${tenantSlug}/${first.slug}/`,
-      dashboardLink: `/forms/${tenantSlug}/admin/questionnaires/${first.slug}/dashboard/`,
-    };
-  } catch {
-    return {
-      publicLink: `/forms/${tenantSlug}/`,
-      dashboardLink: `/forms/${tenantSlug}/admin/`,
-    };
+  const cachedLinks = getCachedContextLinks(tenantSlug);
+  if (cachedLinks) {
+    return cachedLinks;
   }
+
+  const inFlight = contextInFlight.get(tenantSlug);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const requestPromise = (async () => {
+    try {
+      const response = await fetch(`/forms/${tenantSlug}/api/questionnaires/public`, {
+        cache: 'no-store',
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) return fallbackLinks;
+
+      const list = Array.isArray(payload.data) ? payload.data : [];
+      if (!list.length) return fallbackLinks;
+
+      const first = list.find((item) => item.isDefault) || list[0];
+      if (!first?.slug) return fallbackLinks;
+
+      return {
+        publicLink: `/forms/${tenantSlug}/${first.slug}/`,
+        dashboardLink: `/forms/${tenantSlug}/admin/questionnaires/${first.slug}/dashboard/`,
+      };
+    } catch {
+      return fallbackLinks;
+    }
+  })()
+    .then((links) => {
+      setCachedContextLinks(tenantSlug, links);
+      return links;
+    })
+    .finally(() => {
+      contextInFlight.delete(tenantSlug);
+    });
+
+  contextInFlight.set(tenantSlug, requestPromise);
+  return requestPromise;
 }
 
 async function updateContextLinks() {
@@ -303,6 +443,9 @@ async function updateContextLinks() {
 }
 
 async function resolveAuthState() {
+  const cached = getCachedAuthState();
+  if (cached) return cached;
+
   try {
     const response = await fetch('/forms/admin/api/me', {
       credentials: 'include',
@@ -311,9 +454,14 @@ async function resolveAuthState() {
       },
       cache: 'no-store',
     });
-    if (!response.ok) return AUTH_STATE_GUEST;
+    if (!response.ok) {
+      setCachedAuthState(AUTH_STATE_GUEST);
+      return AUTH_STATE_GUEST;
+    }
+    setCachedAuthState(AUTH_STATE_AUTHENTICATED);
     return AUTH_STATE_AUTHENTICATED;
   } catch {
+    setCachedAuthState(AUTH_STATE_GUEST, 4000);
     return AUTH_STATE_GUEST;
   }
 }
@@ -331,6 +479,7 @@ function applyAuthState(authState) {
     setHidden(loginLink, showLogout);
     logoutButtons.forEach((button) => setHidden(button, !showLogout));
   });
+  setCachedAuthState(normalized);
 }
 
 async function logoutFromTopNav() {
@@ -341,6 +490,8 @@ async function logoutFromTopNav() {
   } catch {
     // ignore
   } finally {
+    clearCachedAuthState();
+    clearCachedContextLinks();
     window.location.href = '/forms/admin/login';
   }
 }
