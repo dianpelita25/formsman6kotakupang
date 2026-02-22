@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { ensurePlatformSchema } from '../src/lib/db/bootstrap.js';
 import { createUser, findUserByEmail, grantSuperadminRole, updateUserPassword } from '../src/modules/auth/repository.js';
-import { hashPassword, randomSalt } from '../src/lib/security/hash.js';
+import { hashPassword, randomSalt, resolvePbkdf2TargetIterations } from '../src/lib/security/hash.js';
 
 function getConfig() {
   const email = String(process.env.SUPERADMIN_EMAIL || '').trim().toLowerCase();
@@ -26,8 +26,9 @@ async function main() {
   await ensurePlatformSchema(env, { forceFullBootstrap: true });
 
   const { email, password } = getConfig();
+  const targetIterations = resolvePbkdf2TargetIterations(process.env);
   const salt = randomSalt();
-  const hash = await hashPassword(password, salt);
+  const hash = await hashPassword(password, salt, targetIterations);
   let user = await findUserByEmail(env, email);
   if (!user) {
     user = await createUser(env, {
@@ -35,6 +36,7 @@ async function main() {
       email,
       passwordHash: hash,
       passwordSalt: salt,
+      passwordIterations: targetIterations,
       isActive: true,
     });
   } else {
@@ -42,6 +44,7 @@ async function main() {
       userId: user.id,
       passwordHash: hash,
       passwordSalt: salt,
+      passwordIterations: targetIterations,
     });
   }
 

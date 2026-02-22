@@ -50,9 +50,51 @@ jobs:
           path: artifacts/modularity/
           if-no-files-found: ignore
 
+  smoke-ux-builder-desktop:
+    needs:
+      - check-architecture
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping builder desktop UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run desktop builder UX smoke
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:builder:desktop
+
   smoke-dashboard-pdf:
     needs:
       - check-architecture
+      - smoke-ux-builder-desktop
     runs-on: ubuntu-latest
     steps:
       - name: Determine smoke prerequisites
@@ -102,6 +144,7 @@ jobs:
   smoke-e2e:
     needs:
       - check-architecture
+      - smoke-ux-builder-desktop
     runs-on: ubuntu-latest
     steps:
       - name: Determine smoke prerequisites
@@ -139,6 +182,7 @@ jobs:
   smoke-admin-ui:
     needs:
       - check-architecture
+      - smoke-ux-builder-desktop
     runs-on: ubuntu-latest
     steps:
       - name: Determine smoke prerequisites
@@ -177,12 +221,228 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:admin:ui
 
+  smoke-ux-mobile:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping mobile UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run mobile UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:mobile
+
+  smoke-ux-theme:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping theme UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run theme UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:theme
+
+  smoke-ux-contrast-nav:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping contrast/nav UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run contrast/nav UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:contrast-nav
+
+  smoke-ux-perf-public:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping public perf smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run public perf smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:perf-public
+
+  smoke-public-dashboard:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping public dashboard smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run public dashboard smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:public-dashboard
+
   visual-regression-legacy-dashboard:
     needs:
       - check-architecture
+      - smoke-ux-builder-desktop
       - smoke-dashboard-pdf
       - smoke-e2e
       - smoke-admin-ui
+      - smoke-ux-mobile
+      - smoke-ux-theme
+      - smoke-ux-contrast-nav
+      - smoke-ux-perf-public
+      - smoke-public-dashboard
     runs-on: ubuntu-latest
     env:
       VISUAL_DIFF_MAX_RATIO: '0.03'
@@ -235,4 +495,56 @@ jobs:
           path: |
             artifacts/visual-legacy-dashboard/
             artifacts/visual-questionnaire-dashboard/
+          if-no-files-found: ignore
+
+  visual-regression-public-dashboard:
+    needs:
+      - check-architecture
+      - smoke-public-dashboard
+    runs-on: ubuntu-latest
+    env:
+      VISUAL_DIFF_PUBLIC_DASHBOARD_MAX_RATIO: '0.05'
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping public dashboard visual regression (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run visual regression (public dashboard)
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm visual:public-dashboard:diff
+
+      - name: Upload public dashboard visual artifacts
+        if: always() && steps.guard.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-dashboard-visual-diff
+          path: artifacts/visual-public-dashboard/
           if-no-files-found: ignore

@@ -1,3 +1,5 @@
+import { getDashboardThemePalette } from './theme-palette.js';
+
 export function createMainChartsController({
   state,
   radioQuestionSelectEl,
@@ -16,6 +18,7 @@ export function createMainChartsController({
   }
 
   function renderScaleAverageChart(scaleAverages = []) {
+    const palette = getDashboardThemePalette();
     destroyChart('scaleAverage');
     const canvas = document.getElementById('scale-average-chart');
     if (!canvas) return;
@@ -28,7 +31,7 @@ export function createMainChartsController({
         type: 'bar',
         data: {
           labels: ['Belum ada data'],
-          datasets: [{ label: 'Skor', data: [0], backgroundColor: 'rgba(64,153,255,0.55)' }],
+          datasets: [{ label: 'Skor', data: [0], backgroundColor: palette.emptyBackground }],
         },
         options: { responsive: true, maintainAspectRatio: false },
       });
@@ -44,8 +47,8 @@ export function createMainChartsController({
             label: 'Rata-rata',
             data: values,
             borderRadius: 8,
-            backgroundColor: 'rgba(47, 198, 229, 0.65)',
-            borderColor: 'rgba(47, 198, 229, 1)',
+            backgroundColor: palette.primaryBackground,
+            borderColor: palette.primaryBorder,
             borderWidth: 1,
           },
         ],
@@ -120,6 +123,7 @@ export function createMainChartsController({
   }
 
   function renderRadioDistributionChart() {
+    const palette = getDashboardThemePalette();
     destroyChart('radioDistribution');
     const canvas = document.getElementById('radio-distribution-chart');
     if (!canvas) return;
@@ -130,7 +134,7 @@ export function createMainChartsController({
         type: 'doughnut',
         data: {
           labels: ['Belum ada data'],
-          datasets: [{ data: [1], backgroundColor: ['rgba(106,164,255,0.45)'] }],
+          datasets: [{ data: [1], backgroundColor: [palette.emptyBackground] }],
         },
         options: { responsive: true, maintainAspectRatio: false },
       });
@@ -149,7 +153,7 @@ export function createMainChartsController({
         datasets: [
           {
             data: values,
-            backgroundColor: ['#3ba6ff', '#31d5ff', '#6f7dff', '#8f6dff', '#3ce6b4', '#ff7b9d', '#ffb347'],
+            backgroundColor: palette.palette,
           },
         ],
       },
@@ -158,6 +162,7 @@ export function createMainChartsController({
   }
 
   function renderTrendChart(points = []) {
+    const palette = getDashboardThemePalette();
     destroyChart('trend');
     const canvas = document.getElementById('trend-chart');
     if (!canvas) return;
@@ -173,8 +178,8 @@ export function createMainChartsController({
           {
             label: 'Total respons',
             data: values,
-            borderColor: '#33d9ff',
-            backgroundColor: 'rgba(51, 217, 255, 0.18)',
+            borderColor: palette.trendLine,
+            backgroundColor: palette.trendFill,
             fill: true,
             tension: 0.25,
             pointRadius: 2,

@@ -156,3 +156,34 @@ Expected:
 Expected:
 - Request identik dalam cooldown tidak memanggil generate baru.
 - Request dengan signature input berubah menghasilkan analysis baru (`reused=false`).
+
+## K. Tenant Dashboard Completion Contract
+
+1. Login tenant admin lalu buka dashboard questionnaire tenant.
+2. Panggil endpoint berikut dengan query valid:
+   - `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/summary`
+   - `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/distribution`
+   - `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/trend`
+   - `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/segment-compare?segmentDimensionId=...&segmentBuckets=...`
+3. Verifikasi payload summary minimal memuat object `dataQuality`:
+   - `sampleSize`
+   - `confidence`
+   - `warnings`
+4. Verifikasi pair validation:
+   - query dengan hanya `segmentDimensionId` tanpa `segmentBucket` harus `400`.
+   - query dengan hanya `segmentBucket` tanpa `segmentDimensionId` harus `400`.
+5. Verifikasi drilldown responses:
+   - klik bucket segment di UI.
+   - pastikan request responses membawa `segmentDimensionId` + `segmentBucket`.
+   - pastikan hasil list responses adalah subset terfilter.
+6. Verifikasi preferences v2 migration:
+   - refresh halaman setelah ubah order/visibility widget.
+   - cek browser storage memuat key `dashboard_visual_prefs_v2:<tenant>:<questionnaire>`.
+   - jika key lama masih ada, UI tetap membaca konfigurasi lama lalu menulis ke key v2.
+
+Expected:
+- Endpoint `segment-compare` aktif dan konsisten dengan summary/distribution/trend.
+- Kontrak pair validation segment filter enforced (`400` untuk input tidak berpasangan).
+- `dataQuality` selalu tersedia pada payload summary (dan terisi untuk hasil compare segment).
+- Drilldown bucket di UI sinkron dengan responses terfilter.
+- Preferences tersimpan di key v2 dengan fallback key lama tetap kompatibel.

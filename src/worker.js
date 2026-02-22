@@ -12,7 +12,7 @@ import {
   servePublicAsset,
 } from './http/runtime-helpers.js';
 import { ensurePlatformSchema, LEGACY_REDIRECT_PREFIX, LEGACY_SCHOOL_SLUG } from './lib/db/bootstrap.js';
-import { monitorAdminOrigin, requireJsonMutationPayload } from './lib/http/request-guards.js';
+import { enforceAdminOrigin, monitorAdminOrigin, requireJsonMutationPayload } from './lib/http/request-guards.js';
 import { buildSessionCookieOptions, SESSION_COOKIE_NAME } from './lib/http/session-cookie.js';
 import { getAnalyticsDistribution, getAnalyticsSummary, getAnalyticsTrend } from './modules/analytics/service.js';
 import {
@@ -49,6 +49,9 @@ import {
   getTenantQuestionnaireAnalyticsSummary,
   getTenantQuestionnaireAnalyticsTrend,
   getTenantQuestionnaireDraft,
+  getTenantQuestionnairePublicDashboardDistribution,
+  getTenantQuestionnairePublicDashboardSummary,
+  getTenantQuestionnairePublicDashboardTrend,
   getTenantQuestionnaireResponses,
   getTenantQuestionnaireVersions,
   listPublicQuestionnairesByTenant,
@@ -110,9 +113,16 @@ app.onError((error, c) => {
   return jsonError(c, 500, error?.message || 'Terjadi kesalahan internal server.');
 });
 
-app.use('/forms/admin/api/*', requireDbReady, attachAuth, monitorAdminOrigin, requireJsonMutationPayload);
+app.use('/forms/admin/api/*', requireDbReady, attachAuth, monitorAdminOrigin, enforceAdminOrigin, requireJsonMutationPayload);
 app.use('/forms/:schoolSlug/api/*', requireDbReady);
-app.use('/forms/:schoolSlug/admin/api/*', requireDbReady, attachAuth, monitorAdminOrigin, requireJsonMutationPayload);
+app.use(
+  '/forms/:schoolSlug/admin/api/*',
+  requireDbReady,
+  attachAuth,
+  monitorAdminOrigin,
+  enforceAdminOrigin,
+  requireJsonMutationPayload
+);
 app.use('/forms/:schoolSlug/admin/*', requireDbReady, attachAuth);
 app.use('/forms/:schoolSlug/admin', requireDbReady, attachAuth);
 app.use('/forms/:schoolSlug/admin/', requireDbReady, attachAuth);
@@ -122,6 +132,7 @@ app.use(
   requireDbReady,
   attachAuth,
   monitorAdminOrigin,
+  enforceAdminOrigin,
   requireJsonMutationPayload
 );
 app.use(
@@ -129,10 +140,25 @@ app.use(
   requireDbReady,
   attachAuth,
   monitorAdminOrigin,
+  enforceAdminOrigin,
   requireJsonMutationPayload
 );
-app.use('/forms/:tenantSlug/admin/api/ai-prompts/*', requireDbReady, attachAuth, monitorAdminOrigin, requireJsonMutationPayload);
-app.use('/forms/:tenantSlug/admin/api/ai-prompts', requireDbReady, attachAuth, monitorAdminOrigin, requireJsonMutationPayload);
+app.use(
+  '/forms/:tenantSlug/admin/api/ai-prompts/*',
+  requireDbReady,
+  attachAuth,
+  monitorAdminOrigin,
+  enforceAdminOrigin,
+  requireJsonMutationPayload
+);
+app.use(
+  '/forms/:tenantSlug/admin/api/ai-prompts',
+  requireDbReady,
+  attachAuth,
+  monitorAdminOrigin,
+  enforceAdminOrigin,
+  requireJsonMutationPayload
+);
 
 registerHttpRoutes(app, {
   ensurePlatformSchema,
@@ -193,6 +219,9 @@ registerHttpRoutes(app, {
   requireAdminPageAccess,
   findDefaultQuestionnaireByTenantId,
   getPublishedQuestionnaireSchemaBySlug,
+  getTenantQuestionnairePublicDashboardSummary,
+  getTenantQuestionnairePublicDashboardDistribution,
+  getTenantQuestionnairePublicDashboardTrend,
   getPublishedFormSchema,
   submitResponse,
   submitQuestionnaireResponse,

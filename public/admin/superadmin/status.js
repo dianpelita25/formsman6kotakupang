@@ -7,9 +7,19 @@ export function createSuperadminStatusController({
   function setStatus(message, kind = 'info', error = null) {
     setInlineStatus(refs.statusEl, message, kind);
     if (error) {
+      if (refs.errorDebugWrapEl) {
+        refs.errorDebugWrapEl.hidden = false;
+        refs.errorDebugWrapEl.open = false;
+      }
       setErrorDebugPanel(refs.errorDebugEl, error);
-    } else if (refs.errorDebugEl) {
+      return;
+    }
+    if (refs.errorDebugEl) {
       refs.errorDebugEl.textContent = 'Belum ada error.';
+    }
+    if (refs.errorDebugWrapEl) {
+      refs.errorDebugWrapEl.hidden = true;
+      refs.errorDebugWrapEl.open = false;
     }
   }
 

@@ -1,5 +1,8 @@
 const encoder = new TextEncoder();
-const DEFAULT_PBKDF2_ITERATIONS = 10000;
+export const DEFAULT_PBKDF2_ITERATIONS = 10000;
+export const DEFAULT_PBKDF2_TARGET_ITERATIONS = 100000;
+// Cloudflare Workers WebCrypto PBKDF2 currently supports up to 100000 iterations.
+const MAX_PBKDF2_ITERATIONS = 100000;
 
 function toHex(bytes) {
   return Array.from(new Uint8Array(bytes))
@@ -22,6 +25,22 @@ export function randomSalt(size = 16) {
   const bytes = new Uint8Array(size);
   crypto.getRandomValues(bytes);
   return toBase64Url(bytes);
+}
+
+export function normalizePbkdf2Iterations(raw, fallback = DEFAULT_PBKDF2_ITERATIONS) {
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return Number(fallback);
+  const rounded = Math.floor(parsed);
+  if (rounded < DEFAULT_PBKDF2_ITERATIONS) return DEFAULT_PBKDF2_ITERATIONS;
+  if (rounded > MAX_PBKDF2_ITERATIONS) return MAX_PBKDF2_ITERATIONS;
+  return rounded;
+}
+
+export function resolvePbkdf2TargetIterations(env = null) {
+  const runtimeValue = env?.PASSWORD_PBKDF2_ITERATIONS;
+  const processValue =
+    typeof process !== 'undefined' && process?.env ? process.env.PASSWORD_PBKDF2_ITERATIONS : undefined;
+  return normalizePbkdf2Iterations(runtimeValue ?? processValue, DEFAULT_PBKDF2_TARGET_ITERATIONS);
 }
 
 export async function sha256Hex(input) {

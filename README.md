@@ -24,6 +24,18 @@ Dengan fitur:
 - Neon PostgreSQL
 - Static assets dari `public/` via Workers assets binding
 
+## Start Here (Dokumentasi)
+
+Sebelum baca dokumen lain, mulai dari:
+
+- `docs/DOCS_INDEX.md`
+
+Di situ sudah dipisahkan dokumen aktif (source of truth) vs dokumen referensi historis agar tidak bingung status.
+
+Untuk validasi hardening sebelum rilis/UAT:
+
+- `docs/UAT_CHECKLIST_HARDENING.md`
+
 ## 1) Setup
 
 ```bash
@@ -169,6 +181,14 @@ Catatan:
 - `PUT /forms/:tenantSlug/admin/api/ai-prompts/draft`
 - `POST /forms/:tenantSlug/admin/api/ai-prompts/publish`
 - `GET /forms/:tenantSlug/admin/api/ai-prompts/history`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/responses`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/responses/export.csv`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/summary`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/distribution`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/trend`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/segment-compare`
+- `POST /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/ai/analyze`
+- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/ai/latest`
 - `GET /forms/:schoolSlug/admin/api/form/draft`
 - `PUT /forms/:schoolSlug/admin/api/form/draft`
 - `POST /forms/:schoolSlug/admin/api/form/publish`
@@ -179,6 +199,11 @@ Catatan:
 - `GET /forms/:schoolSlug/admin/api/analytics/trend`
 - `POST /forms/:schoolSlug/admin/api/ai/analyze`
 - `GET /forms/:schoolSlug/admin/api/ai/latest`
+
+Query optional untuk dashboard tenant questionnaire:
+
+- `segmentDimensionId` + `segmentBucket` (wajib berpasangan) untuk summary/distribution/trend/responses/export.
+- `segmentBuckets` (CSV, max 3 bucket) untuk endpoint `analytics/segment-compare`.
 
 ## 6) Route legacy
 

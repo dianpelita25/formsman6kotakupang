@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme-scope="modern">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260218-3" />
+    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
+    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260220-1" />
   </head>
   <body>
     <main class="page">
@@ -18,9 +19,21 @@
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-top">
           <div class="brand">AITI GLOBAL NEXUS</div>
-          <a id="admin-login-link" class="admin-entry-link" href="/forms/admin/login" title="Masuk admin">
-            Login
-          </a>
+          <div class="hero-top-actions">
+            <span class="theme-toggle-slot" data-theme-toggle></span>
+            <a id="admin-login-link" class="admin-entry-link" href="/forms/admin/login" title="Masuk admin">
+              Login
+            </a>
+            <a
+              id="public-dashboard-link"
+              class="admin-entry-link admin-entry-link--dashboard"
+              href="#"
+              title="Buka dashboard publik"
+              hidden
+            >
+              Dashboard
+            </a>
+          </div>
         </div>
         <h1 id="form-title">Memuat judul form...</h1>
         <div class="greeting-block">
@@ -32,16 +45,22 @@
       <form id="feedback-form" class="form-card" novalidate>
         <div id="fields-container" class="fields-stack"></div>
         <div class="submit-row">
+          <p id="form-progress" class="form-progress" aria-live="polite">0/0 pertanyaan terisi</p>
           <button id="submit-btn" type="submit">Kirim</button>
           <p id="status-message" class="status-message" aria-live="polite"></p>
-          <details id="status-debug-wrap" class="status-debug-wrap">
+          <details id="status-debug-wrap" class="status-debug-wrap" hidden>
             <summary>Detail error teknis</summary>
             <pre id="status-debug">Belum ada error.</pre>
           </details>
         </div>
       </form>
+      <div id="mobile-submit-bar" class="mobile-submit-bar" hidden>
+        <p id="mobile-submit-progress" class="mobile-submit-bar__progress">0/0 terisi</p>
+        <button id="mobile-submit-btn" type="button">Kirim</button>
+      </div>
     </main>
 
-    <script type="module" src="/forms-static/forms/app.js?v=20260218-3"></script>
+    <script type="module" src="/forms-static/forms/app.js?v=20260220-1"></script>
   </body>
 </html>
+

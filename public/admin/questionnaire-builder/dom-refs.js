@@ -4,6 +4,7 @@ export function createBuilderDomRefs(doc = document) {
     statusEl: byId('status'),
     inlineStatusEl: byId('status-inline'),
     errorDebugEl: byId('error-debug'),
+    errorDebugWrapEl: byId('error-debug-wrap'),
     activityFeedEl: byId('activity-feed'),
     subtitleEl: byId('builder-subtitle'),
     metaTitleEl: byId('meta-title'),

@@ -18,6 +18,8 @@ export function wireDashboardAi({
   const aiRuntimeController = createAiRuntimeController({
     state,
     aiModeEl: domRefs.aiModeEl,
+    aiOutputSummaryEl: domRefs.aiOutputSummaryEl,
+    aiOutputDetailsEl: domRefs.aiOutputDetailsEl,
     aiOutputEl: domRefs.aiOutputEl,
     aiLoadBtn: domRefs.aiLoadBtn,
     aiRunBtn: domRefs.aiRunBtn,

@@ -20,6 +20,16 @@ function hasRequestBody(c) {
   return transferEncoding.length > 0;
 }
 
+function parseHostFromUrl(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  try {
+    return new URL(input).host;
+  } catch {
+    return '';
+  }
+}
+
 export async function requireJsonMutationPayload(c, next) {
   if (!isMutationMethod(c.req.method) || !hasRequestBody(c)) {
     await next();
@@ -62,6 +72,45 @@ export async function monitorAdminOrigin(c, next) {
     if (!originHost || originHost !== requestHost) {
       console.warn(
         `[ORIGIN_MONITOR] requestId=${resolveRequestId(c)} method=${c.req.method} path=${c.req.path} origin=${origin} host=${requestHost}`
+      );
+    }
+  }
+
+  await next();
+}
+
+export async function enforceAdminOrigin(c, next) {
+  if (!isMutationMethod(c.req.method)) {
+    await next();
+    return;
+  }
+
+  const requestHost = parseHostFromUrl(c.req.url);
+  const origin = String(c.req.header('origin') || '').trim();
+  const referer = String(c.req.header('referer') || '').trim();
+
+  if (origin) {
+    const originHost = parseHostFromUrl(origin);
+    if (!originHost || originHost !== requestHost) {
+      return c.json(
+        {
+          message: 'Permintaan mutasi admin ditolak karena origin tidak valid.',
+          requestId: resolveRequestId(c),
+        },
+        403
+      );
+    }
+  }
+
+  if (!origin && referer) {
+    const refererHost = parseHostFromUrl(referer);
+    if (!refererHost || refererHost !== requestHost) {
+      return c.json(
+        {
+          message: 'Permintaan mutasi admin ditolak karena referer tidak valid.',
+          requestId: resolveRequestId(c),
+        },
+        403
       );
     }
   }

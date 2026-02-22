@@ -3,6 +3,7 @@ export function createStatusErrorHelpers({
   inlineStatusEl,
   inlineActionsEl,
   errorDebugEl,
+  errorDebugWrapEl,
   requestJson,
   normalizeUiError,
   setInlineStatus,
@@ -24,7 +25,15 @@ export function createStatusErrorHelpers({
   function setError(error = null) {
     if (!error) {
       if (errorDebugEl) errorDebugEl.textContent = 'Belum ada error.';
+      if (errorDebugWrapEl) {
+        errorDebugWrapEl.hidden = true;
+        errorDebugWrapEl.open = false;
+      }
       return;
+    }
+    if (errorDebugWrapEl) {
+      errorDebugWrapEl.hidden = false;
+      errorDebugWrapEl.open = false;
     }
     setErrorDebugPanel(errorDebugEl, error);
   }

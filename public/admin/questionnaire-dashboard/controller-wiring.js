@@ -46,6 +46,7 @@ export function wireDashboardControllers({
     inlineStatusEl: domRefs.inlineStatusEl,
     inlineActionsEl: domRefs.inlineActionsEl,
     errorDebugEl: domRefs.errorDebugEl,
+    errorDebugWrapEl: domRefs.errorDebugWrapEl,
     filterFromEl: domRefs.filterFromEl,
     filterToEl: domRefs.filterToEl,
     filterDaysEl: domRefs.filterDaysEl,
@@ -174,6 +175,15 @@ export function wireDashboardControllers({
     })
   );
 
+  function rerenderChartsForTheme() {
+    const hasData = Boolean(state.summary || state.distribution || state.trend);
+    if (!hasData) return;
+    chartApi.renderScaleAverageChart(Array.isArray(state.scaleAverages) ? state.scaleAverages : []);
+    chartApi.renderRadioDistributionChart();
+    chartApi.renderTrendChart(Array.isArray(state.trend?.points) ? state.trend.points : []);
+    chartApi.renderAdvancedVizChart();
+  }
+
   return {
     initializeVisualCardVisibility,
     bindEvents,
@@ -186,5 +196,6 @@ export function wireDashboardControllers({
     toActionableErrorMessage,
     canRetryFromError,
     presentError,
+    rerenderChartsForTheme,
   };
 }

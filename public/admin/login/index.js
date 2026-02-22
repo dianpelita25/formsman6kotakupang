@@ -5,7 +5,8 @@ import { bindLoginSubmit } from './submit-handler.js';
 const loginForm = document.getElementById('login-form');
 const statusEl = document.getElementById('status');
 const errorDebugEl = document.getElementById('error-debug');
-const { setStatus } = createStatusController(statusEl, errorDebugEl);
+const errorDebugWrapEl = document.getElementById('error-debug-wrap');
+const { setStatus } = createStatusController(statusEl, errorDebugEl, errorDebugWrapEl);
 
 bindRuntimeErrorHandlers((normalized, originalError) => {
   setStatus(normalized.message, 'error', originalError);

@@ -1,3 +1,5 @@
+import { registerPublicDashboardRoutes } from './public-dashboard-routes.js';
+
 export function registerPublicFormRoutes(app, deps) {
   const {
     requireDbReady,
@@ -8,6 +10,9 @@ export function registerPublicFormRoutes(app, deps) {
     servePublicAsset,
     findDefaultQuestionnaireByTenantId,
     getPublishedQuestionnaireSchemaBySlug,
+    getTenantQuestionnairePublicDashboardSummary,
+    getTenantQuestionnairePublicDashboardDistribution,
+    getTenantQuestionnairePublicDashboardTrend,
     getPublishedFormSchema,
     submitResponse,
     submitQuestionnaireResponse,
@@ -149,6 +154,7 @@ export function registerPublicFormRoutes(app, deps) {
     });
   });
 
+
   app.post('/forms/:tenantSlug/:questionnaireSlug/api/submit', requireDbReady, tenantMiddleware, async (c) => {
     const tenant = c.get('tenant');
     if (!tenant.is_active) {
@@ -180,5 +186,16 @@ export function registerPublicFormRoutes(app, deps) {
       },
       result.status
     );
+  });
+
+  registerPublicDashboardRoutes(app, {
+    requireDbReady,
+    tenantMiddleware,
+    jsonError,
+    servePublicAsset,
+    getPublishedQuestionnaireSchemaBySlug,
+    getTenantQuestionnairePublicDashboardSummary,
+    getTenantQuestionnairePublicDashboardDistribution,
+    getTenantQuestionnairePublicDashboardTrend,
   });
 }

@@ -300,6 +300,10 @@ async function normalizeVisualNoise(page) {
   });
 
   await page.evaluate(() => {
+    if (String(document.documentElement.dataset.themeScope || '').trim() === 'modern') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
     const volatileIds = [
       'status',
       'dashboard-inline-status',
@@ -334,6 +338,13 @@ async function captureDashboardScreenshot({
   const context = await browser.newContext({
     viewport: { width: 1440, height: 3400 },
     deviceScaleFactor: 1,
+  });
+  await context.addInitScript(() => {
+    try {
+      window.localStorage.setItem('aiti_theme_preference_v1', 'dark');
+    } catch {
+      // ignore storage constraints in visual diff
+    }
   });
 
   if (baselineHtml && baselineJs) {

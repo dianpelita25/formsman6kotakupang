@@ -38,7 +38,15 @@ export function bootstrapQuestionnaireBuilderRuntime() {
   function setError(error = null) {
     if (!error) {
       refs.errorDebugEl.textContent = 'Belum ada error.';
+      if (refs.errorDebugWrapEl) {
+        refs.errorDebugWrapEl.hidden = true;
+        refs.errorDebugWrapEl.open = false;
+      }
       return;
+    }
+    if (refs.errorDebugWrapEl) {
+      refs.errorDebugWrapEl.hidden = false;
+      refs.errorDebugWrapEl.open = false;
     }
     setErrorDebugPanel(refs.errorDebugEl, error);
   }
