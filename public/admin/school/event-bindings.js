@@ -85,7 +85,7 @@ export function bindSchoolAdminEvents({
     try {
       await publishPrompt();
     } catch (error) {
-      const normalized = normalizeUiError(error, 'Gagal publish prompt.');
+      const normalized = normalizeUiError(error, 'Gagal memublikasikan prompt.');
       setStatus(normalized.message, 'error');
       setError(error);
     }

@@ -38,7 +38,7 @@ export function bindSuperadminEvents({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, slug, tenantType }),
         },
-        'Create tenant'
+        'Buat organisasi'
       );
       refs.tenantNameInput.value = '';
       refs.tenantSlugInput.value = '';
@@ -46,7 +46,7 @@ export function bindSuperadminEvents({
       await loadTenants();
       await promptManager.loadPromptManager();
       setStatus('Organisasi berhasil dibuat.', 'success');
-      pushActivity('success', 'Create tenant', `${name} (${tenantType})`);
+      pushActivity('success', 'Buat organisasi', `${name} (${tenantType})`);
     } catch {
       // handled in api()
     }
@@ -137,12 +137,12 @@ export function bindSuperadminEvents({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         },
-        'Create tenant admin'
+        'Buat admin organisasi'
       );
       refs.adminEmailInput.value = '';
       refs.adminPasswordInput.value = '';
       setStatus('Admin organisasi berhasil ditambahkan.', 'success');
-      pushActivity('success', 'Create tenant admin', email);
+      pushActivity('success', 'Buat admin organisasi', email);
     } catch {
       // handled in api()
     }

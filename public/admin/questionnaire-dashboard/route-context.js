@@ -10,7 +10,7 @@ export function parseDashboardRouteContext(pathname = window.location.pathname) 
   const tenantSlug = parts[formsIndex + 1];
   const questionnaireSlug = parts[formsIndex + 4];
   if (!tenantSlug || !questionnaireSlug) {
-    throw new Error('Tenant atau questionnaire slug tidak ditemukan.');
+    throw new Error('Slug organisasi atau kuesioner tidak ditemukan.');
   }
   return { tenantSlug, questionnaireSlug };
 }

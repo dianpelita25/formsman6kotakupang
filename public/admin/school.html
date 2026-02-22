@@ -30,10 +30,10 @@
             <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
           </div>
           <div class="global-nav__group global-nav__group--utility">
-            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Admin Login</a>
-            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Superadmin</a>
+            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Masuk Admin</a>
+            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Admin Utama</a>
             <span class="global-nav__theme-slot" data-theme-toggle></span>
-            <button class="global-nav__logout is-hidden" type="button">Logout</button>
+            <button class="global-nav__logout is-hidden" type="button">Keluar</button>
           </div>
         </div>
       </div>
@@ -48,15 +48,15 @@
           </div>
           <div class="row">
             <a href="/forms/admin/" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
-              >Superadmin</a
+              >Admin Utama</a
             >
-            <button id="logout-btn" class="secondary">Logout</button>
+            <button id="logout-btn" class="secondary">Keluar</button>
           </div>
         </div>
       </section>
 
       <section class="panel">
-        <h2>Questionnaire Manager</h2>
+        <h2>Manajer Kuesioner</h2>
         <p class="small">Buat dan kelola banyak kuesioner. Admin tidak perlu edit JSON langsung.</p>
         <div class="builder-form-grid">
           <label class="field">
@@ -107,7 +107,7 @@
         <div class="section-head">
           <div>
             <h2>Prompt AI</h2>
-            <p class="small">Kelola prompt scope organisasi atau per kuesioner.</p>
+            <p class="small">Kelola prompt cakupan organisasi atau per kuesioner.</p>
           </div>
         </div>
         <div class="builder-form-grid">
@@ -115,27 +115,27 @@
             <span>Mode</span>
             <select id="tenant-prompt-mode">
               <option value="internal">internal</option>
-              <option value="external_pemerintah">external_pemerintah</option>
-              <option value="external_mitra">external_mitra</option>
+              <option value="external_pemerintah">eksternal_pemerintah</option>
+              <option value="external_mitra">eksternal_mitra</option>
               <option value="live_guru">live_guru</option>
             </select>
           </label>
           <label class="field">
-            <span>Scope</span>
+            <span>Cakupan</span>
             <select id="tenant-prompt-scope">
-              <option value="tenant">tenant</option>
-              <option value="questionnaire">questionnaire</option>
+              <option value="tenant">Organisasi</option>
+              <option value="questionnaire">Kuesioner</option>
             </select>
           </label>
           <label class="field">
-            <span>Kuesioner Scope</span>
+            <span>Pilih Kuesioner</span>
             <select id="tenant-prompt-questionnaire"></select>
           </label>
           <button id="tenant-prompt-load-btn" type="button" class="ghost">Muat Prompt</button>
         </div>
 
         <label class="field field-block">
-          <span>Draft Prompt</span>
+          <span>Template Draf</span>
           <textarea id="tenant-prompt-template"></textarea>
         </label>
         <label class="field field-block">
@@ -154,13 +154,13 @@
 
       <section class="panel" data-legacy-only="true">
         <details>
-          <summary class="builder-advanced-summary">Mode Lanjutan / Compat Sekolah</summary>
+          <summary class="builder-advanced-summary">Mode Lanjutan / Kompat Sekolah</summary>
           <p class="small">
-            Fitur legacy tetap tersedia untuk transisi. Untuk operasional utama, gunakan Builder Visual dan Dashboard Generic.
+            Fitur legacy tetap tersedia untuk transisi. Untuk operasional utama, gunakan Builder Visual dan Dashboard Generik.
           </p>
           <div class="row">
             <a id="legacy-dashboard-link" href="#" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
-              >Buka Dashboard Legacy</a
+              >Buka Dashboard Lama (Legacy)</a
             >
           </div>
         </details>
@@ -186,6 +186,7 @@
     <script type="module" src="/forms-static/admin/school.js?v=20260217-3"></script>
   </body>
 </html>
+
 
 
 

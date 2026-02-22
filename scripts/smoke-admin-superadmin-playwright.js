@@ -21,7 +21,7 @@ async function run() {
     await page.waitForFunction(
       () => {
         const status = document.querySelector('#status');
-        return Boolean(status && /panel superadmin siap dipakai/i.test(status.textContent || ''));
+        return Boolean(status && /panel (superadmin|admin utama) siap dipakai/i.test(status.textContent || ''));
       },
       { timeout: 30000 }
     );

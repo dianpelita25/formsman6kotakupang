@@ -13,7 +13,7 @@ export function renderQuestionnairePromptOptions({ state, tenantPromptQuestionna
   state.questionnaireItems.forEach((item) => {
     const option = document.createElement('option');
     option.value = item.id;
-    option.textContent = `${item.name} (${item.slug})${item.isDefault ? ' [default]' : ''}`;
+    option.textContent = `${item.name} (${item.slug})${item.isDefault ? ' [utama]' : ''}`;
     tenantPromptQuestionnaireEl.append(option);
   });
 }
@@ -33,7 +33,7 @@ export function renderQuestionnaireList({
   state.questionnaireItems.forEach((item) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${item.name}${item.isDefault ? ' <span class="small">[default]</span>' : ''}</td>
+      <td>${item.name}${item.isDefault ? ' <span class="small">[utama]</span>' : ''}</td>
       <td><code>${item.slug}</code></td>
       <td>${item.category}</td>
       <td>${item.isActive ? 'Aktif' : 'Nonaktif'}</td>

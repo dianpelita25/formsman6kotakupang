@@ -396,3 +396,101 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f7ff;
+    --surface: rgba(255, 255, 255, 0.94);
+    --surface-soft: rgba(246, 250, 255, 0.94);
+    --line: rgba(83, 129, 204, 0.34);
+    --text: #10213d;
+    --muted: #3f5b84;
+    --accent: #0ea5e9;
+    --ok: #158a69;
+  }
+}
+
+:root[data-theme='light'] {
+  --bg: #f3f7ff;
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-soft: rgba(246, 250, 255, 0.94);
+  --line: rgba(83, 129, 204, 0.34);
+  --text: #10213d;
+  --muted: #3f5b84;
+  --accent: #0ea5e9;
+  --ok: #158a69;
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background:
+      radial-gradient(1100px 560px at 8% -14%, rgba(96, 154, 255, 0.2), transparent 62%),
+      radial-gradient(920px 480px at 92% -16%, rgba(130, 123, 255, 0.16), transparent 58%),
+      linear-gradient(180deg, #f4f8ff 0%, #eef4ff 46%, #f7fbff 100%);
+  }
+
+  .btn.ghost {
+    color: #173b66;
+    border-color: rgba(83, 129, 204, 0.4);
+    background: rgba(233, 242, 255, 0.92);
+  }
+
+  .ai-segmented {
+    background: rgba(224, 236, 255, 0.82);
+  }
+
+  .ai-segment {
+    color: #3f5b84;
+  }
+
+  .ai-external-select select {
+    background: rgba(245, 250, 255, 0.98);
+    color: #173b66;
+    border-color: rgba(83, 129, 204, 0.42);
+  }
+}
+
+:root[data-theme='light'] body {
+  background:
+    radial-gradient(1100px 560px at 8% -14%, rgba(96, 154, 255, 0.2), transparent 62%),
+    radial-gradient(920px 480px at 92% -16%, rgba(130, 123, 255, 0.16), transparent 58%),
+    linear-gradient(180deg, #f4f8ff 0%, #eef4ff 46%, #f7fbff 100%);
+}
+
+:root[data-theme='light'] .btn.ghost {
+  color: #173b66;
+  border-color: rgba(83, 129, 204, 0.4);
+  background: rgba(233, 242, 255, 0.92);
+}
+
+:root[data-theme='light'] .ai-segmented {
+  background: rgba(224, 236, 255, 0.82);
+}
+
+:root[data-theme='light'] .ai-segment {
+  color: #3f5b84;
+}
+
+:root[data-theme='light'] .ai-external-select select {
+  background: rgba(245, 250, 255, 0.98);
+  color: #173b66;
+  border-color: rgba(83, 129, 204, 0.42);
+}
+
+@media (prefers-color-scheme: light) {
+  .ai-output {
+    background: rgba(248, 252, 255, 0.97);
+    border-color: rgba(83, 129, 204, 0.34);
+    color: #1f3d67;
+  }
+}
+
+:root[data-theme='light'] .ai-segmented {
+  background: rgba(232, 242, 255, 0.9);
+}
+
+:root[data-theme='light'] .ai-output {
+  background: rgba(248, 252, 255, 0.97);
+  border-color: rgba(83, 129, 204, 0.34);
+  color: #1f3d67;
+}

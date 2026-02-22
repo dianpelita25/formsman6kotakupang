@@ -11,6 +11,21 @@ export function createPromptManager({
   api,
   basePath,
 } = {}) {
+  function formatScopeLabel(scope) {
+    const normalized = String(scope || '').trim().toLowerCase();
+    if (normalized === 'questionnaire') return 'kuesioner';
+    if (normalized === 'tenant') return 'organisasi';
+    return 'global';
+  }
+
+  function formatSourceLabel(source) {
+    const normalized = String(source || '').trim().toLowerCase();
+    if (normalized === 'questionnaire') return 'override kuesioner';
+    if (normalized === 'tenant') return 'override organisasi';
+    if (normalized === 'global') return 'global';
+    return 'cadangan';
+  }
+
   function updatePromptScopeUi() {
     const scope = String(tenantPromptScopeEl.value || 'tenant').trim().toLowerCase();
     tenantPromptQuestionnaireEl.disabled = scope !== 'questionnaire';
@@ -54,7 +69,7 @@ export function createPromptManager({
       tenantPromptEffectiveEl.textContent = 'Belum ada prompt efektif.';
       return;
     }
-    const source = bundle.effective.source || 'fallback';
+    const source = formatSourceLabel(bundle.effective.source || 'fallback');
     tenantPromptEffectiveEl.textContent = `Sumber: ${source}\n\n${bundle.effective.template}`;
   }
 
@@ -62,8 +77,8 @@ export function createPromptManager({
     const selection = getPromptSelection();
     if (selection.scope === 'questionnaire' && !selection.questionnaireId) {
       tenantPromptTemplateEl.value = '';
-      tenantPromptEffectiveEl.textContent = 'Pilih kuesioner untuk scope questionnaire.';
-      setStatus('Pilih kuesioner dulu untuk load prompt.', 'warning');
+      tenantPromptEffectiveEl.textContent = 'Pilih kuesioner untuk cakupan kuesioner.';
+      setStatus('Pilih kuesioner dulu untuk memuat prompt.', 'warning');
       return;
     }
 
@@ -72,16 +87,16 @@ export function createPromptManager({
     params.set('scope', selection.scope);
     if (selection.questionnaireId) params.set('questionnaireId', selection.questionnaireId);
 
-    const payload = await api(`${basePath()}/ai-prompts?${params.toString()}`, undefined, 'Load prompt tenant');
+    const payload = await api(`${basePath()}/ai-prompts?${params.toString()}`, undefined, 'Muat prompt organisasi');
     tenantPromptTemplateEl.value = resolvePromptDraftTemplate(payload.data, selection);
     renderPromptEffective(payload.data);
-    pushActivity('success', 'Load prompt', `${selection.mode} / ${selection.scope}`);
+    pushActivity('success', 'Muat prompt', `${selection.mode} / ${formatScopeLabel(selection.scope)}`);
   }
 
   async function savePromptDraft() {
     const selection = getPromptSelection();
     if (selection.scope === 'questionnaire' && !selection.questionnaireId) {
-      throw new Error('Pilih kuesioner untuk scope questionnaire.');
+      throw new Error('Pilih kuesioner untuk cakupan kuesioner.');
     }
     const template = String(tenantPromptTemplateEl.value || '').trim();
     if (!template) throw new Error('Template prompt tidak boleh kosong.');
@@ -101,17 +116,17 @@ export function createPromptManager({
           changeNote: String(tenantPromptNoteEl.value || '').trim(),
         }),
       },
-      'Save prompt draft tenant'
+      'Simpan draf prompt organisasi'
     );
     setStatus('Draft prompt berhasil disimpan.', 'success');
-    pushActivity('success', 'Save prompt draft', `${selection.mode} / ${selection.scope}`);
+    pushActivity('success', 'Simpan draf prompt', `${selection.mode} / ${formatScopeLabel(selection.scope)}`);
     await loadPromptBundle();
   }
 
   async function publishPrompt() {
     const selection = getPromptSelection();
     if (selection.scope === 'questionnaire' && !selection.questionnaireId) {
-      throw new Error('Pilih kuesioner untuk scope questionnaire.');
+      throw new Error('Pilih kuesioner untuk cakupan kuesioner.');
     }
     await api(
       `${basePath()}/ai-prompts/publish`,
@@ -127,10 +142,10 @@ export function createPromptManager({
           changeNote: String(tenantPromptNoteEl.value || '').trim(),
         }),
       },
-      'Publish prompt tenant'
+      'Publikasikan prompt organisasi'
     );
-    setStatus('Prompt berhasil dipublish.', 'success');
-    pushActivity('success', 'Publish prompt', `${selection.mode} / ${selection.scope}`);
+    setStatus('Prompt berhasil dipublikasikan.', 'success');
+    pushActivity('success', 'Publikasikan prompt', `${selection.mode} / ${formatScopeLabel(selection.scope)}`);
     await loadPromptBundle();
   }
 

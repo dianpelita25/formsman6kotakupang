@@ -142,9 +142,9 @@ export async function launchBrowser() {
   if (process.env.PW_CHANNEL) {
     attempts.push({ channel: process.env.PW_CHANNEL, headless: true });
   }
+  attempts.push({ headless: true });
   attempts.push({ channel: 'msedge', headless: true });
   attempts.push({ channel: 'chrome', headless: true });
-  attempts.push({ headless: true });
 
   let lastError;
   for (const option of attempts) {
@@ -168,11 +168,13 @@ export function getRequiredEnv(name) {
 
 export async function loginAsSuperadmin(page, { baseUrl, email, password }) {
   await page.goto(`${baseUrl}/forms/admin/login`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('combobox', { name: 'Login Sebagai' }).selectOption({ label: 'Superadmin' });
+  const roleSelect = page.getByRole('combobox', { name: /^(Masuk Sebagai|Login Sebagai)$/i });
+  await roleSelect.selectOption('superadmin');
   await page.getByRole('textbox', { name: 'Email' }).fill(email);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
+  const submitButton = page.getByRole('button', { name: /^(Masuk|Login)$/i }).first();
   await Promise.all([
     page.waitForURL((url) => url.pathname === '/forms/admin/'),
-    page.getByRole('button', { name: 'Login' }).click(),
+    submitButton.click(),
   ]);
 }

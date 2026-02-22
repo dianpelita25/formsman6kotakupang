@@ -262,3 +262,13 @@ p {
   color: var(--theme-button-ghost-text, var(--text-soft));
   border-color: var(--theme-button-ghost-border, rgba(83, 129, 204, 0.4));
 }
+
+:root[data-theme-scope='modern'][data-theme='light'] .school-actions .action-disabled {
+  color: #3f5f8f;
+  border-color: rgba(83, 129, 204, 0.4);
+  background: rgba(228, 238, 255, 0.92);
+}
+
+:root[data-theme-scope='modern'][data-theme='light'] .status {
+  color: #35547f;
+}

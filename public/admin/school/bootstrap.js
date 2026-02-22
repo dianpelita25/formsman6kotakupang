@@ -48,7 +48,7 @@ export function createSchoolBootstrap({
   }
 
   async function loadQuestionnaires() {
-    const payload = await api(`${basePath()}/questionnaires`, undefined, 'Load daftar questionnaire');
+    const payload = await api(`${basePath()}/questionnaires`, undefined, 'Muat daftar kuesioner');
     state.questionnaireItems = Array.isArray(payload.data) ? payload.data : [];
     renderQuestionnaireList({ state, questionnaireListBodyEl, questionnaireEmptyEl });
     renderQuestionnairePromptOptions({ state, tenantPromptQuestionnaireEl });
@@ -72,11 +72,11 @@ export function createSchoolBootstrap({
           category,
         }),
       },
-      'Create questionnaire'
+      'Buat kuesioner'
     );
 
-    setStatus('Questionnaire berhasil dibuat.', 'success');
-    pushActivity('success', 'Create questionnaire', `${name} (${slug})`);
+    setStatus('Kuesioner berhasil dibuat.', 'success');
+    pushActivity('success', 'Buat kuesioner', `${name} (${slug})`);
     await loadQuestionnaires();
   }
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Superadmin Forms</title>
+    <title>Admin Utama Forms</title>
     <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css?v=20260220-3" />
     <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260217-2" />
@@ -30,10 +30,10 @@
             <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
           </div>
           <div class="global-nav__group global-nav__group--utility">
-            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Admin Login</a>
-            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Superadmin</a>
+            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Masuk Admin</a>
+            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Admin Utama</a>
             <span class="global-nav__theme-slot" data-theme-toggle></span>
-            <button class="global-nav__logout is-hidden" type="button">Logout</button>
+            <button class="global-nav__logout is-hidden" type="button">Keluar</button>
           </div>
         </div>
       </div>
@@ -43,10 +43,10 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h1>Superadmin Panel Organisasi</h1>
-            <p class="small" id="user-info">Memuat user...</p>
+            <h1>Admin Utama Panel Organisasi</h1>
+            <p class="small" id="user-info">Memuat pengguna...</p>
           </div>
-          <button id="logout-btn" class="secondary">Logout</button>
+          <button id="logout-btn" class="secondary">Keluar</button>
         </div>
       </section>
 
@@ -55,8 +55,8 @@
         <ol class="workflow-list">
           <li>Buat organisasi baru (nama, slug, tipe).</li>
           <li>Tambahkan admin organisasi.</li>
-          <li>Buka panel organisasi untuk kelola questionnaire.</li>
-          <li>Kelola prompt AI global/tenant/questionnaire sesuai kebutuhan.</li>
+          <li>Buka panel organisasi untuk kelola kuesioner.</li>
+          <li>Kelola prompt AI global/organisasi/kuesioner sesuai kebutuhan.</li>
         </ol>
       </section>
 
@@ -79,13 +79,13 @@
           <label class="field">
             <span>Tipe Organisasi</span>
             <select id="tenant-type">
-              <option value="school">school</option>
-              <option value="government">government</option>
-              <option value="business">business</option>
-              <option value="class">class</option>
-              <option value="community">community</option>
-              <option value="event">event</option>
-              <option value="other">other</option>
+              <option value="school">Sekolah</option>
+              <option value="government">Pemerintah</option>
+              <option value="business">Usaha</option>
+              <option value="class">Kelas</option>
+              <option value="community">Komunitas</option>
+              <option value="event">Event</option>
+              <option value="other">Lainnya</option>
             </select>
           </label>
           <button id="create-tenant-btn">Buat Organisasi</button>
@@ -97,7 +97,7 @@
         <div class="section-head">
           <div>
             <h2>Daftar Organisasi</h2>
-            <p class="small">Semua tenant aktif/nonaktif, termasuk total questionnaire dan respon.</p>
+            <p class="small">Semua organisasi aktif/nonaktif, termasuk total kuesioner dan respons.</p>
           </div>
         </div>
         <p class="table-scroll-hint">Geser tabel ke kiri/kanan untuk melihat semua kolom.</p>
@@ -110,7 +110,7 @@
                   <th>Slug</th>
                   <th>Tipe</th>
                   <th>Status</th>
-                  <th><span class="th-wrap">Total<br />Questionnaire</span></th>
+                  <th><span class="th-wrap">Total<br />Kuesioner</span></th>
                   <th><span class="th-wrap">Total<br />Respon</span></th>
                   <th>Aksi</th>
                 </tr>
@@ -125,7 +125,7 @@
         <div class="section-head">
           <div>
             <h2>Tambah Admin Organisasi</h2>
-            <p class="small">Buat akun admin untuk tenant terpilih.</p>
+            <p class="small">Buat akun admin untuk organisasi terpilih.</p>
           </div>
         </div>
         <div class="admin-form-grid admin-form-grid--admin">
@@ -146,9 +146,9 @@
       </section>
 
       <section class="panel" id="prompt-manager-panel">
-        <h2>Prompt AI Manager</h2>
+        <h2>Pengelola Prompt AI</h2>
         <p class="small">
-          Kelola template prompt analisa AI. Scope tenant/questionnaire akan override global setelah dipublish.
+          Kelola template prompt analisa AI. Cakupan organisasi/kuesioner akan menimpa global setelah dipublikasikan.
         </p>
 
         <div class="admin-form-grid admin-form-grid--prompt-filter">
@@ -163,21 +163,21 @@
           </label>
 
           <label class="field">
-            <span>Scope</span>
+            <span>Cakupan</span>
             <select id="prompt-scope">
-              <option value="global">global</option>
-              <option value="tenant">tenant override</option>
-              <option value="questionnaire">questionnaire override</option>
+              <option value="global">Global</option>
+              <option value="tenant">Override Organisasi</option>
+              <option value="questionnaire">Override Kuesioner</option>
             </select>
           </label>
 
           <label class="field" id="prompt-tenant-wrap" style="display: none">
-            <span>Tenant</span>
+            <span>Organisasi</span>
             <select id="prompt-tenant-select"></select>
           </label>
 
           <label class="field" id="prompt-questionnaire-wrap" style="display: none">
-            <span>Questionnaire</span>
+            <span>Kuesioner</span>
             <select id="prompt-questionnaire-select"></select>
           </label>
         </div>
@@ -185,7 +185,7 @@
         <div class="prompt-layout">
           <section class="prompt-editor-card">
             <label class="field field-block">
-              <span>Draft Template</span>
+              <span>Template Draf</span>
               <textarea id="prompt-template" placeholder="Tulis template prompt AI di sini..."></textarea>
             </label>
 
@@ -196,15 +196,15 @@
 
             <div class="row row-actions">
               <button id="prompt-save-btn">Simpan Draft</button>
-              <button id="prompt-publish-btn" class="secondary">Publish</button>
-              <button id="prompt-reset-btn" class="ghost">Reset ke Published</button>
-              <button id="prompt-refresh-btn" class="ghost">Refresh</button>
+              <button id="prompt-publish-btn" class="secondary">Publikasikan</button>
+              <button id="prompt-reset-btn" class="ghost">Reset ke Versi Terpublikasi</button>
+              <button id="prompt-refresh-btn" class="ghost">Muat Ulang</button>
             </div>
             <p id="prompt-draft-meta" class="small prompt-draft-meta"></p>
           </section>
 
           <section class="prompt-preview-card">
-            <h3 class="subsection-title">Effective Prompt (Aktif Digunakan)</h3>
+            <h3 class="subsection-title">Prompt Efektif (Sedang Digunakan)</h3>
             <div id="prompt-effective-meta" class="prompt-meta"></div>
             <pre id="prompt-effective"></pre>
           </section>
@@ -217,10 +217,10 @@
               <thead>
                 <tr>
                   <th>Status</th>
-                  <th>Scope</th>
-                  <th>Change Note</th>
+                  <th>Cakupan</th>
+                  <th>Catatan Perubahan</th>
                   <th>Dibuat</th>
-                  <th>Published</th>
+                  <th>Terpublikasi</th>
                 </tr>
               </thead>
               <tbody id="prompt-history-body"></tbody>
@@ -273,6 +273,7 @@
     <script type="module" src="/forms-static/admin/superadmin.js?v=20260217-3"></script>
   </body>
 </html>
+
 
 
 

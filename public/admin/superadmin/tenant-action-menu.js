@@ -58,7 +58,7 @@ export function createTenantActionMenuController({
       disabledButton.type = 'button';
       disabledButton.className = 'action-menu-item is-disabled';
       disabledButton.disabled = true;
-      disabledButton.title = 'Belum ada questionnaire default.';
+      disabledButton.title = 'Belum ada kuesioner utama.';
       disabledButton.setAttribute('aria-disabled', 'true');
       disabledButton.textContent = 'Form Publik';
       publicEntry = disabledButton;

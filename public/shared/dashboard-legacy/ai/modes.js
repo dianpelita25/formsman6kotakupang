@@ -14,8 +14,8 @@ export function getActiveAnalysisMode(state) {
 }
 
 export function getModeLabel(mode) {
-  if (mode === AI_MODES.external_pemerintah) return 'External - Pemerintah';
-  if (mode === AI_MODES.external_mitra) return 'External - Mitra';
+  if (mode === AI_MODES.external_pemerintah) return 'Eksternal - Pemerintah';
+  if (mode === AI_MODES.external_mitra) return 'Eksternal - Mitra';
   if (mode === AI_MODES.live_guru) return 'Live Guru';
   return 'Internal';
 }
@@ -25,7 +25,7 @@ export function getModeSubtitle(mode) {
     return 'Laporan formal untuk Dinas/Pemda berbasis data terbaru.';
   }
   if (mode === AI_MODES.external_mitra) {
-    return 'Memo business impact untuk mitra/sponsor/investor.';
+    return 'Memo dampak usaha untuk mitra/sponsor/investor.';
   }
   if (mode === AI_MODES.live_guru) {
     return 'Ringkasan live untuk diproyeksikan di akhir kegiatan.';

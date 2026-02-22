@@ -17,7 +17,7 @@ export function createDashboardContextRenderer({
     if (!quality) return '-';
     const confidence = String(quality.confidence || 'low').trim().toUpperCase();
     const warnings = Array.isArray(quality.warnings) ? quality.warnings.length : 0;
-    return `${confidence} (${warnings} warning)`;
+    return `${confidence} (${warnings} peringatan)`;
   }
 
   function renderSummary() {
@@ -44,13 +44,13 @@ export function createDashboardContextRenderer({
     if (!contextNoteEl) return;
     const totalResponses = Number(state.summary?.totalResponses || 0);
     if (!versionId) {
-      contextNoteEl.textContent = 'Belum ada versi publish aktif. Publish kuesioner dulu agar dashboard bisa membaca data.';
+      contextNoteEl.textContent = 'Belum ada versi terpublikasi aktif. Publikasikan kuesioner dulu agar dashboard bisa membaca data.';
       return;
     }
 
     if (totalResponses === 0) {
       contextNoteEl.textContent =
-        'Belum ada respons pada versi aktif ini. Jika Anda baru publish versi baru, data versi sebelumnya tidak otomatis digabung.';
+        'Belum ada respons pada versi aktif ini. Jika Anda baru memublikasikan versi baru, data versi sebelumnya tidak otomatis digabung.';
       return;
     }
 

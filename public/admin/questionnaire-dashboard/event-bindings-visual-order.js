@@ -104,7 +104,7 @@ export function createVisualOrderEventBinder({
       setVisualLayoutPresetSelection('full');
       resetVisualOrderDragState();
       if (visualVisibilitySettingsEl) visualVisibilitySettingsEl.open = false;
-      setStatus('Tampilan visual dikembalikan ke default.', 'success');
+      setStatus('Tampilan visual dikembalikan ke pengaturan awal.', 'success');
     });
 
     criteriaSummaryListEl?.addEventListener('click', (event) => {

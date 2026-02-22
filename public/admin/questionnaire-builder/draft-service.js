@@ -41,7 +41,7 @@ export function createBuilderDraftService({
   }
 
   async function loadDraft() {
-    const payload = await api(`${baseApiPath()}/draft`, undefined, 'Load draft questionnaire');
+    const payload = await api(`${baseApiPath()}/draft`, undefined, 'Muat draf kuesioner');
     const data = payload?.data || {};
     const draft = data.draft || {};
     const questionnaire = data.questionnaire || {};
@@ -61,11 +61,11 @@ export function createBuilderDraftService({
     renderQuestionList();
 
     refs.subtitleEl.textContent = `Organisasi: ${state.tenantSlug} | Kuesioner: ${state.questionnaireName} (${state.questionnaireSlug})`;
-    pushActivity('success', 'Load draft', `${state.questionnaireName} v${draft.version || '-'}`);
+    pushActivity('success', 'Muat draf', `${state.questionnaireName} v${draft.version || '-'}`);
   }
 
   async function refreshResponseFlag() {
-    const payload = await api(`${baseApiPath()}/analytics/summary`, undefined, 'Load ringkasan untuk validasi breaking change');
+    const payload = await api(`${baseApiPath()}/analytics/summary`, undefined, 'Muat ringkasan untuk validasi perubahan berisiko');
     state.hasResponses = Number(payload?.data?.totalResponses || 0) > 0;
   }
 
@@ -79,11 +79,11 @@ export function createBuilderDraftService({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       },
-      'Save draft questionnaire'
+      'Simpan draf kuesioner'
     );
     state.loadedSnapshot = state.fields.map(cloneField);
     if (!silentActivity) {
-      pushActivity('success', 'Save draft', `${state.questionnaireSlug} tersimpan`);
+      pushActivity('success', 'Simpan draf', `${state.questionnaireSlug} tersimpan`);
     }
     if (!silentStatus) {
       setStatus('Draf berhasil disimpan.', 'success');

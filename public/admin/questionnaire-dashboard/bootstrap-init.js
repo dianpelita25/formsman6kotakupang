@@ -4,7 +4,7 @@ export async function runDashboardInit({ state, domRefs, runtime, parseRouteCont
   state.questionnaireSlug = route.questionnaireSlug;
 
   domRefs.titleEl.textContent = `Dashboard Kuesioner - ${state.questionnaireSlug}`;
-  domRefs.subtitleEl.textContent = `Organisasi ${state.tenantSlug} - scope per kuesioner`;
+  domRefs.subtitleEl.textContent = `Organisasi ${state.tenantSlug} - cakupan per kuesioner`;
 
   domRefs.backBuilderLink.href = `/forms/${state.tenantSlug}/admin/questionnaires/${state.questionnaireSlug}/builder/`;
   domRefs.openFormLink.href = `/forms/${state.tenantSlug}/${state.questionnaireSlug}/`;

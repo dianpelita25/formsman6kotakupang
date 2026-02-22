@@ -207,12 +207,13 @@ async function launchBrowser() {
 
 async function loginAsSuperadmin(page, email, password) {
   await page.goto(`${BASE_URL}/forms/admin/login`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('combobox', { name: 'Login Sebagai' }).selectOption({ label: 'Superadmin' });
+  await page.getByRole('combobox', { name: /^(Masuk Sebagai|Login Sebagai)$/i }).selectOption('superadmin');
   await page.getByRole('textbox', { name: 'Email' }).fill(email);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
+  const submitButton = page.getByRole('button', { name: /^(Masuk|Login)$/i }).first();
   await Promise.all([
     page.waitForURL((url) => url.pathname === '/forms/admin/'),
-    page.getByRole('button', { name: 'Login' }).click(),
+    submitButton.click(),
   ]);
 }
 

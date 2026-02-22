@@ -223,10 +223,10 @@ async function run() {
   const page = await context.newPage();
 
   const modeMatrix = [
-    { label: 'Internal', key: 'internal' },
-    { label: 'External Pemerintah', key: 'external_pemerintah' },
-    { label: 'External Mitra', key: 'external_mitra' },
-    { label: 'Live Guru', key: 'live_guru' },
+    { key: 'internal' },
+    { key: 'external_pemerintah' },
+    { key: 'external_mitra' },
+    { key: 'live_guru' },
   ];
 
   const report = {
@@ -240,12 +240,13 @@ async function run() {
     const dashboardUrl = `${BASE_URL}/forms/${target.tenantSlug}/admin/questionnaires/${target.questionnaireSlug}/dashboard/`;
 
     await page.goto(`${BASE_URL}/forms/admin/login`, { waitUntil: 'domcontentloaded' });
-    await page.getByRole('combobox', { name: 'Login Sebagai' }).selectOption({ label: 'Superadmin' });
+    await page.getByRole('combobox', { name: /^(Masuk Sebagai|Login Sebagai)$/i }).selectOption('superadmin');
     await page.getByRole('textbox', { name: 'Email' }).fill(superadminEmail);
     await page.getByRole('textbox', { name: 'Password' }).fill(superadminPassword);
+    const submitButton = page.getByRole('button', { name: /^(Masuk|Login)$/i }).first();
     await Promise.all([
       page.waitForURL((url) => url.pathname === '/forms/admin/'),
-      page.getByRole('button', { name: 'Login' }).click(),
+      submitButton.click(),
     ]);
 
     await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded' });
@@ -257,7 +258,7 @@ async function run() {
     const downloadButton = page.getByRole('button', { name: 'Unduh PDF Analisis' });
 
     for (const mode of modeMatrix) {
-      await modeSelect.selectOption({ label: mode.label });
+      await modeSelect.selectOption(mode.key);
       await loadLatestButton.click();
       await page.waitForTimeout(500);
 
