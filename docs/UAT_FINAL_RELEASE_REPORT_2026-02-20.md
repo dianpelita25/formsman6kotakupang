@@ -55,3 +55,11 @@ Hasil:
 5. Jalankan E (publish concurrency safety) dengan dua request paralel.
 6. Jalankan F (legacy redirect compatibility) untuk `301` ke slug canonical.
 7. Jalankan H (alias `/admin/*` by env) pada mode production/local.
+
+## Catatan Risk-Based Pasca D32-D37 (UI-Only Cycle)
+
+1. Cycle `D32-D37` hanya mengubah UI copy + CSS readability, tanpa perubahan backend/API/schema.
+2. Karena itu, item manual berisiko tinggi (`D`, `E`, `H`) tidak perlu dijalankan ulang di production untuk cycle UI-only.
+3. Item manual write-sensitive (`A`, `C`) juga tidak dijalankan ulang di production untuk cycle UI-only.
+4. Validasi bukti UI terbaru dicatat di `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`.
+5. Manual UAT A-H tetap wajib dijalankan kembali jika ada perubahan backend/runtime/auth/routing pada cycle berikutnya.

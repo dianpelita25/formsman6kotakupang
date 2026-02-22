@@ -124,7 +124,7 @@ Jika ada temuan baru saat implementasi:
 | D34 | Admin dashboard + legacy language normalization | `public/admin/school.html`, `public/admin/questionnaire-builder.html`, `public/admin/questionnaire-dashboard.html`, `public/admin/dashboard.html`, `public/dashboard.html`, `public/shared/dashboard-legacy/ai/modes.js` | CLOSED. Proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`; gate lokal PASS (`pnpm smoke:e2e`, `pnpm smoke:admin:ui`, `pnpm visual:legacy-dashboard:diff`, `pnpm visual:questionnaire-dashboard:diff`). |
 | D35 | Public surface language normalization | `public/forms/portal.html`, `public/forms/portal.js`, `public/forms/public-dashboard.html`, `public/forms/public-dashboard/loader.js`, `public/forms/public-dashboard/view.js`, `public/forms/index.html` | CLOSED. Proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`; gate lokal PASS (`pnpm smoke:ux:mobile`, `pnpm smoke:public-dashboard`, `pnpm smoke:ux:language-id`, `pnpm visual:public-dashboard:diff`). |
 | D36 | Light mode readability remediation (WCAG AA) | `public/admin/admin.css`, `public/admin/dashboard.css`, `public/dashboard.css`, `public/forms/portal.css`, `public/forms/public-dashboard.css`, `public/shared/theme/theme-tokens.css`, `public/shared/top-nav.css` | CLOSED. Proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`; kontras light mode tervalidasi (`pnpm smoke:ux:contrast-nav`, `pnpm smoke:ux:theme`, `pnpm smoke:ux:mobile`, `pnpm smoke:ux:perf-public`, `pnpm smoke:ux:contrast-aa`). |
-| D37 | Gate automation language-id + contrast-aa + final closure governance | `scripts/smoke-ux-language-id.js`, `scripts/smoke-ux-contrast-aa.js`, `package.json`, `.github/workflows/modularity-guardrails.yml`, `temuan-ui-ux-2026-02-22/**` | CLOSED. Proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`; gate baru aktif dan seluruh gate final cycle PASS (arsitektur + smoke + visual). |
+| D37 | Gate automation language-id + contrast-aa + final closure governance | `scripts/smoke-ux-language-id.js`, `scripts/smoke-ux-contrast-aa.js`, `package.json`, `.github/workflows/modularity-guardrails.yml`, `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md` | CLOSED. Proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`; gate baru aktif dan seluruh gate final cycle PASS (arsitektur + smoke + visual). |
 
 ## Final Closure D31 (2026-02-22)
 
@@ -196,6 +196,9 @@ Jika ada temuan baru saat implementasi:
 4. Status debt register saat ini:
    - D32-D37 sudah ditutup ke `CLOSED` berbasis proof commit `6064fb4763e5103b5a76010b55d6b82d823d326a`.
    - Gate final lokal tervalidasi ulang, termasuk `pnpm smoke:ux:contrast-aa` pasca patch sinkronisasi selector state public dashboard.
+5. Evidence manifest:
+   - Bukti visual/log D32-D37 diregistrasikan di `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`.
+   - Folder bukti lokal tetap di-ignore (`temuan-ui-ux-2026-02-22/`, `temuan-ui-ux-2026-02-23-after/`) agar commit source tetap bersih.
 
 ## Verifikasi D10
 

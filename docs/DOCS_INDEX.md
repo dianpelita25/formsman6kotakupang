@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 As of: 2026-02-22
-Status dashboard completion: D11-D31 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
+Status dashboard completion: D11-D37 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
 
 Dokumen ini adalah pintu masuk utama agar status proyek tidak membingungkan.
 
@@ -33,6 +33,8 @@ Mode susunan docs saat ini:
    Contract lock dashboard publik read-only + privacy threshold (`minSampleSize=30`, `minBucketSize=10`).
 9. `docs/UI_UX_LANGUAGE_READABILITY_CONTRACT_D32.md`  
    Contract lock Bahasa Indonesia UI + readability light mode (WCAG AA) untuk cycle D32-D37.
+10. `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`  
+   Registry bukti screenshot/log lokal untuk closure D32-D37 (folder evidence di-ignore dari git).
 
 ## Dokumen Operasional (Aktif saat rilis/UAT/incident)
 
@@ -44,6 +46,7 @@ Mode susunan docs saat ini:
 6. `docs/MONITORING_72H_RUN_2026-02-17.md`
 7. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md` (ACTIVE)
 8. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md` (ARCHIVED snapshot, in place)
+9. `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md` (ACTIVE)
 
 ## Dokumen Referensi Historis (Jangan jadi status final)
 
