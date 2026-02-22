@@ -3,3 +3,5 @@ node_modules
 pnpm-lock.yaml
 .wrangler
 artifacts/
+temuan-ui-ux-2026-02-22/
+temuan-ui-ux-2026-02-23-after/

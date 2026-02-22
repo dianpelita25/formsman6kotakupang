@@ -2,8 +2,8 @@ import { LEGACY_SCHOOL_SLUG } from '/forms-static/shared/constants/legacy.js';
 
 export const MODE_LABELS = Object.freeze({
   internal: 'Internal',
-  external_pemerintah: 'External Pemerintah',
-  external_mitra: 'External Mitra',
+  external_pemerintah: 'Eksternal Pemerintah',
+  external_mitra: 'Eksternal Mitra',
   live_guru: 'Live Guru',
 });
 export { LEGACY_SCHOOL_SLUG };

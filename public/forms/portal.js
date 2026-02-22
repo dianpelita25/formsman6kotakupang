@@ -76,7 +76,7 @@ function renderTenants(items) {
       <h3>${tenant.name}</h3>
       <p class="school-meta">Slug: ${tenant.slug}</p>
       <p class="school-meta">Tipe: ${tenantTypeLabel(tenant.tenant_type || tenant.tenantType)}</p>
-      <p class="school-meta">Questionnaire: ${defaultQuestionnaire ? defaultQuestionnaire.name : 'Belum tersedia'}</p>
+      <p class="school-meta">Kuesioner: ${defaultQuestionnaire ? defaultQuestionnaire.name : 'Belum tersedia'}</p>
       <div class="school-actions">
         ${publicAction}
         ${dashboardAction}

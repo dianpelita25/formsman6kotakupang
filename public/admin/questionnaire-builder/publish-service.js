@@ -46,7 +46,7 @@ export function createBuilderPublishService({
     const version = published?.version ? `v${published.version}` : 'versi terbaru';
     const publishedAt = formatPublishTime(published?.publishedAt);
     refs.publishResultTitleEl.textContent = `Publikasi ${version} berhasil.`;
-    refs.publishResultMessageEl.textContent = `Kuesioner sudah live dengan ${state.fields.length} pertanyaan. Dipublish pada ${publishedAt}. Pilih tombol di bawah untuk lanjut.`;
+    refs.publishResultMessageEl.textContent = `Kuesioner sudah live dengan ${state.fields.length} pertanyaan. Dipublikasikan pada ${publishedAt}. Pilih tombol di bawah untuk lanjut.`;
     refs.publishResultFormLinkEl.href = publicFormPath();
     refs.publishResultDashboardLinkEl.href = refs.openDashboardLink.href;
     refs.publishResultEl.hidden = false;
@@ -67,17 +67,17 @@ export function createBuilderPublishService({
 
       refs.publishWarningEl.hidden = false;
       refs.publishWarningEl.innerHTML = `
-        <strong>Peringatan perubahan breaking</strong>
-        <p>Kuesioner ini sudah memiliki respons. Publish akan membuat versi baru. Pastikan perubahan ini memang final.</p>
+        <strong>Peringatan perubahan berisiko</strong>
+        <p>Kuesioner ini sudah memiliki respons. Publikasikan akan membuat versi baru. Pastikan perubahan ini memang final.</p>
         <ul>${warnings.map((item) => `<li>${item}</li>`).join('')}</ul>
       `;
 
       const confirmed = window.confirm(
-        'Kuesioner sudah memiliki respons. Perubahan breaking terdeteksi dan akan dipublish sebagai versi baru. Lanjutkan?'
+        'Kuesioner sudah memiliki respons. Perubahan breaking terdeteksi dan akan dipublikasikan sebagai versi baru. Lanjutkan?'
       );
       if (!confirmed) {
-        setStatus('Publish dibatalkan.', 'warning');
-        pushActivity('warning', 'Publish dibatalkan', 'User membatalkan setelah warning breaking change');
+        setStatus('Publikasi dibatalkan.', 'warning');
+        pushActivity('warning', 'Publikasi dibatalkan', 'Pengguna membatalkan setelah peringatan perubahan berisiko');
         return;
       }
     } else {
@@ -87,7 +87,7 @@ export function createBuilderPublishService({
 
     setPublishProcessing(true);
     setStatus('Sedang menyimpan perubahan dan mempublikasikan. Mohon tunggu...', 'warning');
-    pushActivity('warning', 'Publish questionnaire', 'Sedang memproses publish...');
+    pushActivity('warning', 'Publikasikan kuesioner', 'Sedang memproses publikasi...');
 
     try {
       await saveDraft({ silentStatus: true, silentActivity: true });
@@ -98,11 +98,11 @@ export function createBuilderPublishService({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
         },
-        'Publish questionnaire'
+        'Publikasikan kuesioner'
       );
       const published = payload?.data?.published || {};
       const versionInfo = published?.version ? `v${published.version}` : state.questionnaireSlug;
-      pushActivity('success', 'Publish questionnaire', `${state.questionnaireSlug} (${versionInfo})`);
+      pushActivity('success', 'Publikasikan kuesioner', `${state.questionnaireSlug} (${versionInfo})`);
       setStatus('Publikasi berhasil. Gunakan tombol "Buka Form Publik" atau "Buka Dashboard" untuk lanjut.', 'success');
       showPublishResult(published);
       await loadDraft();

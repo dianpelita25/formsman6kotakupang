@@ -93,11 +93,9 @@ export function applyThemePreference(preference = '', { persist = true, emit = t
   if (animateSwitch && currentTheme !== nextTheme) {
     markThemeSwitchingWindow();
   }
-  if (normalized) {
-    root.setAttribute('data-theme', normalized);
-  } else {
-    root.removeAttribute('data-theme');
-  }
+  // Keep data-theme explicit to ensure theme-specific CSS selectors always apply
+  // even when preference follows system theme.
+  root.setAttribute('data-theme', nextTheme);
 
   if (emit) {
     emitThemeChange(normalized);

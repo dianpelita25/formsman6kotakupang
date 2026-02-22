@@ -10,13 +10,13 @@ function createActionLink(label, href, className = 'action-link') {
 
 export function tenantTypeLabel(type) {
   const normalized = String(type || '').trim().toLowerCase();
-  if (normalized === 'school') return 'School';
-  if (normalized === 'business') return 'Business';
-  if (normalized === 'government') return 'Government';
-  if (normalized === 'class') return 'Class';
-  if (normalized === 'community') return 'Community';
+  if (normalized === 'school') return 'Sekolah';
+  if (normalized === 'business') return 'Usaha';
+  if (normalized === 'government') return 'Pemerintah';
+  if (normalized === 'class') return 'Kelas';
+  if (normalized === 'community') return 'Komunitas';
   if (normalized === 'event') return 'Event';
-  return 'Other';
+  return 'Lainnya';
 }
 
 export function formatDateTime(value) {

@@ -44,5 +44,5 @@ runDashboardInit({
   runtime,
   parseRouteContext: parseDashboardRouteContext,
 }).catch((error) => {
-  runtime.presentError(error, 'Gagal memuat dashboard questionnaire.');
+  runtime.presentError(error, 'Gagal memuat dashboard kuesioner.');
 });

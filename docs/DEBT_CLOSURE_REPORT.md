@@ -8,8 +8,8 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 - Penanggung jawab: Codex
 - Scope release/PR: F0 closure D01..D15
 - Catatan umum: D01-D15 sudah resmi ditutup setelah gate lokal PASS, commit proof sudah masuk ke `main`, dan branch protection required checks tervalidasi.
-- Addendum terbaru: 2026-02-22 (D29-D31)
-- Scope addendum: closure D29 (public performance), D30 (public dashboard), dan final governance D31 by proof.
+- Addendum terbaru: 2026-02-22 (D32 kickoff)
+- Scope addendum: contract lock cycle D32-D37 untuk normalisasi Bahasa Indonesia UI + remediation readability light mode.
 
 ## Daftar Debt Ditutup
 
@@ -119,6 +119,12 @@ Jika ada temuan baru saat implementasi:
 | D28 | Release governance final lock (UAT refresh + baseline tag + debt closure) | `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md`, `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md`, `docs/DOCS_INDEX.md`, `docs/DEBT_CLOSURE_REPORT.md`, `docs/DEBT_REGISTER_LOCKED.md` | CLOSED. Proof commit `c67b7ab0d6d6c717edb7e302ab4f757fc36d4eef`; gate governance PASS (`pnpm check:modularity`, `pnpm check:debt-register`, `pnpm check:architecture`), dan baseline tag final `release-d27-final-2026-02-20` traceable ke `565345f99f3ccff7271fc7233289120eef6df293`. |
 | D29 | Public performance stabilization (premium look, light render cost) | `public/forms/styles.css`, `public/shared/top-nav.css`, `public/shared/theme/theme-runtime.js`, `public/shared/top-nav.js`, `scripts/smoke-ux-perf-public.js`, `package.json`, `.github/workflows/modularity-guardrails.yml` | CLOSED. Proof commit `b248e48f13769efd128bbccac3dc8f9a6f9ea137`; local+live gate PASS: `pnpm check:architecture`, `pnpm check:debt-register`, `pnpm smoke:e2e`, `pnpm smoke:ux:mobile`, `pnpm smoke:ux:contrast-nav`, `pnpm smoke:ux:perf-public`, `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`, `pnpm smoke:ux:contrast-nav -- --base-url https://aitiglobal.link`, `pnpm smoke:ux:perf-public -- --base-url https://aitiglobal.link`. |
 | D30 | Public dashboard mode read-only (aggregate only + privacy lock) | `docs/PUBLIC_DASHBOARD_CONTRACT_D30.md`, `src/http/routes/public-form-routes.js`, `src/http/routes/public-dashboard-routes.js`, `src/modules/questionnaires/public-dashboard-service.js`, `public/forms/public-dashboard.*`, `scripts/smoke-public-dashboard.js`, `scripts/visual-public-dashboard-diff.js`, `package.json`, `.github/workflows/modularity-guardrails.yml` | CLOSED. Proof commit `0fc64d9c503fc1bdf29439002b84a6ad3190c57e`; contract/privacy/UX gate PASS: `pnpm check:architecture`, `pnpm check:debt-register`, `pnpm smoke:e2e`, `pnpm smoke:admin:ui`, `pnpm smoke:public-dashboard`, `pnpm visual:public-dashboard:diff`, `pnpm visual:questionnaire-dashboard:diff`, `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link`, `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`. |
+| D32 | Contract lock Bahasa Indonesia UI + readability light mode | `docs/UI_UX_LANGUAGE_READABILITY_CONTRACT_D32.md`, `docs/DOCS_INDEX.md`, `docs/DEBT_REGISTER_LOCKED.md`, `docs/DEBT_CLOSURE_REPORT.md` | READY_FOR_CLOSE. Contract lock aktif dan seluruh gate lokal governance PASS (`pnpm check:modularity`, `pnpm check:debt-register`, `pnpm check:architecture`). |
+| D33 | Admin core language normalization (superadmin + nav) | `public/shared/top-nav.js`, `public/admin/superadmin.html`, `public/admin/superadmin/**`, `public/admin/login.html`, `public/admin/select-school.html` | READY_FOR_CLOSE. Label admin core sudah Indonesia konsisten; gate lokal PASS (`pnpm smoke:admin:ui`, `pnpm smoke:ux:mobile`, `pnpm smoke:ux:theme`, `pnpm smoke:ux:language-id`). |
+| D34 | Admin dashboard + legacy language normalization | `public/admin/school.html`, `public/admin/questionnaire-builder.html`, `public/admin/questionnaire-dashboard.html`, `public/admin/dashboard.html`, `public/dashboard.html`, `public/shared/dashboard-legacy/ai/modes.js` | READY_FOR_CLOSE. Surface admin modern+legacy tersinkron Bahasa Indonesia; gate lokal PASS (`pnpm smoke:e2e`, `pnpm smoke:admin:ui`, visual dashboard). |
+| D35 | Public surface language normalization | `public/forms/portal.html`, `public/forms/portal.js`, `public/forms/public-dashboard.html`, `public/forms/public-dashboard/loader.js`, `public/forms/public-dashboard/view.js`, `public/forms/index.html` | READY_FOR_CLOSE. Surface publik tidak lagi mixed language non-serapan; gate lokal PASS (`pnpm smoke:ux:mobile`, `pnpm smoke:public-dashboard`, `pnpm smoke:ux:language-id`). |
+| D36 | Light mode readability remediation (WCAG AA) | `public/admin/admin.css`, `public/admin/dashboard.css`, `public/dashboard.css`, `public/forms/portal.css`, `public/forms/public-dashboard.css`, `public/shared/theme/theme-tokens.css`, `public/shared/top-nav.css` | READY_FOR_CLOSE. Kontras light mode sudah tervalidasi oleh gate lokal (`pnpm smoke:ux:contrast-nav`, `pnpm smoke:ux:theme`, `pnpm smoke:ux:mobile`, `pnpm smoke:ux:perf-public`, `pnpm smoke:ux:contrast-aa`). |
+| D37 | Gate automation language-id + contrast-aa + final closure governance | `scripts/smoke-ux-language-id.js`, `scripts/smoke-ux-contrast-aa.js`, `package.json`, `.github/workflows/modularity-guardrails.yml`, `temuan-ui-ux-2026-02-23-after/**` | READY_FOR_CLOSE. Gate baru aktif lokal (`pnpm smoke:ux:language-id`, `pnpm smoke:ux:contrast-aa`) dan bukti after-fix tersimpan di `temuan-ui-ux-2026-02-23-after/screenshots/`. |
 
 ## Final Closure D31 (2026-02-22)
 
@@ -147,6 +153,50 @@ Jika ada temuan baru saat implementasi:
    - `668f95e610baf3761566a74e246b1fa682a2136c` (D30-2 backend/API)
    - `88abc76a45edf275c3b52ed90b7565749088517f` (D30-3 frontend/dashboard publik)
    - `0fc64d9c503fc1bdf29439002b84a6ad3190c57e` (D30-4 smoke + visual + CI gate)
+
+## Kickoff D32 (2026-02-22)
+
+1. Kontrak resmi cycle baru ditetapkan di `docs/UI_UX_LANGUAGE_READABILITY_CONTRACT_D32.md`.
+2. Debt baru D32-D37 sudah diregistrasi di `docs/DEBT_REGISTER_LOCKED.md` dengan gate lock eksplisit.
+3. Baseline temuan visual sebelum perbaikan dirujuk dari:
+   - `temuan-ui-ux-2026-02-22/screenshots/11-superadmin-overview-desktop-fresh.png`
+   - `temuan-ui-ux-2026-02-22/screenshots/12-superadmin-tenant-type-options-mixed-language.png`
+   - `temuan-ui-ux-2026-02-22/screenshots/13-superadmin-prompt-scope-options-mixed-language.png`
+   - `temuan-ui-ux-2026-02-22/screenshots/18-superadmin-mobile-fresh.png`
+   - `temuan-ui-ux-2026-02-22/screenshots/08-questionnaire-dashboard.png`
+
+## Update D32-D37 (2026-02-23, Local Gate Evidence)
+
+1. Gate lokal full PASS:
+   - `pnpm check:modularity`
+   - `pnpm check:debt-register`
+   - `pnpm check:architecture`
+   - `pnpm smoke:e2e`
+   - `pnpm smoke:admin:ui`
+   - `pnpm smoke:ux:mobile`
+   - `pnpm smoke:ux:theme`
+   - `pnpm smoke:ux:contrast-nav`
+   - `pnpm smoke:ux:perf-public`
+   - `pnpm smoke:public-dashboard`
+   - `pnpm smoke:ux:language-id`
+   - `pnpm smoke:ux:contrast-aa`
+   - `pnpm visual:legacy-dashboard:diff`
+   - `pnpm visual:questionnaire-dashboard:diff`
+   - `pnpm visual:public-dashboard:diff`
+2. Additional regression smoke PASS:
+   - `pnpm smoke:dashboard:parity`
+   - `pnpm smoke:dashboard:pdf`
+3. Bukti screenshot after-fix:
+   - `temuan-ui-ux-2026-02-23-after/screenshots/21-superadmin-overview-desktop-after.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/22-superadmin-tenant-type-options-id.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/23-superadmin-prompt-scope-options-id.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/25-questionnaire-dashboard-desktop-after.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/26-portal-mobile-after.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/27-superadmin-mobile-after.png`
+   - `temuan-ui-ux-2026-02-23-after/screenshots/28-public-dashboard-mobile-after.png`
+4. Status debt register saat ini:
+   - D32-D37 dinaikkan ke `READY_FOR_CLOSE` berbasis proof command lokal.
+   - Closure `CLOSED` menunggu proof commit final + proof CI/live sesuai protocol governance.
 
 ## Verifikasi D10
 

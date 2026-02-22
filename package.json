@@ -29,6 +29,8 @@
     "smoke:ux:mobile": "node scripts/smoke-ux-mobile.js",
     "smoke:ux:theme": "node scripts/smoke-ux-theme.js",
     "smoke:ux:contrast-nav": "node scripts/smoke-ux-contrast-nav.js",
+    "smoke:ux:language-id": "node scripts/smoke-ux-language-id.js",
+    "smoke:ux:contrast-aa": "node scripts/smoke-ux-contrast-aa.js",
     "smoke:ux:perf-public": "node scripts/smoke-ux-perf-public.js",
     "smoke:public-dashboard": "node scripts/smoke-public-dashboard.js",
     "smoke:dashboard:pdf": "node scripts/smoke-dashboard-pdf-playwright.js",

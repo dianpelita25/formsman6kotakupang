@@ -3,7 +3,7 @@ import { formatDateTime } from './formatters.js';
 function formatVersionOptionLabel(version) {
   const ver = Number(version.version || 0);
   const status = String(version.status || '').toLowerCase();
-  const statusLabel = status === 'published' ? 'publish' : status === 'draft' ? 'draft' : 'arsip';
+  const statusLabel = status === 'published' ? 'terpublikasi' : status === 'draft' ? 'draf' : 'arsip';
   const time = formatDateTime(version.publishedAt || version.createdAt);
   return `v${ver} - ${statusLabel} - ${time}`;
 }
@@ -17,7 +17,7 @@ export function createVersionHelpers({ state, filterVersionEl, api, baseApiPath 
 
     const activeOption = document.createElement('option');
     activeOption.value = '';
-    activeOption.textContent = 'Versi Publish Aktif';
+    activeOption.textContent = 'Versi Terpublikasi Aktif';
     filterVersionEl.append(activeOption);
 
     versions.forEach((version) => {

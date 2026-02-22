@@ -33,10 +33,10 @@
             <a class="global-nav__link is-hidden" data-nav-link="dashboard" href="#">Dashboard</a>
           </div>
           <div class="global-nav__group global-nav__group--utility">
-            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Admin Login</a>
-            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Superadmin</a>
+            <a class="global-nav__link global-nav__link--login" href="/forms/admin/login">Masuk Admin</a>
+            <a class="global-nav__link global-nav__link--superadmin" href="/forms/admin/">Admin Utama</a>
             <span class="global-nav__theme-slot" data-theme-toggle></span>
-            <button class="global-nav__logout is-hidden" type="button">Logout</button>
+            <button class="global-nav__logout is-hidden" type="button">Keluar</button>
           </div>
         </div>
       </div>
@@ -57,7 +57,7 @@
               >Buka Form Publik</a
             >
             <a id="export-csv-link" href="#" class="ghost" style="padding: 9px 12px; border-radius: 8px; text-decoration: none"
-              >Export CSV</a
+              >Ekspor CSV</a
             >
           </div>
         </div>
@@ -70,7 +70,7 @@
           <label class="field">
             <span>Versi Data</span>
             <select id="filter-version">
-              <option value="">Versi Publish Aktif</option>
+              <option value="">Versi Terpublikasi Aktif</option>
             </select>
           </label>
           <label class="field">
@@ -133,7 +133,7 @@
         <details id="visual-visibility-settings" class="dashboard-visibility-settings">
           <summary>Atur Visual yang Ditampilkan</summary>
           <div class="dashboard-visibility-settings__body">
-            <p class="small">Semua visual tampil default. Anda bisa sembunyikan panel yang belum dibutuhkan.</p>
+            <p class="small">Semua visual tampil awal. Anda bisa sembunyikan panel yang belum dibutuhkan.</p>
             <div class="dashboard-visibility-preset">
               <label class="field">
                 <span>Preset Tampilan</span>
@@ -230,7 +230,7 @@
               </label>
               <div class="segment-controls__actions">
                 <button id="segment-apply-filter-btn" type="button" class="ghost">Terapkan Drilldown</button>
-                <button id="segment-clear-filter-btn" type="button" class="ghost">Clear Filter</button>
+                <button id="segment-clear-filter-btn" type="button" class="ghost">Reset Filter</button>
               </div>
               <label class="field">
                 <span>Bandingkan Bucket (maks 3)</span>
@@ -293,8 +293,8 @@
               <span>Mode Analisis</span>
               <select id="ai-mode">
                 <option value="internal">Internal</option>
-                <option value="external_pemerintah">External Pemerintah</option>
-                <option value="external_mitra">External Mitra</option>
+                <option value="external_pemerintah">Eksternal Pemerintah</option>
+                <option value="external_mitra">Eksternal Mitra</option>
                 <option value="live_guru">Live Guru</option>
               </select>
             </label>
@@ -341,6 +341,7 @@
     <script type="module" src="/forms-static/admin/questionnaire-dashboard/index.js?v=20260218-16"></script>
   </body>
 </html>
+
 
 
 

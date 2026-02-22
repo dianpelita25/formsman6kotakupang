@@ -200,7 +200,7 @@ function createLogoutButton() {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'global-nav__logout is-hidden';
-  button.textContent = 'Logout';
+  button.textContent = 'Keluar';
   return button;
 }
 
@@ -240,13 +240,13 @@ function ensureNavStructure() {
       const loginLink =
         inner.querySelector('.global-nav__link--login') ||
         Array.from(inner.querySelectorAll('.global-nav__link')).find((el) => String(el.getAttribute('href') || '').trim() === '/forms/admin/login') ||
-        createLink('/forms/admin/login', 'Admin Login', 'global-nav__link--login');
+        createLink('/forms/admin/login', 'Masuk Admin', 'global-nav__link--login');
       loginLink.classList.add('global-nav__link--login');
 
       const superadminLink =
         inner.querySelector('.global-nav__link--superadmin') ||
         Array.from(inner.querySelectorAll('.global-nav__link')).find((el) => String(el.getAttribute('href') || '').trim() === '/forms/admin/') ||
-        createLink('/forms/admin/', 'Superadmin', 'global-nav__link--superadmin');
+        createLink('/forms/admin/', 'Admin Utama', 'global-nav__link--superadmin');
       superadminLink.classList.add('global-nav__link--superadmin');
 
       const themeSlot =
@@ -292,7 +292,7 @@ function ensureNavStructure() {
         loginLink =
           Array.from(utilityGroup.querySelectorAll('.global-nav__link')).find(
             (el) => String(el.getAttribute('href') || '').trim() === '/forms/admin/login'
-          ) || createLink('/forms/admin/login', 'Admin Login', 'global-nav__link--login');
+          ) || createLink('/forms/admin/login', 'Masuk Admin', 'global-nav__link--login');
         loginLink.classList.add('global-nav__link--login');
         utilityGroup.prepend(loginLink);
       }
@@ -301,7 +301,7 @@ function ensureNavStructure() {
       if (!superadminLink) {
         superadminLink =
           Array.from(utilityGroup.querySelectorAll('.global-nav__link')).find((el) => String(el.getAttribute('href') || '').trim() === '/forms/admin/') ||
-          createLink('/forms/admin/', 'Superadmin', 'global-nav__link--superadmin');
+          createLink('/forms/admin/', 'Admin Utama', 'global-nav__link--superadmin');
         superadminLink.classList.add('global-nav__link--superadmin');
         loginLink.insertAdjacentElement('afterend', superadminLink);
       }

@@ -11,6 +11,13 @@ export function createPromptChip(label, value) {
   return chip;
 }
 
+function formatScopeLabel(scope) {
+  const normalized = String(scope || '').trim().toLowerCase();
+  if (normalized === 'questionnaire') return 'Override Kuesioner';
+  if (normalized === 'tenant') return 'Override Organisasi';
+  return 'Global';
+}
+
 export function resolveDraftTemplate(bundle, selection) {
   if (!bundle) return '';
   if (selection.scope === 'questionnaire') {
@@ -66,18 +73,18 @@ export function renderPromptEffective({
 }) {
   if (!bundle?.effective) {
     refs.promptEffectiveMetaEl.innerHTML = '';
-    refs.promptEffectiveEl.textContent = 'Belum ada effective prompt.';
+    refs.promptEffectiveEl.textContent = 'Belum ada prompt efektif.';
     return;
   }
 
   const source =
     bundle.effective.source === 'questionnaire'
-      ? 'override questionnaire'
+      ? 'override kuesioner'
       : bundle.effective.source === 'tenant'
-        ? 'override tenant'
+        ? 'override organisasi'
         : bundle.effective.source === 'global'
           ? 'global'
-          : 'fallback';
+          : 'cadangan';
 
   const effectiveTenant =
     bundle.effective.tenantId && getTenantById(bundle.effective.tenantId)
@@ -90,11 +97,11 @@ export function renderPromptEffective({
   refs.promptEffectiveMetaEl.innerHTML = '';
   refs.promptEffectiveMetaEl.append(
     createPromptChip('Mode', modeLabels[bundle.mode] || bundle.mode),
-    createPromptChip('Source', source),
-    createPromptChip('Scope', selection.scope),
-    createPromptChip('Tenant', selection.scope === 'global' ? '-' : effectiveTenant),
-    createPromptChip('Questionnaire', effectiveQuestionnaire?.name || '-'),
-    createPromptChip('Published', formatDateTime(bundle.effective.publishedAt))
+    createPromptChip('Sumber', source),
+    createPromptChip('Cakupan', formatScopeLabel(selection.scope)),
+    createPromptChip('Organisasi', selection.scope === 'global' ? '-' : effectiveTenant),
+    createPromptChip('Kuesioner', effectiveQuestionnaire?.name || '-'),
+    createPromptChip('Terpublikasi', formatDateTime(bundle.effective.publishedAt))
   );
   refs.promptEffectiveEl.textContent = bundle.effective.template || '';
 }
@@ -114,9 +121,9 @@ export function updatePromptDraftMeta({
   const templateLength = String(refs.promptTemplateEl.value || '').length;
   const noteLength = String(refs.promptChangeNoteEl.value || '').length;
 
-  refs.promptDraftMetaEl.textContent = `Draft ${modeLabels[selection.mode] || selection.mode} | Scope: ${
+  refs.promptDraftMetaEl.textContent = `Template Draf ${modeLabels[selection.mode] || selection.mode} | Cakupan: ${formatScopeLabel(
     selection.scope
-  } | Tenant: ${tenantName} | Questionnaire: ${questionnaireName} | Template: ${templateLength} karakter | Catatan: ${noteLength}/500`;
+  )} | Organisasi: ${tenantName} | Kuesioner: ${questionnaireName} | Template: ${templateLength} karakter | Catatan: ${noteLength}/500`;
 }
 
 export function renderPromptHistoryRows({
@@ -149,13 +156,13 @@ export function renderPromptHistoryRows({
       const tenant = getTenantById(entry.tenantId);
       const questionnaire = questionnaireCache.find((item) => item.id === entry.questionnaireId);
       scopeCell.textContent = questionnaire
-        ? `questionnaire: ${questionnaire.name} @ ${tenant?.name || '-'}`
-        : `questionnaire: ${entry.questionnaireId || '-'}`;
+        ? `kuesioner: ${questionnaire.name} @ ${tenant?.name || '-'}`
+        : `kuesioner: ${entry.questionnaireId || '-'}`;
     } else if (entry.scope === 'tenant') {
       const tenant = getTenantById(entry.tenantId);
-      scopeCell.textContent = tenant ? `tenant: ${tenant.name}` : `tenant: ${entry.tenantId || '-'}`;
+      scopeCell.textContent = tenant ? `organisasi: ${tenant.name}` : `organisasi: ${entry.tenantId || '-'}`;
     } else {
-      scopeCell.textContent = 'global';
+      scopeCell.textContent = 'Global';
     }
     row.append(scopeCell);
 

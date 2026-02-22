@@ -1,5 +1,10 @@
-import { renderPromptEffective, renderPromptHistoryRows, resolveDraftTemplate, resolvePublishedTemplate, updatePromptDraftMeta as renderPromptDraftMeta } from './prompt-manager-view.js';
-
+import {
+  renderPromptEffective,
+  renderPromptHistoryRows,
+  resolveDraftTemplate,
+  resolvePublishedTemplate,
+  updatePromptDraftMeta as renderPromptDraftMeta,
+} from './prompt-manager-view.js';
 export function createPromptManagerService({
   refs,
   state,
@@ -13,17 +18,22 @@ export function createPromptManagerService({
   pushActivity,
   setErrorDebugPanel,
 }) {
+  function formatScopeLabel(scope) {
+    const normalized = String(scope || '').trim().toLowerCase();
+    if (normalized === 'questionnaire') return 'override_kuesioner';
+    if (normalized === 'tenant') return 'override_organisasi';
+    return 'global';
+  }
   function mapQuestionnaireOptions(questionnaires) {
     refs.promptQuestionnaireSelectEl.innerHTML = '';
     state.questionnaireCache = questionnaires || [];
     if (!state.questionnaireCache.length) {
       const option = document.createElement('option');
       option.value = '';
-      option.textContent = 'Belum ada questionnaire';
+      option.textContent = 'Belum ada kuesioner';
       refs.promptQuestionnaireSelectEl.append(option);
       return;
     }
-
     state.questionnaireCache.forEach((questionnaire) => {
       const option = document.createElement('option');
       option.value = questionnaire.id;
@@ -39,7 +49,7 @@ export function createPromptManagerService({
       return;
     }
     try {
-      const payload = await api(`/forms/${tenant.slug}/admin/api/questionnaires`, undefined, 'Load questionnaire tenant');
+      const payload = await api(`/forms/${tenant.slug}/admin/api/questionnaires`, undefined, 'Muat kuesioner organisasi');
       mapQuestionnaireOptions(payload.data || []);
     } catch {
       mapQuestionnaireOptions([]);
@@ -80,7 +90,6 @@ export function createPromptManagerService({
       questionnaireCache: state.questionnaireCache,
     });
   }
-
   function revealErrorDebug(error) {
     if (refs.errorDebugWrapEl) {
       refs.errorDebugWrapEl.hidden = false;
@@ -88,7 +97,6 @@ export function createPromptManagerService({
     }
     setErrorDebugPanel(refs.errorDebugEl, error);
   }
-
   async function loadPromptManager() {
     syncPromptScopeUi();
     const selection = getPromptSelection();
@@ -96,10 +104,10 @@ export function createPromptManagerService({
       state.promptBundleCache = null;
       refs.promptTemplateEl.value = '';
       refs.promptEffectiveMetaEl.innerHTML = '';
-      refs.promptEffectiveEl.textContent = 'Pilih tenant dulu untuk override prompt.';
+      refs.promptEffectiveEl.textContent = 'Pilih organisasi dulu untuk override prompt.';
       renderPromptHistoryRows({ refs, rows: [], getTenantById, questionnaireCache: state.questionnaireCache, formatDateTime });
       updatePromptDraftMeta();
-      setPromptStatus('Pilih tenant untuk scope override.', 'warning');
+      setPromptStatus('Pilih organisasi untuk cakupan override.', 'warning');
       return;
     }
     if (selection.scope === 'questionnaire') {
@@ -108,21 +116,17 @@ export function createPromptManagerService({
         state.promptBundleCache = null;
         refs.promptTemplateEl.value = '';
         refs.promptEffectiveMetaEl.innerHTML = '';
-        refs.promptEffectiveEl.textContent = 'Pilih questionnaire untuk override prompt.';
+        refs.promptEffectiveEl.textContent = 'Pilih kuesioner untuk override prompt.';
         renderPromptHistoryRows({ refs, rows: [], getTenantById, questionnaireCache: state.questionnaireCache, formatDateTime });
         updatePromptDraftMeta();
-        setPromptStatus('Pilih questionnaire untuk scope override.', 'warning');
+        setPromptStatus('Pilih kuesioner untuk cakupan override.', 'warning');
         return;
       }
     }
     try {
-      setPromptStatus('Memuat prompt manager...');
+      setPromptStatus('Memuat pengelola prompt...');
       const query = toPromptQuery(getPromptSelection());
-      const [bundlePayload, historyPayload] = await Promise.all([
-        requestJson(`/forms/admin/api/ai-prompts?${query}`),
-        requestJson(`/forms/admin/api/ai-prompts/history?${query}`),
-      ]);
-
+      const [bundlePayload, historyPayload] = await Promise.all([requestJson(`/forms/admin/api/ai-prompts?${query}`), requestJson(`/forms/admin/api/ai-prompts/history?${query}`)]);
       state.promptBundleCache = bundlePayload.data;
       refs.promptTemplateEl.value = resolveDraftTemplate(state.promptBundleCache, getPromptSelection());
       renderPromptEffective({
@@ -142,19 +146,21 @@ export function createPromptManagerService({
         formatDateTime,
       });
       updatePromptDraftMeta();
-      setPromptStatus('Prompt manager siap.', 'success');
-      pushActivity('success', 'Load prompt manager', `${getPromptSelection().mode} / ${getPromptSelection().scope}`);
+      setPromptStatus('Pengelola prompt siap.', 'success');
+      pushActivity('success', 'Muat pengelola prompt', `${getPromptSelection().mode} / ${formatScopeLabel(getPromptSelection().scope)}`);
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
       revealErrorDebug(error);
-      pushActivity('error', 'Load prompt manager', normalized.message);
+      pushActivity('error', 'Muat pengelola prompt', normalized.message);
     }
   }
   async function savePromptDraft() {
     const selection = getPromptSelection();
-    if (selection.scope !== 'global' && !selection.tenantId) return setPromptStatus('Pilih tenant untuk menyimpan override.', 'warning');
-    if (selection.scope === 'questionnaire' && !selection.questionnaireId) return setPromptStatus('Pilih questionnaire untuk menyimpan override.', 'warning');
+    if (selection.scope !== 'global' && !selection.tenantId)
+      return setPromptStatus('Pilih organisasi untuk menyimpan override.', 'warning');
+    if (selection.scope === 'questionnaire' && !selection.questionnaireId)
+      return setPromptStatus('Pilih kuesioner untuk menyimpan override.', 'warning');
     const template = String(refs.promptTemplateEl.value || '').trim();
     if (!template) return setPromptStatus('Template prompt tidak boleh kosong.', 'warning');
     try {
@@ -164,39 +170,41 @@ export function createPromptManagerService({
         body: JSON.stringify({ mode: selection.mode, scope: selection.scope, tenantId: selection.scope === 'global' ? undefined : selection.tenantId, questionnaireId: selection.scope === 'questionnaire' ? selection.questionnaireId : undefined, template, changeNote: String(refs.promptChangeNoteEl.value || '').trim() }),
       });
       setPromptStatus('Draft prompt berhasil disimpan.', 'success');
-      pushActivity('success', 'Save prompt draft', `${selection.mode} / ${selection.scope}`);
+      pushActivity('success', 'Simpan draf prompt', `${selection.mode} / ${formatScopeLabel(selection.scope)}`);
       await loadPromptManager();
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
       revealErrorDebug(error);
-      pushActivity('error', 'Save prompt draft', normalized.message);
+      pushActivity('error', 'Simpan draf prompt', normalized.message);
     }
   }
   async function publishPrompt() {
     const selection = getPromptSelection();
-    if (selection.scope !== 'global' && !selection.tenantId) return setPromptStatus('Pilih tenant untuk publish override.', 'warning');
-    if (selection.scope === 'questionnaire' && !selection.questionnaireId) return setPromptStatus('Pilih questionnaire untuk publish override.', 'warning');
+    if (selection.scope !== 'global' && !selection.tenantId)
+      return setPromptStatus('Pilih organisasi untuk memublikasikan override.', 'warning');
+    if (selection.scope === 'questionnaire' && !selection.questionnaireId)
+      return setPromptStatus('Pilih kuesioner untuk memublikasikan override.', 'warning');
     try {
       await requestJson('/forms/admin/api/ai-prompts/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: selection.mode, scope: selection.scope, tenantId: selection.scope === 'global' ? undefined : selection.tenantId, questionnaireId: selection.scope === 'questionnaire' ? selection.questionnaireId : undefined, changeNote: String(refs.promptChangeNoteEl.value || '').trim() }),
       });
-      setPromptStatus('Prompt berhasil dipublish.', 'success');
-      pushActivity('success', 'Publish prompt', `${selection.mode} / ${selection.scope}`);
+      setPromptStatus('Prompt berhasil dipublikasikan.', 'success');
+      pushActivity('success', 'Publikasikan prompt', `${selection.mode} / ${formatScopeLabel(selection.scope)}`);
       await loadPromptManager();
     } catch (error) {
       const normalized = normalizeUiError(error);
       setPromptStatus(normalized.message, 'error');
       revealErrorDebug(error);
-      pushActivity('error', 'Publish prompt', normalized.message);
+      pushActivity('error', 'Publikasikan prompt', normalized.message);
     }
   }
   function resetPromptToPublished() {
     refs.promptTemplateEl.value = resolvePublishedTemplate(state.promptBundleCache, getPromptSelection());
     updatePromptDraftMeta();
-    setPromptStatus('Draft direset ke versi published saat ini.', 'success');
+    setPromptStatus('Draf direset ke versi terpublikasi saat ini.', 'success');
   }
   function focusPromptOverride(tenantId) {
     refs.promptScopeEl.value = 'tenant';
@@ -205,14 +213,5 @@ export function createPromptManagerService({
     refs.promptPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     loadPromptManager();
   }
-  return {
-    loadPromptManager,
-    loadQuestionnairesForSelectedTenant,
-    syncPromptScopeUi,
-    updatePromptDraftMeta,
-    savePromptDraft,
-    publishPrompt,
-    resetPromptToPublished,
-    focusPromptOverride,
-  };
+  return { loadPromptManager, loadQuestionnairesForSelectedTenant, syncPromptScopeUi, updatePromptDraftMeta, savePromptDraft, publishPrompt, resetPromptToPublished, focusPromptOverride };
 }

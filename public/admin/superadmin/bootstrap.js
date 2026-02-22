@@ -61,20 +61,20 @@ export function bootstrapSuperadminRuntime() {
   });
 
   async function loadMe() {
-    const payload = await api('/forms/admin/api/me', undefined, 'Validasi sesi superadmin');
+    const payload = await api('/forms/admin/api/me', undefined, 'Validasi sesi Admin Utama');
     if (!payload.user?.isSuperadmin) {
-      throw new Error('Akun ini bukan superadmin.');
+      throw new Error('Akun ini bukan Admin Utama.');
     }
     refs.userInfoEl.textContent = `Login sebagai ${payload.user.email}`;
     status.pushActivity('success', 'Sesi valid', payload.user.email);
   }
 
   async function loadTenants() {
-    const payload = await api('/forms/admin/api/tenants', undefined, 'Load daftar tenant');
+    const payload = await api('/forms/admin/api/tenants', undefined, 'Muat daftar organisasi');
     state.tenantCache = Array.isArray(payload.data) ? payload.data : [];
     tenantTable.renderTenants(state.tenantCache);
     tenantTable.mapTenantOptions(state.tenantCache);
-    status.pushActivity('success', 'Load tenant', `${state.tenantCache.length} organisasi`);
+    status.pushActivity('success', 'Muat organisasi', `${state.tenantCache.length} organisasi`);
   }
 
   async function executeTenantStatusToggle() {
@@ -91,7 +91,7 @@ export function bootstrapSuperadminRuntime() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isActive: pending.next }),
         },
-        'Toggle tenant status'
+        'Ubah status organisasi'
       );
       await loadTenants();
       await promptManager.loadPromptManager();
@@ -99,7 +99,7 @@ export function bootstrapSuperadminRuntime() {
       status.setStatus('Status organisasi berhasil diperbarui.', 'success');
       status.pushActivity(
         'success',
-        'Toggle tenant status',
+        'Ubah status organisasi',
         `${pending.tenantName} -> ${pending.next ? 'aktif' : 'nonaktif'}`
       );
     } catch {
@@ -111,7 +111,7 @@ export function bootstrapSuperadminRuntime() {
     status.setStatus(normalized.message, 'error', originalError);
     status.pushActivity(
       'error',
-      'Runtime error',
+      'Error runtime',
       `${normalized.method || '-'} ${normalized.path || '-'} (status ${normalized.status || '-'})`
     );
   });
@@ -138,7 +138,7 @@ export function bootstrapSuperadminRuntime() {
       promptManager.syncPromptScopeUi();
       await promptManager.loadQuestionnairesForSelectedTenant();
       await promptManager.loadPromptManager();
-      status.setStatus('Panel superadmin siap dipakai.', 'success');
+      status.setStatus('Panel Admin Utama siap dipakai.', 'success');
     } catch {
       window.location.href = `/forms/admin/login?redirect=${encodeURIComponent('/forms/admin/')}`;
     }

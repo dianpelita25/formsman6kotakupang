@@ -271,3 +271,17 @@ body {
 :root[data-theme-scope='modern'][data-theme='light'] .status-debug-wrap summary {
   color: var(--text-soft);
 }
+
+:root[data-theme-scope='modern'][data-theme='light'] .dashboard-hero p,
+:root[data-theme-scope='modern'][data-theme='light'] .insufficient-panel p,
+:root[data-theme-scope='modern'][data-theme='light'] .metric-card p {
+  color: #35547f;
+}
+
+:root[data-theme-scope='modern'][data-theme='light'] .distribution-table td {
+  color: #1f3d67;
+}
+
+:root[data-theme-scope='modern'][data-theme='light'] .status {
+  color: #35547f;
+}

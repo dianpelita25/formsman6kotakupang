@@ -118,7 +118,7 @@ bindSchoolAdminEvents({
 bindRuntimeErrorHandlers((normalized, originalError) => {
   setStatus(normalized.message, 'error');
   setError(originalError);
-  pushActivity('error', 'Runtime error', normalized.message);
+  pushActivity('error', 'Error runtime', normalized.message);
 });
 
 async function init() {

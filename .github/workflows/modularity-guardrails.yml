@@ -347,6 +347,90 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:ux:contrast-nav
 
+  smoke-ux-language-id:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping language-id UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run language-id UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:language-id
+
+  smoke-ux-contrast-aa:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping contrast AA UX smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright browser
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run contrast AA UX smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:ux:contrast-aa
+
   smoke-ux-perf-public:
     needs:
       - check-architecture
@@ -441,6 +525,8 @@ jobs:
       - smoke-ux-mobile
       - smoke-ux-theme
       - smoke-ux-contrast-nav
+      - smoke-ux-language-id
+      - smoke-ux-contrast-aa
       - smoke-ux-perf-public
       - smoke-public-dashboard
     runs-on: ubuntu-latest
@@ -501,6 +587,8 @@ jobs:
     needs:
       - check-architecture
       - smoke-public-dashboard
+      - smoke-ux-language-id
+      - smoke-ux-contrast-aa
     runs-on: ubuntu-latest
     env:
       VISUAL_DIFF_PUBLIC_DASHBOARD_MAX_RATIO: '0.05'
