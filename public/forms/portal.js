@@ -60,12 +60,18 @@ function renderTenants(items) {
   items.forEach((tenant) => {
     const defaultQuestionnaire = resolveDefaultQuestionnaire(tenant);
     const publicFormLink = defaultQuestionnaire ? `/forms/${tenant.slug}/${defaultQuestionnaire.slug}/` : '';
+    const publicDashboardLink = defaultQuestionnaire
+      ? `/forms/${tenant.slug}/${defaultQuestionnaire.slug}/dashboard/`
+      : '';
 
     const card = document.createElement('article');
     card.className = 'school-card';
     const publicAction = defaultQuestionnaire
       ? `<a href="${publicFormLink}">Buka Form Publik</a>`
       : '<span class="action-disabled">Form publik belum tersedia</span>';
+    const dashboardAction = defaultQuestionnaire
+      ? `<a href="${publicDashboardLink}">Dashboard Publik</a>`
+      : '<span class="action-disabled">Dashboard publik belum tersedia</span>';
     card.innerHTML = `
       <h3>${tenant.name}</h3>
       <p class="school-meta">Slug: ${tenant.slug}</p>
@@ -73,6 +79,7 @@ function renderTenants(items) {
       <p class="school-meta">Questionnaire: ${defaultQuestionnaire ? defaultQuestionnaire.name : 'Belum tersedia'}</p>
       <div class="school-actions">
         ${publicAction}
+        ${dashboardAction}
         <a href="/forms/${tenant.slug}/admin/">Panel Organisasi</a>
       </div>
     `;

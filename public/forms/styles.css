@@ -203,6 +203,10 @@ body::after {
   background: var(--theme-button-ghost-hover-bg, rgba(16, 31, 63, 0.86));
 }
 
+.admin-entry-link--dashboard {
+  border-color: rgba(44, 227, 255, 0.42);
+}
+
 .theme-toggle-slot {
   display: inline-flex;
 }
