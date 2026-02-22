@@ -8,6 +8,8 @@ Dokumen ini dipakai saat menutup debt ID pada `docs/DEBT_REGISTER_LOCKED.md`.
 - Penanggung jawab: Codex
 - Scope release/PR: F0 closure D01..D15
 - Catatan umum: D01-D15 sudah resmi ditutup setelah gate lokal PASS, commit proof sudah masuk ke `main`, dan branch protection required checks tervalidasi.
+- Addendum terbaru: 2026-02-22 (D29-D31)
+- Scope addendum: closure D29 (public performance), D30 (public dashboard), dan final governance D31 by proof.
 
 ## Daftar Debt Ditutup
 
@@ -72,6 +74,19 @@ Catat output ringkas command berikut (dengan timestamp bila perlu):
 6. `pnpm visual:legacy-dashboard:diff` (jika scope dashboard/PDF)
 7. `pnpm visual:questionnaire-dashboard:diff` (jika scope dashboard/PDF)
 
+### Bukti Baseline Release D27 (D28-2)
+
+1. Merge commit baseline D27: `565345f99f3ccff7271fc7233289120eef6df293`  
+   `https://github.com/dianpelita25/formsman6kotakupang/commit/565345f99f3ccff7271fc7233289120eef6df293`
+2. Tag final baseline: `release-d27-final-2026-02-20` -> menunjuk ke commit `565345f99f3ccff7271fc7233289120eef6df293`.
+3. Worker version baseline: `24d2e0d6-e6d4-405e-bc02-cd98e0f4a37f`.
+4. Rujukan bukti existing di report ini:
+   - Tabel `Residual Debt / New Findings` item `D24`: deploy proof `24d2e0d6-e6d4-405e-bc02-cd98e0f4a37f`.
+   - Tabel `Residual Debt / New Findings` item `D25`.
+   - Tabel `Residual Debt / New Findings` item `D26`.
+   - Tabel `Residual Debt / New Findings` item `D27`: gate contrast/nav live PASS + deploy production SUCCESS.
+5. Tanggal lock baseline: `2026-02-20`.
+
 Referensi CI strict:
 
 1. Commit proof referensi closure:
@@ -101,6 +116,37 @@ Jika ada temuan baru saat implementasi:
 | D25 | Global nav IA desktop (contextual compact) | `public/shared/top-nav.css`, `public/shared/top-nav.js`, nav shell HTML modern/legacy | CLOSED. Proof commit `4ba456c54955fe34dfa9910660ce423cd9d208ac`; nav group hierarchy + auth/context visibility aktif; `pnpm smoke:admin:ui` PASS, `pnpm smoke:ux:contrast-nav` PASS local+live. |
 | D26 | Mobile nav drawer + affordance polish | `public/shared/top-nav.css`, `public/shared/top-nav.js`, `public/forms/styles.css` | CLOSED. Proof commit `4ba456c54955fe34dfa9910660ce423cd9d208ac`; drawer behavior dan overflow/tap affordance PASS via `pnpm smoke:ux:mobile` local+live serta `pnpm smoke:ux:contrast-nav` live. |
 | D27 | UX regression gate contrast+nav + CI wiring | `scripts/smoke-ux-contrast-nav.js`, `scripts/smoke-ux-mobile.js`, `package.json`, `.github/workflows/modularity-guardrails.yml`, `src/lib/security/hash.js` | CLOSED. Proof commit `4ba456c54955fe34dfa9910660ce423cd9d208ac`; gate baru aktif + PASS, deploy production berhasil. Tambahan hardening operasional: PBKDF2 target dibatasi aman untuk Worker (`100000`) dan akun superadmin dimigrasi ke iterasi kompatibel agar smoke live tidak terblokir login. |
+| D28 | Release governance final lock (UAT refresh + baseline tag + debt closure) | `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md`, `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md`, `docs/DOCS_INDEX.md`, `docs/DEBT_CLOSURE_REPORT.md`, `docs/DEBT_REGISTER_LOCKED.md` | CLOSED. Proof commit `c67b7ab0d6d6c717edb7e302ab4f757fc36d4eef`; gate governance PASS (`pnpm check:modularity`, `pnpm check:debt-register`, `pnpm check:architecture`), dan baseline tag final `release-d27-final-2026-02-20` traceable ke `565345f99f3ccff7271fc7233289120eef6df293`. |
+| D29 | Public performance stabilization (premium look, light render cost) | `public/forms/styles.css`, `public/shared/top-nav.css`, `public/shared/theme/theme-runtime.js`, `public/shared/top-nav.js`, `scripts/smoke-ux-perf-public.js`, `package.json`, `.github/workflows/modularity-guardrails.yml` | CLOSED. Proof commit `b248e48f13769efd128bbccac3dc8f9a6f9ea137`; local+live gate PASS: `pnpm check:architecture`, `pnpm check:debt-register`, `pnpm smoke:e2e`, `pnpm smoke:ux:mobile`, `pnpm smoke:ux:contrast-nav`, `pnpm smoke:ux:perf-public`, `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`, `pnpm smoke:ux:contrast-nav -- --base-url https://aitiglobal.link`, `pnpm smoke:ux:perf-public -- --base-url https://aitiglobal.link`. |
+| D30 | Public dashboard mode read-only (aggregate only + privacy lock) | `docs/PUBLIC_DASHBOARD_CONTRACT_D30.md`, `src/http/routes/public-form-routes.js`, `src/http/routes/public-dashboard-routes.js`, `src/modules/questionnaires/public-dashboard-service.js`, `public/forms/public-dashboard.*`, `scripts/smoke-public-dashboard.js`, `scripts/visual-public-dashboard-diff.js`, `package.json`, `.github/workflows/modularity-guardrails.yml` | CLOSED. Proof commit `0fc64d9c503fc1bdf29439002b84a6ad3190c57e`; contract/privacy/UX gate PASS: `pnpm check:architecture`, `pnpm check:debt-register`, `pnpm smoke:e2e`, `pnpm smoke:admin:ui`, `pnpm smoke:public-dashboard`, `pnpm visual:public-dashboard:diff`, `pnpm visual:questionnaire-dashboard:diff`, `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link`, `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`. |
+
+## Final Closure D31 (2026-02-22)
+
+1. Status debt `D29` dan `D30` di `docs/DEBT_REGISTER_LOCKED.md` sudah ditutup ke `CLOSED` dengan `Proof Commit`, `Proof Commands`, dan `Tanggal Tutup`.
+2. Full gate lokal PASS:
+   - `pnpm check:modularity`
+   - `pnpm check:debt-register`
+   - `pnpm check:architecture`
+   - `pnpm smoke:e2e`
+   - `pnpm smoke:admin:ui`
+   - `pnpm smoke:ux:mobile`
+   - `pnpm smoke:ux:contrast-nav`
+   - `pnpm smoke:ux:perf-public`
+   - `pnpm smoke:public-dashboard`
+   - `pnpm smoke:dashboard:parity`
+   - `pnpm visual:legacy-dashboard:diff`
+   - `pnpm visual:questionnaire-dashboard:diff`
+   - `pnpm visual:public-dashboard:diff`
+3. Live proof PASS pada `https://aitiglobal.link`:
+   - `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:contrast-nav -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:perf-public -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`
+4. Commit implementasi cycle D30:
+   - `668f95e610baf3761566a74e246b1fa682a2136c` (D30-2 backend/API)
+   - `88abc76a45edf275c3b52ed90b7565749088517f` (D30-3 frontend/dashboard publik)
+   - `0fc64d9c503fc1bdf29439002b84a6ad3190c57e` (D30-4 smoke + visual + CI gate)
 
 ## Verifikasi D10
 

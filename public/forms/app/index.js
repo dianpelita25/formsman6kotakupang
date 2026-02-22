@@ -17,6 +17,7 @@ const formProgress = document.getElementById('form-progress');
 const mobileSubmitBar = document.getElementById('mobile-submit-bar');
 const mobileSubmitProgress = document.getElementById('mobile-submit-progress');
 const mobileSubmitBtn = document.getElementById('mobile-submit-btn');
+const publicDashboardLink = document.getElementById('public-dashboard-link');
 
 let activeFields = [];
 const { setStatus } = createFormStatusController(statusMessage, statusDebugWrap, statusDebug);
@@ -28,6 +29,20 @@ const mobileMediaQuery =
 function escapeSelectorName(name) {
   if (window.CSS?.escape) return window.CSS.escape(name);
   return String(name || '').replace(/["\\]/g, '\\$&');
+}
+
+function resolvePublicDashboardPath() {
+  const parts = String(window.location.pathname || '')
+    .split('/')
+    .filter(Boolean);
+  if (parts.length < 3) return '';
+  if (parts[0] !== 'forms') return '';
+  const tenantSlug = String(parts[1] || '').trim();
+  const questionnaireSlug = String(parts[2] || '').trim();
+  if (!tenantSlug || !questionnaireSlug) return '';
+  if (tenantSlug === 'admin' || tenantSlug === 'api') return '';
+  if (questionnaireSlug === 'api' || questionnaireSlug === 'admin') return '';
+  return `/forms/${tenantSlug}/${questionnaireSlug}/dashboard/`;
 }
 
 function isFieldAnswered(field, form) {
@@ -112,6 +127,16 @@ loadSchema({
   const normalized = normalizeUiError(error, 'Gagal memuat form.');
   setStatus(normalized.message, 'error', error);
 });
+
+if (publicDashboardLink) {
+  const dashboardPath = resolvePublicDashboardPath();
+  if (dashboardPath) {
+    publicDashboardLink.href = dashboardPath;
+    publicDashboardLink.hidden = false;
+  } else {
+    publicDashboardLink.hidden = true;
+  }
+}
 
 syncMobileSubmitBarVisibility();
 updateProgress();
