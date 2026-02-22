@@ -200,6 +200,27 @@ Jika ada temuan baru saat implementasi:
    - Bukti visual/log D32-D37 diregistrasikan di `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`.
    - Folder bukti lokal tetap di-ignore (`temuan-ui-ux-2026-02-22/`, `temuan-ui-ux-2026-02-23-after/`) agar commit source tetap bersih.
 
+## Live Deploy Confirmation D32-D37 (2026-02-22)
+
+1. Deploy production dieksekusi dari `main` terbaru:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env production`
+   - Current Version ID: `83f31b93-3c51-42a1-a401-dda3a8293080`
+   - Routes aktif:
+     - `aitiglobal.link/forms*`
+     - `aitiglobal.link/formsman6kotakupang*`
+2. Verifikasi live konten Indonesia pada `https://aitiglobal.link/forms/admin/`:
+   - `Admin Utama Panel Organisasi`
+   - `Pengelola Prompt AI`
+   - `Masuk Admin`, `Admin Utama`, `Keluar`
+3. Verifikasi live asset:
+   - `GET /forms-static/shared/top-nav.js?v=20260220-3` memuat label `Masuk Admin`, `Admin Utama`, `Keluar`.
+   - `GET /forms-static/admin/superadmin/tenant-table.js` memuat mapping tipe `Sekolah/Usaha/Pemerintah`.
+4. Gate live tambahan:
+   - `pnpm smoke:ux:language-id -- --base-url https://aitiglobal.link` -> PASS (desktop + mobile).
+5. Savepoint rollback:
+   - `savepoint-predeploy-20260222-1` -> `7a5b329` (backfill untuk deploy ini).
+   - `savepoint-postdeploy-20260222-1` -> `7a5b329`.
+
 ## Verifikasi D10
 
 1. Branch protection API untuk `main` dan `backup/wip-20260218-1746` sudah mengembalikan `200`.

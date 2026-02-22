@@ -47,6 +47,30 @@ Dokumen ini menjadi registry bukti resmi untuk evidence visual/log yang disimpan
 2. `temuan-ui-ux-2026-02-22/log-smoke-ux-contrast-nav.txt`
 3. `temuan-ui-ux-2026-02-22/log-smoke-ux-theme.txt`
 
+### C. Bukti Live Deploy (Production)
+
+1. Deploy command:
+   - `pnpm exec wrangler deploy src/worker.js --env production`
+2. Worker version live:
+   - `83f31b93-3c51-42a1-a401-dda3a8293080`
+3. Live smoke:
+   - `pnpm smoke:ux:language-id -- --base-url https://aitiglobal.link` -> PASS.
+4. Marker verifikasi UI live:
+   - `/forms/admin/` menampilkan `Admin Utama Panel Organisasi`.
+   - `/forms/admin/` menampilkan `Pengelola Prompt AI`.
+   - `/forms-static/shared/top-nav.js` menampilkan `Masuk Admin`, `Admin Utama`, `Keluar`.
+5. Savepoint tags:
+   - `savepoint-predeploy-20260222-1` -> `7a5b329`
+   - `savepoint-postdeploy-20260222-1` -> `7a5b329`
+
+## Kebijakan Savepoint Sebelum Live
+
+1. Sebelum deploy production, wajib buat tag:
+   - `savepoint-predeploy-YYYYMMDD-N`
+2. Setelah deploy sukses, opsional buat:
+   - `savepoint-postdeploy-YYYYMMDD-N`
+3. Aturan ini dikunci di `docs/CLOUDFLARE_CUTOVER_RUNBOOK.md`.
+
 ## Re-assessment UAT Manual (Risk-Based, UI-Only Cycle)
 
 Untuk cycle `D32-D37`, perubahan bersifat UI copy + CSS readability, tanpa perubahan backend/API/schema.

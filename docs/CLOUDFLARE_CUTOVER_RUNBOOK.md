@@ -87,6 +87,28 @@ Catatan:
 - WAF adalah kontrol utama.
 - App fallback throttle tetap aktif di runtime (`429` setelah gagal berulang).
 
+## 3.5) Savepoint Wajib (Sebelum Deploy Production)
+
+Sebelum deploy production, buat savepoint git yang bisa dipakai rollback cepat.
+
+Langkah minimum:
+
+1. Pastikan branch sudah sinkron:
+   - `git checkout main`
+   - `git pull --ff-only origin main`
+2. Buat annotated tag savepoint:
+   - `git tag -a savepoint-predeploy-YYYYMMDD-N -m "Predeploy production savepoint (YYYY-MM-DD)"`
+3. Push tag ke remote:
+   - `git push origin savepoint-predeploy-YYYYMMDD-N`
+4. Verifikasi tag ada di remote:
+   - `git ls-remote --tags origin savepoint-predeploy-YYYYMMDD-N`
+
+Catatan:
+
+1. Tanpa savepoint tag, deploy production tidak boleh dijalankan.
+2. Jika deploy sukses, opsional buat tag postdeploy:
+   - `savepoint-postdeploy-YYYYMMDD-N`.
+
 ## 4) Deploy Production
 
 ```bash
