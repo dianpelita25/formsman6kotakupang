@@ -47,10 +47,25 @@ export async function listTenants(env) {
 export async function listActiveTenants(env) {
   const sql = getSqlClient(env);
   return sql`
-    SELECT id, slug, name, tenant_type
-    FROM tenants
+    SELECT
+      t.id,
+      t.slug,
+      t.name,
+      t.tenant_type,
+      dq.id AS default_questionnaire_id,
+      dq.slug AS default_questionnaire_slug,
+      dq.name AS default_questionnaire_name
+    FROM tenants t
+    LEFT JOIN LATERAL (
+      SELECT q.id, q.slug, q.name
+      FROM questionnaires q
+      WHERE q.tenant_id = t.id
+        AND q.is_active = TRUE
+      ORDER BY q.is_default DESC, q.created_at ASC
+      LIMIT 1
+    ) dq ON TRUE
     WHERE is_active = TRUE
-    ORDER BY name ASC;
+    ORDER BY t.name ASC;
   `;
 }
 

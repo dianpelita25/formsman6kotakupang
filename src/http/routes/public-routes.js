@@ -61,7 +61,6 @@ export function registerPublicRoutes(app, deps) {
     listPublicSchools,
     listPublicTenants,
     listPublicQuestionnairesByTenant,
-    findDefaultQuestionnaireByTenantId,
   } = deps;
 
   const serveAdminPageAsset = (c, internalPath) =>
@@ -111,19 +110,17 @@ export function registerPublicRoutes(app, deps) {
     });
 
     for (const tenant of tenants) {
-      const tenantId = String(tenant?.id || '').trim();
       const tenantSlug = String(tenant?.slug || '').trim();
-      if (!tenantId || !tenantSlug) continue;
+      if (!tenantSlug) continue;
 
-      let questionnaireSlug = '';
-      const defaultQuestionnaire = await findDefaultQuestionnaireByTenantId(c.env, tenantId);
-      questionnaireSlug = String(defaultQuestionnaire?.slug || '').trim();
-
-      if (!questionnaireSlug) {
-        const questionnaires = await listPublicQuestionnairesByTenant(c.env, tenantId);
-        const fallback = questionnaires.find((item) => item.isDefault) || questionnaires[0];
-        questionnaireSlug = String(fallback?.slug || '').trim();
-      }
+      const defaultQuestionnaire = tenant?.defaultQuestionnaire;
+      const questionnaireSlug =
+        String(
+          defaultQuestionnaire?.slug ||
+            tenant?.defaultQuestionnaireSlug ||
+            tenant?.default_questionnaire_slug ||
+            ''
+        ).trim();
 
       if (!questionnaireSlug) continue;
 
