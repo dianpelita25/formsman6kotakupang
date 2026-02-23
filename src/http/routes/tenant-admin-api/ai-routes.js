@@ -1,3 +1,5 @@
+import { buildSafeErrorExtra, INTERNAL_SERVER_ERROR_MESSAGE, logServerError } from '../../../lib/http/error-response.js';
+
 export function registerTenantAdminAiRoutes(app, deps) {
   const {
     tenantMiddleware,
@@ -34,7 +36,8 @@ export function registerTenantAdminAiRoutes(app, deps) {
         });
         return c.json({ data }, 200);
       } catch (error) {
-        return jsonError(c, 500, error?.message || 'Gagal menganalisa data questionnaire.');
+        logServerError('tenant-ai-analyze', c.get('requestId'), error);
+        return jsonError(c, 500, INTERNAL_SERVER_ERROR_MESSAGE, buildSafeErrorExtra('AI_ANALYZE_ERROR'));
       }
     }
   );
@@ -66,7 +69,8 @@ export function registerTenantAdminAiRoutes(app, deps) {
         });
         return c.json({ data }, 200);
       } catch (error) {
-        return jsonError(c, 500, error?.message || 'Gagal mengambil analisa questionnaire.');
+        logServerError('tenant-ai-latest', c.get('requestId'), error);
+        return jsonError(c, 500, INTERNAL_SERVER_ERROR_MESSAGE, buildSafeErrorExtra('AI_FETCH_ERROR'));
       }
     }
   );

@@ -1,3 +1,5 @@
+import { DB_UNREADY_ERROR_MESSAGE, logServerError } from '../../lib/http/error-response.js';
+
 const NOINDEX_ROBOTS_HEADER = 'noindex, nofollow, noarchive';
 const ASSET_CACHE_SHORT = 'public, max-age=300, stale-while-revalidate=60';
 const ASSET_CACHE_IMMUTABLE = 'public, max-age=31536000, immutable';
@@ -75,7 +77,8 @@ export function registerPublicRoutes(app, deps) {
       await ensurePlatformSchema(c.env);
       return c.json({ ok: true, runtime: 'cloudflare-worker-hono', db: 'ready' });
     } catch (error) {
-      return c.json({ ok: false, db: 'unready', message: error?.message || 'Database belum siap.' }, 503);
+      logServerError('health-db', c.get('requestId'), error);
+      return c.json({ ok: false, db: 'unready', message: DB_UNREADY_ERROR_MESSAGE, code: 'DB_UNREADY' }, 503);
     }
   });
 

@@ -13,6 +13,7 @@ import {
 } from './http/runtime-helpers.js';
 import { ensurePlatformSchema, LEGACY_REDIRECT_PREFIX, LEGACY_SCHOOL_SLUG } from './lib/db/bootstrap.js';
 import { enforceAdminOrigin, monitorAdminOrigin, requireJsonMutationPayload } from './lib/http/request-guards.js';
+import { buildSafeErrorExtra, INTERNAL_SERVER_ERROR_MESSAGE, logServerError } from './lib/http/error-response.js';
 import { buildSessionCookieOptions, SESSION_COOKIE_NAME } from './lib/http/session-cookie.js';
 import { getAnalyticsDistribution, getAnalyticsSummary, getAnalyticsTrend } from './modules/analytics/service.js';
 import {
@@ -110,7 +111,9 @@ app.use('*', async (c, next) => {
 });
 
 app.onError((error, c) => {
-  return jsonError(c, 500, error?.message || 'Terjadi kesalahan internal server.');
+  const requestId = resolveRequestId(c);
+  logServerError('worker-unhandled-error', requestId, error);
+  return jsonError(c, 500, INTERNAL_SERVER_ERROR_MESSAGE, buildSafeErrorExtra('INTERNAL_ERROR'));
 });
 
 app.use('/forms/admin/api/*', requireDbReady, attachAuth, monitorAdminOrigin, enforceAdminOrigin, requireJsonMutationPayload);
