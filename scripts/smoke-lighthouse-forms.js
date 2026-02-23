@@ -53,8 +53,35 @@ function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+async function waitFor(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url, init = {}, options = {}) {
+  const attempts = Math.max(1, Number(options.attempts || 3));
+  const baseDelayMs = Math.max(0, Number(options.baseDelayMs || 400));
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, init);
+      if (response.status >= 500 && attempt < attempts) {
+        await waitFor(baseDelayMs * attempt);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts) break;
+      await waitFor(baseDelayMs * attempt);
+    }
+  }
+
+  throw lastError || new Error(`Fetch gagal setelah ${attempts} percobaan: ${url}`);
+}
+
 async function resolveTargetQuestionnaire(baseUrl) {
-  const tenantsRes = await fetch(`${baseUrl}/forms/api/tenants/public`);
+  const tenantsRes = await fetchWithRetry(`${baseUrl}/forms/api/tenants/public`, {}, { attempts: 4, baseDelayMs: 500 });
   if (!tenantsRes.ok) {
     throw new Error(`Gagal memuat tenant publik: status=${tenantsRes.status}`);
   }
@@ -68,7 +95,11 @@ async function resolveTargetQuestionnaire(baseUrl) {
     const tenantSlug = String(tenant?.slug || '').trim();
     if (!tenantSlug) continue;
 
-    const questionnairesRes = await fetch(`${baseUrl}/forms/${tenantSlug}/api/questionnaires/public`);
+    const questionnairesRes = await fetchWithRetry(
+      `${baseUrl}/forms/${tenantSlug}/api/questionnaires/public`,
+      {},
+      { attempts: 3, baseDelayMs: 400 }
+    );
     if (!questionnairesRes.ok) continue;
 
     const questionnairesPayload = await questionnairesRes.json().catch(() => ({}));
@@ -108,13 +139,17 @@ async function warmupUrl(url) {
   // Warm up Worker + edge cache to reduce cold-start noise across samples.
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      await fetch(url, {
-        method: 'GET',
-        headers: {
-          'cache-control': 'no-cache',
+      await fetchWithRetry(
+        url,
+        {
+          method: 'GET',
+          headers: {
+            'cache-control': 'no-cache',
+          },
         },
-      });
-      await new Promise((resolve) => setTimeout(resolve, 250));
+        { attempts: 2, baseDelayMs: 250 }
+      );
+      await waitFor(250);
     } catch {
       // Ignore warmup errors; Lighthouse run will enforce actual result.
     }
