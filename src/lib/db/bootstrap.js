@@ -21,6 +21,7 @@ import {
   createFormVersionLookupIndex,
   createFormVersionStatusUniqueIndexes,
   createMembershipIndexes,
+  createLoginThrottleIndexes,
   createPromptIndexes,
   createQuestionnaireLegacyVersionIndex,
   createQuestionnaireLookupIndexes,
@@ -111,6 +112,7 @@ async function initializeSchema(env) {
 
   await createSessionAndAiTables(sql);
   await createSessionIndex(sql);
+  await createLoginThrottleIndexes(sql);
   await createAiIndexes(sql);
 
   await createPromptTables(sql);

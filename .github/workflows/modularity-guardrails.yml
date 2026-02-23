@@ -224,6 +224,44 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: pnpm smoke:admin:ui
 
+  smoke-auth-throttle:
+    needs:
+      - check-architecture
+      - smoke-ux-builder-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine smoke prerequisites
+        id: guard
+        run: |
+          if [ -n "${DATABASE_URL}" ] && [ -n "${SESSION_SECRET}" ] && [ -n "${SUPERADMIN_EMAIL}" ] && [ -n "${SUPERADMIN_PASSWORD}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping auth throttle smoke (missing required secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.guard.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run auth throttle smoke tests
+        if: steps.guard.outputs.run == 'true'
+        run: pnpm smoke:auth:throttle
+
   smoke-ux-mobile:
     needs:
       - check-architecture
@@ -655,6 +693,7 @@ jobs:
       - smoke-dashboard-pdf
       - smoke-e2e
       - smoke-admin-ui
+      - smoke-auth-throttle
       - smoke-ux-mobile
       - smoke-ux-theme
       - smoke-ux-contrast-nav
