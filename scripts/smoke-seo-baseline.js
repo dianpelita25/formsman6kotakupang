@@ -182,7 +182,34 @@ async function run() {
   assertions.expect('sitemap.xml exclude /forms/admin/', !sitemapXml.includes('/forms/admin/'));
   assertions.expect('sitemap.xml exclude /dashboard/', !sitemapXml.includes('/dashboard/'));
 
+  const portalRes = await fetch(`${baseUrl}/forms`);
+  const portalCsp = String(portalRes.headers.get('content-security-policy') || '').trim();
+  const portalFrame = String(portalRes.headers.get('x-frame-options') || '').trim();
+  const portalNosniff = String(portalRes.headers.get('x-content-type-options') || '').trim();
+  const portalReferrer = String(portalRes.headers.get('referrer-policy') || '').trim();
+
   const adminLoginRes = await fetch(`${baseUrl}/forms/admin/login`);
+  assertions.expect(
+    'portal CSP header exists',
+    Boolean(portalCsp),
+    'content-security-policy header kosong'
+  );
+  assertions.expect(
+    'portal X-Frame-Options DENY',
+    portalFrame.toUpperCase() === 'DENY',
+    `header=${portalFrame || '<empty>'}`
+  );
+  assertions.expect(
+    'portal X-Content-Type-Options nosniff',
+    portalNosniff.toLowerCase() === 'nosniff',
+    `header=${portalNosniff || '<empty>'}`
+  );
+  assertions.expect(
+    'portal Referrer-Policy exists',
+    Boolean(portalReferrer),
+    'referrer-policy header kosong'
+  );
+
   assertions.expect(
     'admin login X-Robots-Tag noindex',
     /noindex/i.test(String(adminLoginRes.headers.get('x-robots-tag') || '')),

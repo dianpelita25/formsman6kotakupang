@@ -9,11 +9,14 @@ function requireEnv(env, key) {
 export async function callGemini(env, prompt) {
   const apiKey = requireEnv(env, 'GEMINI_API_KEY');
   const model = requireEnv(env, 'GEMINI_MODEL');
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
     body: JSON.stringify({
       contents: [
         {

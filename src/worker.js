@@ -15,6 +15,7 @@ import { ensurePlatformSchema, LEGACY_REDIRECT_PREFIX, LEGACY_SCHOOL_SLUG } from
 import { enforceAdminOrigin, monitorAdminOrigin, requireJsonMutationPayload } from './lib/http/request-guards.js';
 import { buildSafeErrorExtra, INTERNAL_SERVER_ERROR_MESSAGE, logServerError } from './lib/http/error-response.js';
 import { buildSessionCookieOptions, SESSION_COOKIE_NAME } from './lib/http/session-cookie.js';
+import { applySecurityHeaders } from './lib/http/security-headers.js';
 import { getAnalyticsDistribution, getAnalyticsSummary, getAnalyticsTrend } from './modules/analytics/service.js';
 import {
   analyzeSchoolAi,
@@ -101,12 +102,9 @@ app.use('*', async (c, next) => {
   await next();
 
   if (c.res) {
-    try {
-      c.res.headers.set('x-request-id', requestId);
-    } catch {
-      c.res = new Response(c.res.body, c.res);
-      c.res.headers.set('x-request-id', requestId);
-    }
+    const securedResponse = applySecurityHeaders(c.res);
+    securedResponse.headers.set('x-request-id', requestId);
+    c.res = securedResponse;
   }
 });
 
