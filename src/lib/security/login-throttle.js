@@ -1,6 +1,6 @@
-const LOGIN_THROTTLE_WINDOW_MS = 10 * 60 * 1000;
-const LOGIN_THROTTLE_MAX_FAILURES = 5;
-const LOGIN_THROTTLE_BLOCK_MS = 15 * 60 * 1000;
+export const LOGIN_THROTTLE_WINDOW_MS = 10 * 60 * 1000;
+export const LOGIN_THROTTLE_MAX_FAILURES = 5;
+export const LOGIN_THROTTLE_BLOCK_MS = 15 * 60 * 1000;
 
 const attemptsByKey = new Map();
 
@@ -10,27 +10,32 @@ function normalizeEmail(value) {
     .toLowerCase();
 }
 
-function buildThrottleKey(ipAddress, email) {
+export function buildThrottleKey(ipAddress, email) {
   const ip = String(ipAddress || '').trim() || 'unknown-ip';
   const normalizedEmail = normalizeEmail(email) || 'unknown-email';
   return `${ip}|${normalizedEmail}`;
 }
 
+export function normalizeThrottleRecord(record, now = Date.now()) {
+  const source = record && typeof record === 'object' ? record : {};
+  const failureCandidates = Array.isArray(source.failures) ? source.failures : [];
+  const filteredFailures = failureCandidates
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && now - value <= LOGIN_THROTTLE_WINDOW_MS);
+
+  return {
+    failures: filteredFailures,
+    blockedUntil: Number(source.blockedUntil || 0),
+    lastSeenAt: now,
+  };
+}
+
 function getThrottleRecord(key, now = Date.now()) {
   const existing = attemptsByKey.get(key);
   if (!existing) {
-    return {
-      failures: [],
-      blockedUntil: 0,
-      lastSeenAt: now,
-    };
+    return normalizeThrottleRecord(null, now);
   }
-  const filteredFailures = existing.failures.filter((timestamp) => now - timestamp <= LOGIN_THROTTLE_WINDOW_MS);
-  return {
-    failures: filteredFailures,
-    blockedUntil: Number(existing.blockedUntil || 0),
-    lastSeenAt: now,
-  };
+  return normalizeThrottleRecord(existing, now);
 }
 
 function saveThrottleRecord(key, record, now = Date.now()) {

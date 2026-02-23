@@ -1,9 +1,9 @@
 import {
-  checkLoginThrottle,
-  recordLoginFailure,
-  resetLoginThrottle,
+  checkLoginThrottleHybrid,
+  recordLoginFailureHybrid,
+  resetLoginThrottleHybrid,
   resolveLoginThrottleIp,
-} from '../../lib/security/login-throttle.js';
+} from '../../modules/auth/login-throttle-service.js';
 
 export function registerAdminApiRoutes(app, deps) {
   const {
@@ -40,7 +40,7 @@ export function registerAdminApiRoutes(app, deps) {
       .trim()
       .toLowerCase();
     const ipAddress = resolveLoginThrottleIp(c.req);
-    const throttleState = checkLoginThrottle({
+    const throttleState = await checkLoginThrottleHybrid(c.env, {
       ipAddress,
       email: normalizedEmail,
     });
@@ -57,14 +57,14 @@ export function registerAdminApiRoutes(app, deps) {
     const result = await loginWithEmailPassword(c.env, payload);
     if (!result.ok) {
       if (result.status === 401) {
-        recordLoginFailure({
+        await recordLoginFailureHybrid(c.env, {
           ipAddress,
           email: normalizedEmail,
         });
       }
       return jsonError(c, result.status, result.message);
     }
-    resetLoginThrottle({
+    await resetLoginThrottleHybrid(c.env, {
       ipAddress,
       email: normalizedEmail,
     });

@@ -103,6 +103,18 @@ export async function createSessionIndex(sql) {
   `;
 }
 
+export async function createLoginThrottleIndexes(sql) {
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_login_throttle_state_blocked_until
+    ON login_throttle_state (blocked_until);
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_login_throttle_state_updated_at
+    ON login_throttle_state (updated_at DESC);
+  `;
+}
+
 export async function createAiIndexes(sql) {
   await sql`
     CREATE UNIQUE INDEX IF NOT EXISTS uq_ai_analysis_v2_legacy_id

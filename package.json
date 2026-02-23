@@ -34,6 +34,7 @@
     "smoke:ux:contrast-aa": "node scripts/smoke-ux-contrast-aa.js",
     "smoke:ux:perf-public": "node scripts/smoke-ux-perf-public.js",
     "smoke:ux:css-payload": "node scripts/smoke-ux-css-payload.js",
+    "smoke:auth:throttle": "node scripts/smoke-auth-throttle.js",
     "smoke:public-dashboard": "node scripts/smoke-public-dashboard.js",
     "smoke:seo:baseline": "node scripts/smoke-seo-baseline.js",
     "smoke:lighthouse:forms": "node scripts/smoke-lighthouse-forms.js",

@@ -55,4 +55,28 @@ export async function createSessionAndAiTables(sql) {
     ALTER TABLE ai_analysis
     ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'internal';
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS login_throttle_state (
+      key_hash TEXT PRIMARY KEY,
+      failures_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+      blocked_until TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+
+  await sql`
+    ALTER TABLE login_throttle_state
+    ADD COLUMN IF NOT EXISTS failures_json JSONB NOT NULL DEFAULT '[]'::jsonb;
+  `;
+
+  await sql`
+    ALTER TABLE login_throttle_state
+    ADD COLUMN IF NOT EXISTS blocked_until TIMESTAMPTZ;
+  `;
+
+  await sql`
+    ALTER TABLE login_throttle_state
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `;
 }
