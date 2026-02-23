@@ -123,22 +123,61 @@ async function run() {
   const baseUrl = isExternal ? externalBaseUrl : localServer.baseUrl;
   const target = await resolveTargetQuestionnaire(baseUrl);
 
-  const robotsRes = await fetch(`${baseUrl}/robots.txt`);
-  const robotsText = await robotsRes.text();
-  assertions.expect('robots.txt status', robotsRes.status === 200, `status=${robotsRes.status}`);
-  assertions.expect('robots.txt allow /forms', robotsText.includes('Allow: /forms'));
-  assertions.expect('robots.txt disallow /forms/admin/', robotsText.includes('Disallow: /forms/admin/'));
-  assertions.expect('robots.txt disallow /forms/*/admin/', robotsText.includes('Disallow: /forms/*/admin/'));
+  const robotsCandidates = [`${baseUrl}/robots.txt`, `${baseUrl}/forms/robots.txt`];
+  let robotsText = '';
+  let robotsSource = '';
+  let robotsStatus = 0;
+  for (const candidate of robotsCandidates) {
+    const response = await fetch(candidate);
+    const text = await response.text();
+    if (response.status === 200 && text.includes('Allow: /forms')) {
+      robotsText = text;
+      robotsSource = candidate;
+      robotsStatus = response.status;
+      break;
+    }
+    if (!robotsSource && response.status === 200) {
+      robotsText = text;
+      robotsSource = candidate;
+      robotsStatus = response.status;
+    }
+  }
+  assertions.expect('robots.txt status', robotsStatus === 200, `status=${robotsStatus}, source=${robotsSource || '<none>'}`);
+  assertions.expect('robots.txt allow /forms', robotsText.includes('Allow: /forms'), `source=${robotsSource || '<none>'}`);
+  assertions.expect('robots.txt disallow /forms/admin/', robotsText.includes('Disallow: /forms/admin/'), `source=${robotsSource || '<none>'}`);
+  assertions.expect('robots.txt disallow /forms/*/admin/', robotsText.includes('Disallow: /forms/*/admin/'), `source=${robotsSource || '<none>'}`);
   assertions.expect(
     'robots.txt disallow public dashboard',
-    robotsText.includes('Disallow: /forms/*/*/dashboard/')
+    robotsText.includes('Disallow: /forms/*/*/dashboard/'),
+    `source=${robotsSource || '<none>'}`
   );
-  assertions.expect('robots.txt sitemap pointer', robotsText.includes('/sitemap.xml'));
+  assertions.expect(
+    'robots.txt sitemap pointer',
+    robotsText.includes('/sitemap.xml') || robotsText.includes('/forms/sitemap.xml'),
+    `source=${robotsSource || '<none>'}`
+  );
 
-  const sitemapRes = await fetch(`${baseUrl}/sitemap.xml`);
-  const sitemapXml = await sitemapRes.text();
-  assertions.expect('sitemap.xml status', sitemapRes.status === 200, `status=${sitemapRes.status}`);
-  assertions.expect('sitemap.xml urlset', /<urlset\b/i.test(sitemapXml), 'tag <urlset> tidak ditemukan');
+  const sitemapCandidates = [`${baseUrl}/sitemap.xml`, `${baseUrl}/forms/sitemap.xml`];
+  let sitemapXml = '';
+  let sitemapSource = '';
+  let sitemapStatus = 0;
+  for (const candidate of sitemapCandidates) {
+    const response = await fetch(candidate);
+    const text = await response.text();
+    if (response.status === 200 && /<urlset\b/i.test(text)) {
+      sitemapXml = text;
+      sitemapSource = candidate;
+      sitemapStatus = response.status;
+      break;
+    }
+    if (!sitemapSource && response.status === 200) {
+      sitemapXml = text;
+      sitemapSource = candidate;
+      sitemapStatus = response.status;
+    }
+  }
+  assertions.expect('sitemap.xml status', sitemapStatus === 200, `status=${sitemapStatus}, source=${sitemapSource || '<none>'}`);
+  assertions.expect('sitemap.xml urlset', /<urlset\b/i.test(sitemapXml), `tag <urlset> tidak ditemukan, source=${sitemapSource || '<none>'}`);
   assertions.expect('sitemap.xml include /forms', sitemapXml.includes('/forms</loc>') || sitemapXml.includes('/forms/</loc>'));
   assertions.expect('sitemap.xml exclude /forms/admin/', !sitemapXml.includes('/forms/admin/'));
   assertions.expect('sitemap.xml exclude /dashboard/', !sitemapXml.includes('/dashboard/'));

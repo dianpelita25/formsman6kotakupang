@@ -29,6 +29,23 @@ function buildSitemapXml(origin, entries) {
   return ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', rows, '</urlset>'].join('\n');
 }
 
+function buildRobotsText(origin, sitemapPath) {
+  const safeOrigin = String(origin || '').replace(/\/+$/, '');
+  const safeSitemapPath = String(sitemapPath || '/sitemap.xml').startsWith('/')
+    ? String(sitemapPath || '/sitemap.xml')
+    : `/${String(sitemapPath || 'sitemap.xml')}`;
+  const lines = [
+    'User-agent: *',
+    'Allow: /forms',
+    'Disallow: /forms/admin/',
+    'Disallow: /forms/*/admin/',
+    'Disallow: /forms/*/*/dashboard/',
+    '',
+    `Sitemap: ${safeOrigin}${safeSitemapPath}`,
+  ];
+  return lines.join('\n');
+}
+
 export function registerPublicRoutes(app, deps) {
   const {
     ensurePlatformSchema,
@@ -68,28 +85,18 @@ export function registerPublicRoutes(app, deps) {
     return c.redirect(`/forms/${LEGACY_SCHOOL_SLUG}${rest}`, 301);
   });
 
-  app.get('/robots.txt', (c) => {
+  const respondRobots = (c, sitemapPath = '/sitemap.xml') => {
     const origin = new URL(c.req.url).origin;
-    const lines = [
-      'User-agent: *',
-      'Allow: /forms',
-      'Disallow: /forms/admin/',
-      'Disallow: /forms/*/admin/',
-      'Disallow: /forms/*/*/dashboard/',
-      '',
-      `Sitemap: ${origin}/sitemap.xml`,
-    ];
-
-    return new Response(lines.join('\n'), {
+    return new Response(buildRobotsText(origin, sitemapPath), {
       status: 200,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': ASSET_CACHE_SHORT,
       },
     });
-  });
+  };
 
-  app.get('/sitemap.xml', requireDbReady, async (c) => {
+  const respondSitemap = async (c) => {
     const origin = new URL(c.req.url).origin;
     const tenants = await listPublicTenants(c.env);
     const sitemapEntries = new Map();
@@ -133,7 +140,12 @@ export function registerPublicRoutes(app, deps) {
         'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
       },
     });
-  });
+  };
+
+  app.get('/robots.txt', (c) => respondRobots(c, '/sitemap.xml'));
+  app.get('/forms/robots.txt', (c) => respondRobots(c, '/forms/sitemap.xml'));
+  app.get('/sitemap.xml', requireDbReady, respondSitemap);
+  app.get('/forms/sitemap.xml', requireDbReady, respondSitemap);
 
   app.get('/forms-static/*', async (c) => {
     const prefix = '/forms-static/';
