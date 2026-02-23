@@ -1,49 +1,58 @@
-# AITI Forms Multi-Sekolah (Cloudflare Worker + Hono)
+# AITI Forms Multi-Tenant (Cloudflare Worker + Hono)
 
-Modular monolith untuk form feedback multi-sekolah di path:
+Status baseline (ACTIVE):
+- As of: 2026-02-23
+- Branch baseline: `main`
+- Closure status: D11-D41 CLOSED by proof (lihat debt register + closure report)
 
-- `https://aitiglobal.link/forms/{schoolSlug}`
+## Start Here (Wajib Baca Dulu)
 
-Dengan fitur:
+Urutan baca untuk AI agent/dev agar tidak loop:
+1. `docs/DOCS_INDEX.md`
+2. `docs/DEBT_REGISTER_LOCKED.md`
+3. `docs/DEBT_CLOSURE_REPORT.md`
+4. `docs/MODULAR_MONOLITH_GUARDRAILS.md`
+5. `docs/ANTI_ENDLESS_REFACTOR_PROTOCOL.md`
 
-- Multi-tenant school (`schools`)
-- Tenant generic (`tenants`) dengan `tenant_type`
-- Forms portal terpadu (`/forms`)
-- Form builder per sekolah (`draft -> publish`)
-- Multi-questionnaire per tenant (`/forms/{tenantSlug}/{questionnaireSlug}`)
-- Responses + analytics core (`q1..q12`)
-- AI analysis per sekolah
-- Prompt AI editable via superadmin + tenant admin (`global + tenant + questionnaire override`, `draft -> publish`)
-- Auth login user+role (`superadmin`, `school_admin`)
-- Session cookie ditandatangani HMAC (`SESSION_SECRET`)
-- Dashboard visual school admin (`/forms/:schoolSlug/admin/dashboard/`)
-
-## Stack
-
-- Cloudflare Worker + Hono (`src/worker.js`)
-- Neon PostgreSQL
-- Static assets dari `public/` via Workers assets binding
-
-## Start Here (Dokumentasi)
-
-Sebelum baca dokumen lain, mulai dari:
-
-- `docs/DOCS_INDEX.md`
-
-Di situ sudah dipisahkan dokumen aktif (source of truth) vs dokumen referensi historis agar tidak bingung status.
-
-Untuk validasi hardening sebelum rilis/UAT:
-
+Checklist UAT canonical:
 - `docs/UAT_CHECKLIST_HARDENING.md`
 
-## 1) Setup
+Catatan:
+- File root `UAT_CHECKLIST_HARDENING.md` hanya pointer agar tidak terjadi drift konten.
+
+## Ringkasan Fitur Runtime
+
+- Portal publik terpadu: `/forms`
+- Form publik:
+  - legacy school slug: `/forms/:schoolSlug`
+  - multi-tenant questionnaire: `/forms/:tenantSlug/:questionnaireSlug/`
+- Public dashboard read-only:
+  - page: `/forms/:tenantSlug/:questionnaireSlug/dashboard/`
+  - API:
+    - `/forms/:tenantSlug/:questionnaireSlug/api/dashboard/summary`
+    - `/forms/:tenantSlug/:questionnaireSlug/api/dashboard/distribution`
+    - `/forms/:tenantSlug/:questionnaireSlug/api/dashboard/trend`
+- Admin:
+  - superadmin: `/forms/admin/`
+  - tenant admin: `/forms/:tenantSlug/admin/`
+  - builder: `/forms/:tenantSlug/admin/questionnaires/:questionnaireSlug/builder/`
+  - dashboard admin: `/forms/:tenantSlug/admin/questionnaires/:questionnaireSlug/dashboard/`
+- SEO defensive baseline:
+  - `GET /robots.txt`, `GET /forms/robots.txt`
+  - `GET /sitemap.xml`, `GET /forms/sitemap.xml`
+  - admin pages + public dashboard page: noindex header/meta
+- Static delivery policy:
+  - `/forms-static/*?v=...` -> immutable cache
+  - `/forms-static/*` tanpa `v` -> short cache
+
+## Setup Lokal
 
 ```bash
 pnpm install
 copy .env.example .env
 ```
 
-Isi `.env` minimal:
+Isi minimal `.env`:
 
 ```env
 DATABASE_URL=postgres://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require
@@ -56,229 +65,98 @@ ENABLE_LEGACY_ADMIN_ALIAS=true
 SESSION_SECRET=replace-this-secret
 SUPERADMIN_EMAIL=admin@aiti.local
 SUPERADMIN_PASSWORD=supersecret123
+CLOUDFLARE_API_TOKEN=for-deploy-only
 ```
 
-Keterangan env:
-
-- `APP_ENV`: `local | staging | production`
-- `DB_BOOTSTRAP_MODE`: `full | check` (disarankan `full` untuk lokal/script migrasi, `check` untuk staging/production agar tidak kena limit subrequest Cloudflare)
-- `ENABLE_LEGACY_ADMIN_ALIAS`: aktif/nonaktif alias `/admin/*` (default production = `false`)
-
-## 2) Migrasi dan seed akun awal
+## DB Bootstrap dan Seed
 
 ```bash
 pnpm migrate:multi
 pnpm seed:superadmin
 ```
 
-`pnpm migrate:multi` akan:
-
-- membuat schema multi-tenant,
-- membuat sekolah legacy `sman6-kotakupang`,
-- memigrasikan data dari tabel legacy `form_responses` ke `responses`.
-
-## 3) Jalankan lokal
+## Menjalankan Aplikasi
 
 ```bash
 pnpm dev
 ```
 
-Smoke test cepat (tanpa write data):
-
-```bash
-pnpm smoke:e2e
-```
-
-Smoke test full (termasuk save/publish prompt):
-
-```bash
-pnpm smoke:e2e:full
-```
-
-Default local Worker:
-
+Entry lokal utama:
 - `http://localhost:8787/forms`
 - `http://localhost:8787/forms/admin/login`
 - `http://localhost:8787/forms/admin/`
-- `http://localhost:8787/forms/admin/select-school`
-- `http://localhost:8787/forms/sman6-kotakupang/`
-- `http://localhost:8787/forms/sman6-kotakupang/feedback-utama/`
-- `http://localhost:8787/forms/sman6-kotakupang/admin/dashboard/`
 
-## 4) Deploy (staging -> production)
+## Deploy
 
 ```bash
 pnpm deploy:staging
 pnpm deploy:production
 ```
 
-Sebelum staging deploy, rotate lalu set secrets Cloudflare:
+Jika shell non-interaktif bermasalah, deploy manual:
 
-- `DATABASE_URL`
-- `GEMINI_API_KEY`
-- `AI_ANALYZE_KEY`
-- `GEMINI_MODEL`
-- `SESSION_SECRET`
-
-Catatan:
-
-- Semua session lama (format cookie lama) akan invalid setelah deploy hardening ini, user perlu login ulang sekali.
-- `deploy` tetap tersedia untuk deploy default environment.
-
-## 5) Endpoint utama
-
-### Public
-
-- `GET /forms` (portal navigasi)
-- `GET /forms/api/schools/public`
-- `GET /forms/api/tenants/public`
-- `GET /forms/:tenantSlug/api/questionnaires/public`
-- `GET /forms/:schoolSlug`
-- `GET /forms/:schoolSlug/api/form-schema`
-- `POST /forms/:schoolSlug/api/submit`
-- `GET /forms/:tenantSlug/:questionnaireSlug`
-- `GET /forms/:tenantSlug/:questionnaireSlug/api/schema`
-- `GET /forms/:tenantSlug/:questionnaireSlug/api/form-schema` (alias compat frontend)
-- `POST /forms/:tenantSlug/:questionnaireSlug/api/submit`
-
-### Auth
-
-- `POST /forms/admin/api/login`
-- `POST /forms/admin/api/logout`
-- `GET /forms/admin/api/me`
-
-### Health
-
-- `GET /health` (liveness tanpa koneksi DB)
-- `GET /health/db` (readiness DB + schema check)
-
-### Superadmin
-
-- `GET /forms/admin/api/schools`
-- `POST /forms/admin/api/schools`
-- `PATCH /forms/admin/api/schools/:schoolId`
-- `POST /forms/admin/api/schools/:schoolId/admins`
-- `GET /forms/admin/api/tenants`
-- `POST /forms/admin/api/tenants`
-- `PATCH /forms/admin/api/tenants/:tenantId`
-- `POST /forms/admin/api/tenants/:tenantId/admins`
-- `GET /forms/admin/api/ai-prompts`
-- `PUT /forms/admin/api/ai-prompts/draft`
-- `POST /forms/admin/api/ai-prompts/publish`
-- `GET /forms/admin/api/ai-prompts/history`
-
-### School admin
-
-- `GET /forms/:schoolSlug/admin`
-- `GET /forms/:schoolSlug/admin/dashboard/`
-- `GET /forms/:tenantSlug/admin/api/questionnaires`
-- `POST /forms/:tenantSlug/admin/api/questionnaires`
-- `PATCH /forms/:tenantSlug/admin/api/questionnaires/:questionnaireId`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/draft`
-- `PUT /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/draft`
-- `POST /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/publish`
-- `GET /forms/:tenantSlug/admin/api/ai-prompts`
-- `PUT /forms/:tenantSlug/admin/api/ai-prompts/draft`
-- `POST /forms/:tenantSlug/admin/api/ai-prompts/publish`
-- `GET /forms/:tenantSlug/admin/api/ai-prompts/history`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/responses`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/responses/export.csv`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/summary`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/distribution`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/trend`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/analytics/segment-compare`
-- `POST /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/ai/analyze`
-- `GET /forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/ai/latest`
-- `GET /forms/:schoolSlug/admin/api/form/draft`
-- `PUT /forms/:schoolSlug/admin/api/form/draft`
-- `POST /forms/:schoolSlug/admin/api/form/publish`
-- `GET /forms/:schoolSlug/admin/api/responses`
-- `GET /forms/:schoolSlug/admin/api/responses/export.csv`
-- `GET /forms/:schoolSlug/admin/api/analytics/summary`
-- `GET /forms/:schoolSlug/admin/api/analytics/distribution`
-- `GET /forms/:schoolSlug/admin/api/analytics/trend`
-- `POST /forms/:schoolSlug/admin/api/ai/analyze`
-- `GET /forms/:schoolSlug/admin/api/ai/latest`
-
-Query optional untuk dashboard tenant questionnaire:
-
-- `segmentDimensionId` + `segmentBucket` (wajib berpasangan) untuk summary/distribution/trend/responses/export.
-- `segmentBuckets` (CSV, max 3 bucket) untuk endpoint `analytics/segment-compare`.
-
-## 6) Route legacy
-
-Route lama:
-
-- `/formsman6kotakupang*`
-
-akan di-redirect `301` ke:
-
-- `/forms/sman6-kotakupang*`
-
-Alias `/admin/*`:
-
-- Aktif hanya jika `ENABLE_LEGACY_ADMIN_ALIAS=true`.
-- Untuk production disarankan `false`.
-- Route resmi production tetap `/forms/admin/*`.
-
-## 7) Cutover Cloudflare (path-based route policy)
-
-Saat cutover production di Cloudflare Routes:
-
-- arahkan ke Worker: `aitiglobal.link/forms*`
-- arahkan ke Worker: `aitiglobal.link/formsman6kotakupang*`
-- jangan arahkan root website profil ke Worker
-- jangan arahkan `/admin/*` ke Worker
-
-Detail runbook: `docs/CLOUDFLARE_CUTOVER_RUNBOOK.md`
-
-## 8) Struktur utama
-
-```text
-src/
-  worker.js
-  lib/
-    db/
-      sql.js
-      bootstrap.js
-    security/
-      hash.js
-    http/
-      session-cookie.js
-  modules/
-    auth/
-    schools/
-    forms/
-    submissions/
-    analytics/
-    ai/
-
-public/
-  forms/
-  admin/
+```bash
+pnpm exec wrangler deploy src/worker.js --env staging
+pnpm exec wrangler deploy src/worker.js --env production
 ```
 
-## 9) Catatan kompatibilitas / rollback
+## Gate Penting (Current)
 
-- Backend Express lama tetap ada untuk rollback (`legacy:dev`, `legacy:start`).
-- Legacy snapshot UI root (`public/index.html`, `public/script.js`, `public/styles.css`, `public/dashboard.*`) dipertahankan agar migrasi bertahap aman.
-- Runtime utama sekarang Cloudflare Worker.
-- Route sekolah lama tetap hidup sebagai compat mode, sementara jalur v2 berjalan paralel.
+Arsitektur/gov:
+- `pnpm check:modularity`
+- `pnpm check:debt-register`
+- `pnpm check:architecture`
+- `pnpm check:static-versioning`
 
-## 10) Guardrails Modular Monolith
+Smoke/UX/SEO:
+- `pnpm smoke:e2e`
+- `pnpm smoke:admin:ui`
+- `pnpm smoke:ux:mobile`
+- `pnpm smoke:ux:theme`
+- `pnpm smoke:ux:contrast-nav`
+- `pnpm smoke:ux:perf-public`
+- `pnpm smoke:ux:css-payload`
+- `pnpm smoke:public-dashboard`
+- `pnpm smoke:seo:baseline`
+- `pnpm smoke:lighthouse:forms`
+- `pnpm smoke:ux:language-id`
+- `pnpm smoke:ux:contrast-aa`
 
-Jalankan checker boundary sebelum merge:
+Visual:
+- `pnpm visual:legacy-dashboard:diff`
+- `pnpm visual:questionnaire-dashboard:diff`
+- `pnpm visual:public-dashboard:diff`
+
+## Cloudflare Routes (Production)
+
+Route Worker aktif:
+- `aitiglobal.link/robots.txt`
+- `aitiglobal.link/sitemap.xml`
+- `aitiglobal.link/forms*`
+- `aitiglobal.link/formsman6kotakupang*`
+
+Detail operasional:
+- `docs/CLOUDFLARE_CUTOVER_RUNBOOK.md`
+
+## Legacy dan Kompatibilitas
+
+- Legacy alias `/admin/*` hanya aktif jika `ENABLE_LEGACY_ADMIN_ALIAS=true`.
+- Route lama `/formsman6kotakupang*` tetap diarahkan ke jalur baru.
+- Runtime utama aplikasi adalah Cloudflare Worker.
+
+## Guardrail Arsitektur
+
+Minimal sebelum menyelesaikan perubahan code:
 
 ```bash
 pnpm check:modularity
 ```
 
-Mode strict (tanpa waiver backlog):
+Mode strict:
 
 ```bash
 pnpm check:modularity:strict
 ```
 
-Panduan lengkap rule + waiver policy:
-
+Referensi rule lengkap:
 - `docs/MODULAR_MONOLITH_GUARDRAILS.md`

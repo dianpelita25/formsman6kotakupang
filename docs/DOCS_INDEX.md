@@ -1,8 +1,8 @@
 # DOCS Index (Single Source of Truth)
 
 Status: ACTIVE
-As of: 2026-02-22
-Status dashboard completion: D11-D37 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
+As of: 2026-02-23
+Status dashboard completion: D11-D41 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
 
 Dokumen ini adalah pintu masuk utama agar status proyek tidak membingungkan.
 
@@ -12,6 +12,7 @@ Mode susunan docs saat ini:
 3. Khusus keluarga `UAT_FINAL_RELEASE_REPORT_YYYY-MM-DD.md`, snapshot historis boleh tetap di `docs/` jika diberi marker `ARCHIVED` + `Superseded by`.
 4. Pindah struktur folder docs hanya boleh setelah approval eksplisit owner repo.
 5. Dokumen di `docs/_archive/` tidak boleh dijadikan dasar status current tanpa verifikasi ulang ke register + closure report.
+6. Jika ada file operasional duplikat di root repo (contoh `UAT_CHECKLIST_HARDENING.md`), versi canonical tetap yang berada di `docs/`.
 
 ## Dokumen Aktif (Wajib Acuan)
 
@@ -35,6 +36,9 @@ Mode susunan docs saat ini:
    Contract lock Bahasa Indonesia UI + readability light mode (WCAG AA) untuk cycle D32-D37.
 10. `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`  
    Registry bukti screenshot/log lokal untuk closure D32-D37 (folder evidence di-ignore dari git).
+11. D38-D41 closure source:
+   - `docs/DEBT_REGISTER_LOCKED.md` (row D38-D41)
+   - `docs/DEBT_CLOSURE_REPORT.md` (section Update D38-D41, deploy + smoke proof)
 
 ## Dokumen Operasional (Aktif saat rilis/UAT/incident)
 
@@ -47,6 +51,7 @@ Mode susunan docs saat ini:
 7. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-20.md` (ACTIVE)
 8. `docs/UAT_FINAL_RELEASE_REPORT_2026-02-19.md` (ARCHIVED snapshot, in place)
 9. `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md` (ACTIVE)
+10. Root helper pointer: `UAT_CHECKLIST_HARDENING.md` (non-canonical helper; isi operasional canonical tetap di `docs/UAT_CHECKLIST_HARDENING.md`)
 
 ## Dokumen Referensi Historis (Jangan jadi status final)
 
@@ -69,3 +74,18 @@ Mode susunan docs saat ini:
    - hasil gate checker/CI
 3. Jangan menutup debt berdasarkan narasi dokumen lama; wajib berdasarkan gate lulus + proof commit.
 4. Untuk keluarga dokumen `UAT_FINAL_RELEASE_REPORT_*`, hanya boleh ada satu dokumen berstatus `ACTIVE` pada satu waktu.
+
+## Runtime Snapshot (Current Baseline)
+
+1. Worker production route aktif:
+   - `aitiglobal.link/robots.txt`
+   - `aitiglobal.link/sitemap.xml`
+   - `aitiglobal.link/forms*`
+   - `aitiglobal.link/formsman6kotakupang*`
+2. SEO defensive baseline aktif:
+   - robots/sitemap tersedia di root dan `/forms/` path.
+   - halaman admin + public dashboard bertanda noindex (header/meta).
+3. Quality gate D41 aktif di pipeline:
+   - `smoke:seo:baseline`
+   - `smoke:lighthouse:forms`
+   - `smoke:ux:css-payload`
