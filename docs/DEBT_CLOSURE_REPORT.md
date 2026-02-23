@@ -287,3 +287,50 @@ Jika ada temuan baru saat implementasi:
 7. Catatan operasional:
    - Untuk environment non-interaktif Windows, deploy script `run-wrangler-deploy.js` sempat gagal `spawn EINVAL`; deploy dieksekusi langsung via `wrangler` dengan `CLOUDFLARE_API_TOKEN` dari `.env`.
    - SEO production membutuhkan route root (`/robots.txt`, `/sitemap.xml`) di `wrangler.toml` agar baseline smoke valid pada domain custom `aitiglobal.link`.
+
+## Live Deploy Confirmation D42-D47 (2026-02-24)
+
+1. Proof commit debt cycle D42-D47:
+   - D42 merge: `727a2203c325038285860364e6195109b6785efc`
+   - D43 merge + hardening follow-up: `69bb9705b345daf76ddf717c3bfffe84c6a1a2fb`, `4cd856fc0aad4a2c6c8a1af7ebf654244c9c8dbc`
+   - D44 merge: `caaee721016a338edbf7fbc24d745c5a2299ad3d`
+   - D45 merge: `e3dcdd4d47c28049d965b89a6b3a8886ca46f63d`
+   - D46 merge: `873ed83f5eb15ae6692847a47e0c149c5e1d920c`
+   - D47 merge + stabilization follow-up: `3dc8edb27018a683017d1d577bb8f0159d1ca62a`, `f99bb8e05cf51a073c2e606375645cd2ec9bb57b`, `5786f8034309dc58f5c1d3dd7a314c70ceaf8b55`, `0b5f2054313a827b31faa01c6e22ecd738df2e42`, `05ec022756472d52e6447c514c71444b9cae5277`, `0c4b7ba185a72837a885f332f07f6dc56da18331`
+2. Savepoint pre-live:
+   - `savepoint-d42-d47-prelive-20260224-0034`
+   - `savepoint-d42-d47-prelive-r2-20260224-0100`
+3. Deploy staging:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env staging`
+   - Final Version ID: `08c263e9-a18d-4f35-8909-bba4f444a48b`
+   - Log artifacts:
+     - `artifacts/deploy/d42-d47-staging-deploy-r3.log`
+     - `artifacts/smoke/staging-dashboard-parity-r3b.log`
+     - `artifacts/smoke/staging-public-dashboard-r3b.log`
+     - `artifacts/smoke/staging-seo-baseline-r3b.log`
+     - `artifacts/smoke/staging-ux-perf-public-r3b.log`
+     - `artifacts/smoke/staging-lighthouse-forms-r8.log`
+     - `artifacts/smoke/staging-throttle-probe-r7.log`
+     - `artifacts/smoke/staging-error-sanitize-probe-r7.log`
+4. Probe wajib staging:
+   - D44 throttle pattern PASS: `401,401,401,401,401,429` + `retryAfterSeconds`
+   - D43 error sanitize PASS: error payload memiliki `requestId`, tanpa stack/provider/raw SQL detail
+   - D44 DB guard PASS: `artifacts/db-check/login-throttle-state-check.json` menunjukkan tabel `login_throttle_state` + index tersedia
+5. Deploy production:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env production`
+   - Final Version ID: `846e8e17-689b-4c8b-8222-0ec3a759c0be`
+   - Log artifacts:
+     - `artifacts/deploy/d42-d47-production-deploy-r2.log`
+     - `artifacts/smoke/live-dashboard-parity-r2.log`
+     - `artifacts/smoke/live-public-dashboard-r3-attempt-1.log`
+     - `artifacts/smoke/live-seo-baseline-r3-attempt-1.log`
+     - `artifacts/smoke/live-ux-perf-public-r3-attempt-1.log`
+     - `artifacts/smoke/live-lighthouse-forms-r3-attempt-2.log`
+     - `artifacts/smoke/live-throttle-probe-r3.log`
+     - `artifacts/smoke/live-error-sanitize-probe-r3.log`
+6. Probe wajib live:
+   - D44 throttle pattern PASS: `401,401,401,401,401,429` + `retryAfterSeconds`
+   - D43 error sanitize PASS: payload error tetap sanitize + `requestId` hadir
+7. Catatan operasional D42-D47:
+   - Live/staging smoke sempat mengalami flake network/perf pada Lighthouse dan Playwright navigation timeout; stabilisasi dilakukan di D47 (`median multi-sample`, `warmup`, `retry`) dan seluruh gate final lulus.
+   - Push langsung ke `origin/main` ditolak branch protection (`required status checks are expected`); tag savepoint berhasil dipush dan evidence closure tetap tercatat lokal.
