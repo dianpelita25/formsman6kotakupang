@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { startLocalServer } from './_playwright-worker-local.js';
 
 const LOCAL_PORT = Number(process.env.SMOKE_LIGHTHOUSE_FORMS_PORT || 8912);
+const DEFAULT_SAMPLE_COUNT = Number(process.env.SMOKE_LIGHTHOUSE_FORMS_SAMPLES || 3);
 
 const ROUTE_AUDITS = [
   {
@@ -41,6 +42,11 @@ function buildBaseUrl() {
   const fromEnv = String(process.env.SMOKE_LIGHTHOUSE_FORMS_BASE_URL || '').trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, '');
   return '';
+}
+
+function resolveSampleCount() {
+  const requested = Number.isFinite(DEFAULT_SAMPLE_COUNT) ? DEFAULT_SAMPLE_COUNT : 3;
+  return Math.max(1, Math.floor(requested));
 }
 
 function toArray(value) {
@@ -113,6 +119,15 @@ function buildTargetUrl(baseUrl, route, target) {
     .replace('{questionnaireSlug}', target.questionnaireSlug)}`;
 }
 
+function getMedianScore(scores) {
+  const normalized = scores.filter((value) => Number.isFinite(value)).map((value) => Number(value));
+  if (!normalized.length) return null;
+  const sorted = normalized.slice().sort((left, right) => left - right);
+  const middleIndex = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middleIndex];
+  return (sorted[middleIndex - 1] + sorted[middleIndex]) / 2;
+}
+
 async function run() {
   const externalBaseUrl = buildBaseUrl();
   const isExternal = Boolean(externalBaseUrl);
@@ -136,32 +151,51 @@ async function run() {
     const routeSummaries = [];
     const globalFailures = [];
 
+    const sampleCount = resolveSampleCount();
+
     for (const route of ROUTE_AUDITS) {
       const targetUrl = buildTargetUrl(baseUrl, route, target);
-      const reportPath = path.join(artifactDir, `${route.id}-report.json`);
-      const args = [
-        'exec',
-        'lighthouse',
-        targetUrl,
-        '--only-categories=performance,accessibility,best-practices,seo',
-        '--preset=desktop',
-        '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
-        '--output=json',
-        `--output-path=${reportPath}`,
-        '--quiet',
-      ];
+      const samples = [];
 
-      console.log(`[INFO] Menjalankan Lighthouse untuk ${targetUrl}`);
-      await runCommand('pnpm', args, { cwd: process.cwd() });
+      for (let sampleIndex = 1; sampleIndex <= sampleCount; sampleIndex += 1) {
+        const reportPath = path.join(artifactDir, `${route.id}-report-${sampleIndex}.json`);
+        const args = [
+          'exec',
+          'lighthouse',
+          targetUrl,
+          '--only-categories=performance,accessibility,best-practices,seo',
+          '--preset=desktop',
+          '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
+          '--output=json',
+          `--output-path=${reportPath}`,
+          '--quiet',
+        ];
 
-      const reportRaw = await fs.readFile(reportPath, 'utf8');
-      const reportJson = JSON.parse(reportRaw);
+        console.log(
+          `[INFO] Menjalankan Lighthouse untuk ${targetUrl} (sample ${sampleIndex}/${sampleCount})`
+        );
+        await runCommand('pnpm', args, { cwd: process.cwd() });
+
+        const reportRaw = await fs.readFile(reportPath, 'utf8');
+        const reportJson = JSON.parse(reportRaw);
+
+        samples.push({
+          sample: sampleIndex,
+          reportPath: path.relative(process.cwd(), reportPath).replace(/\\/g, '/'),
+          scores: {
+            performance: readCategoryScore(reportJson, 'performance'),
+            accessibility: readCategoryScore(reportJson, 'accessibility'),
+            'best-practices': readCategoryScore(reportJson, 'best-practices'),
+            seo: readCategoryScore(reportJson, 'seo'),
+          },
+        });
+      }
 
       const scores = {
-        performance: readCategoryScore(reportJson, 'performance'),
-        accessibility: readCategoryScore(reportJson, 'accessibility'),
-        'best-practices': readCategoryScore(reportJson, 'best-practices'),
-        seo: readCategoryScore(reportJson, 'seo'),
+        performance: getMedianScore(samples.map((sample) => sample.scores.performance)),
+        accessibility: getMedianScore(samples.map((sample) => sample.scores.accessibility)),
+        'best-practices': getMedianScore(samples.map((sample) => sample.scores['best-practices'])),
+        seo: getMedianScore(samples.map((sample) => sample.scores.seo)),
       };
 
       const failures = [];
@@ -183,7 +217,9 @@ async function run() {
       routeSummaries.push({
         id: route.id,
         targetUrl,
+        sampleCount,
         thresholds: route.thresholds,
+        samples,
         scores,
         status: failures.length ? 'FAILED' : 'PASS',
         failures,
