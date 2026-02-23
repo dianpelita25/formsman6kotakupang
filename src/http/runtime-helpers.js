@@ -1,3 +1,5 @@
+import { buildSafeErrorExtra, DB_UNREADY_ERROR_MESSAGE, logServerError } from '../lib/http/error-response.js';
+
 export function resolveRequestId(c) {
   return String(c.get('requestId') || '').trim() || 'unknown';
 }
@@ -99,7 +101,8 @@ export function createRequireDbReady({ ensurePlatformSchema }) {
       await ensurePlatformSchema(c.env);
       await next();
     } catch (error) {
-      return jsonError(c, 503, error?.message || 'Database belum siap.');
+      logServerError('db-readiness', resolveRequestId(c), error);
+      return jsonError(c, 503, DB_UNREADY_ERROR_MESSAGE, buildSafeErrorExtra('DB_UNREADY'));
     }
   };
 }

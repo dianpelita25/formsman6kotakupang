@@ -1,3 +1,5 @@
+import { buildSafeErrorExtra, INTERNAL_SERVER_ERROR_MESSAGE, logServerError } from '../../lib/http/error-response.js';
+
 export function registerSchoolAdminApiRoutes(app, deps) {
   const {
     schoolMiddleware,
@@ -147,7 +149,8 @@ export function registerSchoolAdminApiRoutes(app, deps) {
         const data = await analyzeSchoolAi(c.env, { school, mode });
         return c.json(data);
       } catch (error) {
-        return jsonError(c, 500, error?.message || 'Gagal menganalisa data.');
+        logServerError('school-ai-analyze', c.get('requestId'), error);
+        return jsonError(c, 500, INTERNAL_SERVER_ERROR_MESSAGE, buildSafeErrorExtra('AI_ANALYZE_ERROR'));
       }
     }
   );
@@ -165,7 +168,8 @@ export function registerSchoolAdminApiRoutes(app, deps) {
         const data = await getLatestSchoolAi(c.env, { school, mode });
         return c.json(data);
       } catch (error) {
-        return jsonError(c, 500, error?.message || 'Gagal mengambil analisa.');
+        logServerError('school-ai-latest', c.get('requestId'), error);
+        return jsonError(c, 500, INTERNAL_SERVER_ERROR_MESSAGE, buildSafeErrorExtra('AI_FETCH_ERROR'));
       }
     }
   );
