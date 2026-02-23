@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Utama Forms</title>
+    <meta name="description" content="Panel Admin Utama AITI Forms." />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
     <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css?v=20260220-3" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260217-2" />
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260222-1" />
   </head>
   <body>
         <nav class="global-nav" data-auth-state="guest" data-nav-open="false">
@@ -50,208 +52,332 @@
         </div>
       </section>
 
-      <section class="panel">
-        <h2>Alur Cepat</h2>
-        <ol class="workflow-list">
-          <li>Buat organisasi baru (nama, slug, tipe).</li>
-          <li>Tambahkan admin organisasi.</li>
-          <li>Buka panel organisasi untuk kelola kuesioner.</li>
-          <li>Kelola prompt AI global/organisasi/kuesioner sesuai kebutuhan.</li>
-        </ol>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>Buat Organisasi Baru</h2>
-            <p class="small">Gunakan ini untuk sekolah, pemerintah, komunitas, event, atau unit lain.</p>
+      <div class="superadmin-layout" data-superadmin-layout>
+        <nav class="panel superadmin-quick-nav" aria-label="Navigasi cepat superadmin">
+          <h2 class="superadmin-quick-nav__title">Navigasi Cepat</h2>
+          <div class="superadmin-quick-nav__links">
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-quick-flow">Alur Cepat</a>
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-create-tenant">Buat Organisasi</a>
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-tenant-list">Daftar Organisasi</a>
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-create-admin">Tambah Admin</a>
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-prompt-manager">Pengelola Prompt AI</a>
+            <a class="superadmin-quick-nav__link" data-ia-nav-link href="#sec-diagnostics">Diagnostic & Aktivitas</a>
           </div>
-        </div>
-        <div class="admin-form-grid admin-form-grid--school">
-          <label class="field">
-            <span>Nama Organisasi</span>
-            <input id="tenant-name" placeholder="Contoh: Dinas Pendidikan Kupang" />
-          </label>
-          <label class="field">
-            <span>Slug Organisasi</span>
-            <input id="tenant-slug" placeholder="dinas-pendidikan-kupang" />
-          </label>
-          <label class="field">
-            <span>Tipe Organisasi</span>
-            <select id="tenant-type">
-              <option value="school">Sekolah</option>
-              <option value="government">Pemerintah</option>
-              <option value="business">Usaha</option>
-              <option value="class">Kelas</option>
-              <option value="community">Komunitas</option>
-              <option value="event">Event</option>
-              <option value="other">Lainnya</option>
-            </select>
-          </label>
-          <button id="create-tenant-btn">Buat Organisasi</button>
-        </div>
-        <p class="small">URL publik akan tersedia di `/forms/{tenantSlug}/{questionnaireSlug}`.</p>
-      </section>
+        </nav>
 
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>Daftar Organisasi</h2>
-            <p class="small">Semua organisasi aktif/nonaktif, termasuk total kuesioner dan respons.</p>
-          </div>
-        </div>
-        <p class="table-scroll-hint">Geser tabel ke kiri/kanan untuk melihat semua kolom.</p>
-        <div class="table-wrap">
-          <div class="table-scroll">
-            <table class="schools-table" aria-label="Daftar Organisasi">
-              <thead>
-                <tr>
-                  <th>Nama</th>
-                  <th>Slug</th>
-                  <th>Tipe</th>
-                  <th>Status</th>
-                  <th><span class="th-wrap">Total<br />Kuesioner</span></th>
-                  <th><span class="th-wrap">Total<br />Respon</span></th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tenants-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>Tambah Admin Organisasi</h2>
-            <p class="small">Buat akun admin untuk organisasi terpilih.</p>
-          </div>
-        </div>
-        <div class="admin-form-grid admin-form-grid--admin">
-          <label class="field">
-            <span>Pilih Organisasi</span>
-            <select id="tenant-select"></select>
-          </label>
-          <label class="field">
-            <span>Email Admin</span>
-            <input id="admin-email" type="email" placeholder="admin@organisasi.id" />
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input id="admin-password" type="password" placeholder="password minimal 8 karakter" />
-          </label>
-          <button id="create-admin-btn">Tambah Admin Organisasi</button>
-        </div>
-      </section>
-
-      <section class="panel" id="prompt-manager-panel">
-        <h2>Pengelola Prompt AI</h2>
-        <p class="small">
-          Kelola template prompt analisa AI. Cakupan organisasi/kuesioner akan menimpa global setelah dipublikasikan.
-        </p>
-
-        <div class="admin-form-grid admin-form-grid--prompt-filter">
-          <label class="field">
-            <span>Mode</span>
-            <select id="prompt-mode">
-              <option value="internal">internal</option>
-              <option value="external_pemerintah">external_pemerintah</option>
-              <option value="external_mitra">external_mitra</option>
-              <option value="live_guru">live_guru</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Cakupan</span>
-            <select id="prompt-scope">
-              <option value="global">Global</option>
-              <option value="tenant">Override Organisasi</option>
-              <option value="questionnaire">Override Kuesioner</option>
-            </select>
-          </label>
-
-          <label class="field" id="prompt-tenant-wrap" style="display: none">
-            <span>Organisasi</span>
-            <select id="prompt-tenant-select"></select>
-          </label>
-
-          <label class="field" id="prompt-questionnaire-wrap" style="display: none">
-            <span>Kuesioner</span>
-            <select id="prompt-questionnaire-select"></select>
-          </label>
-        </div>
-
-        <div class="prompt-layout">
-          <section class="prompt-editor-card">
-            <label class="field field-block">
-              <span>Template Draf</span>
-              <textarea id="prompt-template" placeholder="Tulis template prompt AI di sini..."></textarea>
-            </label>
-
-            <label class="field field-block">
-              <span>Catatan Perubahan</span>
-              <input id="prompt-change-note" placeholder="Opsional, untuk audit ringkas versi prompt." />
-            </label>
-
-            <div class="row row-actions">
-              <button id="prompt-save-btn">Simpan Draft</button>
-              <button id="prompt-publish-btn" class="secondary">Publikasikan</button>
-              <button id="prompt-reset-btn" class="ghost">Reset ke Versi Terpublikasi</button>
-              <button id="prompt-refresh-btn" class="ghost">Muat Ulang</button>
+        <div class="superadmin-sections">
+          <section
+            class="panel superadmin-section"
+            id="sec-quick-flow"
+            data-ia-section
+            data-accordion-default="closed"
+            data-ia-label="Alur Cepat"
+          >
+            <div class="superadmin-section__head">
+              <h2>Alur Cepat</h2>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-quick-flow-body"
+                aria-expanded="false"
+              >
+                Buka/Tutup
+              </button>
             </div>
-            <p id="prompt-draft-meta" class="small prompt-draft-meta"></p>
+            <div class="superadmin-section__body" id="sec-quick-flow-body">
+              <ol class="workflow-list">
+                <li>Buat organisasi baru (nama, slug, tipe).</li>
+                <li>Tambahkan admin organisasi.</li>
+                <li>Buka panel organisasi untuk kelola kuesioner.</li>
+                <li>Kelola prompt AI global/organisasi/kuesioner sesuai kebutuhan.</li>
+              </ol>
+            </div>
           </section>
 
-          <section class="prompt-preview-card">
-            <h3 class="subsection-title">Prompt Efektif (Sedang Digunakan)</h3>
-            <div id="prompt-effective-meta" class="prompt-meta"></div>
-            <pre id="prompt-effective"></pre>
+          <section
+            class="panel superadmin-section is-open"
+            id="sec-create-tenant"
+            data-ia-section
+            data-accordion-default="open"
+            data-ia-label="Buat Organisasi"
+          >
+            <div class="superadmin-section__head">
+              <div>
+                <h2>Buat Organisasi Baru</h2>
+                <p class="small">Gunakan ini untuk sekolah, pemerintah, komunitas, event, atau unit lain.</p>
+              </div>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-create-tenant-body"
+                aria-expanded="true"
+              >
+                Buka/Tutup
+              </button>
+            </div>
+            <div class="superadmin-section__body" id="sec-create-tenant-body">
+              <div class="admin-form-grid admin-form-grid--school">
+                <label class="field">
+                  <span>Nama Organisasi</span>
+                  <input id="tenant-name" placeholder="Contoh: Dinas Pendidikan Kupang" />
+                </label>
+                <label class="field">
+                  <span>Slug Organisasi</span>
+                  <input id="tenant-slug" placeholder="dinas-pendidikan-kupang" />
+                </label>
+                <label class="field">
+                  <span>Tipe Organisasi</span>
+                  <select id="tenant-type">
+                    <option value="school">Sekolah</option>
+                    <option value="government">Pemerintah</option>
+                    <option value="business">Usaha</option>
+                    <option value="class">Kelas</option>
+                    <option value="community">Komunitas</option>
+                    <option value="event">Event</option>
+                    <option value="other">Lainnya</option>
+                  </select>
+                </label>
+                <button id="create-tenant-btn">Buat Organisasi</button>
+              </div>
+              <p class="small">URL publik akan tersedia di `/forms/{tenantSlug}/{questionnaireSlug}`.</p>
+            </div>
+          </section>
+
+          <section
+            class="panel superadmin-section is-open"
+            id="sec-tenant-list"
+            data-ia-section
+            data-accordion-default="open"
+            data-ia-label="Daftar Organisasi"
+          >
+            <div class="superadmin-section__head">
+              <div>
+                <h2>Daftar Organisasi</h2>
+                <p class="small">Semua organisasi aktif/nonaktif, termasuk total kuesioner dan respons.</p>
+              </div>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-tenant-list-body"
+                aria-expanded="true"
+              >
+                Buka/Tutup
+              </button>
+            </div>
+            <div class="superadmin-section__body" id="sec-tenant-list-body">
+              <p class="table-scroll-hint">Geser tabel ke kiri/kanan untuk melihat semua kolom.</p>
+              <div class="table-wrap">
+                <div class="table-scroll">
+                  <table class="schools-table" aria-label="Daftar Organisasi">
+                    <thead>
+                      <tr>
+                        <th>Nama</th>
+                        <th>Slug</th>
+                        <th>Tipe</th>
+                        <th>Status</th>
+                        <th><span class="th-wrap">Total<br />Kuesioner</span></th>
+                        <th><span class="th-wrap">Total<br />Respon</span></th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tenants-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="panel superadmin-section"
+            id="sec-create-admin"
+            data-ia-section
+            data-accordion-default="closed"
+            data-ia-label="Tambah Admin"
+          >
+            <div class="superadmin-section__head">
+              <div>
+                <h2>Tambah Admin Organisasi</h2>
+                <p class="small">Buat akun admin untuk organisasi terpilih.</p>
+              </div>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-create-admin-body"
+                aria-expanded="false"
+              >
+                Buka/Tutup
+              </button>
+            </div>
+            <div class="superadmin-section__body" id="sec-create-admin-body">
+              <div class="admin-form-grid admin-form-grid--admin">
+                <label class="field">
+                  <span>Pilih Organisasi</span>
+                  <select id="tenant-select"></select>
+                </label>
+                <label class="field">
+                  <span>Email Admin</span>
+                  <input id="admin-email" type="email" placeholder="admin@organisasi.id" />
+                </label>
+                <label class="field">
+                  <span>Password</span>
+                  <input id="admin-password" type="password" placeholder="password minimal 8 karakter" />
+                </label>
+                <button id="create-admin-btn">Tambah Admin Organisasi</button>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="panel superadmin-section is-open"
+            id="sec-prompt-manager"
+            data-ia-section
+            data-accordion-default="open"
+            data-ia-label="Pengelola Prompt AI"
+          >
+            <div class="superadmin-section__head">
+              <div>
+                <h2>Pengelola Prompt AI</h2>
+                <p class="small">
+                  Kelola template prompt analisa AI. Cakupan organisasi/kuesioner akan menimpa global setelah dipublikasikan.
+                </p>
+              </div>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-prompt-manager-body"
+                aria-expanded="true"
+              >
+                Buka/Tutup
+              </button>
+            </div>
+            <div class="superadmin-section__body" id="sec-prompt-manager-body">
+              <div id="prompt-manager-panel">
+                <div class="admin-form-grid admin-form-grid--prompt-filter">
+                  <label class="field">
+                    <span>Mode</span>
+                    <select id="prompt-mode">
+                      <option value="internal">internal</option>
+                      <option value="external_pemerintah">external_pemerintah</option>
+                      <option value="external_mitra">external_mitra</option>
+                      <option value="live_guru">live_guru</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>Cakupan</span>
+                    <select id="prompt-scope">
+                      <option value="global">Global</option>
+                      <option value="tenant">Override Organisasi</option>
+                      <option value="questionnaire">Override Kuesioner</option>
+                    </select>
+                  </label>
+
+                  <label class="field" id="prompt-tenant-wrap" style="display: none">
+                    <span>Organisasi</span>
+                    <select id="prompt-tenant-select"></select>
+                  </label>
+
+                  <label class="field" id="prompt-questionnaire-wrap" style="display: none">
+                    <span>Kuesioner</span>
+                    <select id="prompt-questionnaire-select"></select>
+                  </label>
+                </div>
+
+                <div class="prompt-layout">
+                  <section class="prompt-editor-card">
+                    <label class="field field-block">
+                      <span>Template Draf</span>
+                      <textarea id="prompt-template" placeholder="Tulis template prompt AI di sini..."></textarea>
+                    </label>
+
+                    <label class="field field-block">
+                      <span>Catatan Perubahan</span>
+                      <input id="prompt-change-note" placeholder="Opsional, untuk audit ringkas versi prompt." />
+                    </label>
+
+                    <div class="row row-actions">
+                      <button id="prompt-save-btn">Simpan Draft</button>
+                      <button id="prompt-publish-btn" class="secondary">Publikasikan</button>
+                      <button id="prompt-reset-btn" class="ghost">Reset ke Versi Terpublikasi</button>
+                      <button id="prompt-refresh-btn" class="ghost">Muat Ulang</button>
+                    </div>
+                    <p id="prompt-draft-meta" class="small prompt-draft-meta"></p>
+                  </section>
+
+                  <section class="prompt-preview-card">
+                    <h3 class="subsection-title">Prompt Efektif (Sedang Digunakan)</h3>
+                    <div id="prompt-effective-meta" class="prompt-meta"></div>
+                    <pre id="prompt-effective"></pre>
+                  </section>
+                </div>
+
+                <h3>Riwayat Versi</h3>
+                <div class="table-wrap">
+                  <div class="table-scroll">
+                    <table class="history-table">
+                      <thead>
+                        <tr>
+                          <th>Status</th>
+                          <th>Cakupan</th>
+                          <th>Catatan Perubahan</th>
+                          <th>Dibuat</th>
+                          <th>Terpublikasi</th>
+                        </tr>
+                      </thead>
+                      <tbody id="prompt-history-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <p id="prompt-status" class="status" aria-live="polite"></p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="panel superadmin-section"
+            id="sec-diagnostics"
+            data-ia-section
+            data-accordion-default="closed"
+            data-ia-label="Diagnostic & Aktivitas"
+          >
+            <div class="superadmin-section__head">
+              <div>
+                <h2>Diagnostic & Aktivitas</h2>
+                <p class="small">Status utama ditampilkan dalam bahasa ramah. Detail teknis bersifat opsional.</p>
+              </div>
+              <button
+                class="superadmin-section__toggle"
+                type="button"
+                data-section-toggle
+                aria-controls="sec-diagnostics-body"
+                aria-expanded="false"
+              >
+                Buka/Tutup
+              </button>
+            </div>
+            <div class="superadmin-section__body" id="sec-diagnostics-body">
+              <div class="status-panel">
+                <h3>Status terakhir</h3>
+                <p id="status" class="status" aria-live="polite"></p>
+                <details id="error-debug-wrap" class="status-debug-wrap" hidden>
+                  <summary>Detail error teknis</summary>
+                  <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
+                </details>
+              </div>
+
+              <div class="field-block">
+                <h3 class="subsection-title">Aktivitas Terakhir</h3>
+                <ul id="activity-feed" class="activity-feed"></ul>
+              </div>
+            </div>
           </section>
         </div>
-
-        <h3>Riwayat Versi</h3>
-        <div class="table-wrap">
-          <div class="table-scroll">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Cakupan</th>
-                  <th>Catatan Perubahan</th>
-                  <th>Dibuat</th>
-                  <th>Terpublikasi</th>
-                </tr>
-              </thead>
-              <tbody id="prompt-history-body"></tbody>
-            </table>
-          </div>
-        </div>
-        <p id="prompt-status" class="status" aria-live="polite"></p>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>Diagnostic & Aktivitas</h2>
-            <p class="small">Status utama ditampilkan dalam bahasa ramah. Detail teknis bersifat opsional.</p>
-          </div>
-        </div>
-
-        <div class="status-panel">
-          <h3>Status terakhir</h3>
-          <p id="status" class="status" aria-live="polite"></p>
-          <details id="error-debug-wrap" class="status-debug-wrap" hidden>
-            <summary>Detail error teknis</summary>
-            <pre id="error-debug" aria-live="polite">Belum ada error.</pre>
-          </details>
-        </div>
-
-        <div class="field-block">
-          <h3 class="subsection-title">Aktivitas Terakhir</h3>
-          <ul id="activity-feed" class="activity-feed"></ul>
-        </div>
-      </section>
+      </div>
     </main>
     <div id="tenant-toggle-modal" class="confirm-modal" hidden>
       <div
@@ -270,7 +396,7 @@
       </div>
     </div>
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260220-3"></script>
-    <script type="module" src="/forms-static/admin/superadmin.js?v=20260217-3"></script>
+    <script type="module" src="/forms-static/admin/superadmin.js?v=20260222-1"></script>
   </body>
 </html>
 

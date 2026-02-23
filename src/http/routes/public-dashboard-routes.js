@@ -9,6 +9,9 @@ export function registerPublicDashboardRoutes(app, deps) {
     getTenantQuestionnairePublicDashboardDistribution,
     getTenantQuestionnairePublicDashboardTrend,
   } = deps;
+  const noindexHeaders = {
+    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  };
 
   function jsonPublicDashboardResponse(c, result) {
     c.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
@@ -31,7 +34,9 @@ export function registerPublicDashboardRoutes(app, deps) {
       return jsonError(c, schema.status, schema.message);
     }
 
-    return servePublicAsset(c, '/forms/public-dashboard.html');
+    return servePublicAsset(c, '/forms/public-dashboard.html', {
+      responseHeaders: noindexHeaders,
+    });
   });
 
   app.get('/forms/:tenantSlug/:questionnaireSlug/api/dashboard/summary', requireDbReady, tenantMiddleware, async (c) => {

@@ -2,6 +2,7 @@ export function createSuperadminDomRefs(doc = document) {
   const byId = (id) => doc.getElementById(id);
   return {
     doc,
+    iaLayoutEl: byId('sec-quick-flow')?.closest('[data-superadmin-layout]') || null,
     userInfoEl: byId('user-info'),
     statusEl: byId('status'),
     errorDebugEl: byId('error-debug'),
@@ -9,7 +10,7 @@ export function createSuperadminDomRefs(doc = document) {
     tenantsBody: byId('tenants-body'),
     tenantSelectEl: byId('tenant-select'),
     activityFeedEl: byId('activity-feed'),
-    promptPanel: byId('prompt-manager-panel'),
+    promptPanel: byId('sec-prompt-manager'),
     promptModeEl: byId('prompt-mode'),
     promptScopeEl: byId('prompt-scope'),
     promptTenantWrapEl: byId('prompt-tenant-wrap'),

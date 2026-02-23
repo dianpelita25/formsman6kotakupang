@@ -13,6 +13,7 @@ export function registerPublicDomainRoutes(app, deps) {
     listPublicSchools,
     listPublicTenants,
     listPublicQuestionnairesByTenant,
+    findDefaultQuestionnaireByTenantId,
   } = deps;
 
   registerPublicRoutes(app, {
@@ -27,5 +28,6 @@ export function registerPublicDomainRoutes(app, deps) {
     listPublicSchools,
     listPublicTenants,
     listPublicQuestionnairesByTenant,
+    findDefaultQuestionnaireByTenantId,
   });
 }

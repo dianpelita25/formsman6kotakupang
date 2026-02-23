@@ -8,6 +8,13 @@ export function registerAdminPageRoutes(app, deps) {
     findDefaultQuestionnaireByTenantId,
     findQuestionnaireByTenantAndSlug,
   } = deps;
+  const noindexHeaders = {
+    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+  };
+  const serveAdminPageAsset = (c, internalPath) =>
+    servePublicAsset(c, internalPath, {
+      responseHeaders: noindexHeaders,
+    });
 
   app.get('/forms/:tenantSlug/admin', tenantMiddleware, (c) =>
     c.redirect(`/forms/${c.req.param('tenantSlug')}/admin/`, 301)
@@ -16,7 +23,7 @@ export function registerAdminPageRoutes(app, deps) {
   app.get('/forms/:tenantSlug/admin/', tenantMiddleware, async (c) => {
     const denied = requireAdminPageAccess(c);
     if (denied) return denied;
-    return servePublicAsset(c, '/admin/school.html');
+    return serveAdminPageAsset(c, '/admin/school.html');
   });
 
   app.get('/forms/:tenantSlug/admin/dashboard', tenantMiddleware, (c) =>
@@ -28,13 +35,13 @@ export function registerAdminPageRoutes(app, deps) {
     if (denied) return denied;
     const tenant = c.get('tenant');
     if (tenant?.slug === LEGACY_SCHOOL_SLUG) {
-      return servePublicAsset(c, '/admin/dashboard.html');
+      return serveAdminPageAsset(c, '/admin/dashboard.html');
     }
     const defaultQuestionnaire = await findDefaultQuestionnaireByTenantId(c.env, tenant.id);
     if (defaultQuestionnaire?.slug) {
       return c.redirect(`/forms/${tenant.slug}/admin/questionnaires/${defaultQuestionnaire.slug}/dashboard/`, 302);
     }
-    return servePublicAsset(c, '/admin/dashboard.html');
+    return serveAdminPageAsset(c, '/admin/dashboard.html');
   });
 
   app.get('/forms/:tenantSlug/admin/questionnaires/:questionnaireSlug/builder', tenantMiddleware, (c) =>
@@ -53,7 +60,7 @@ export function registerAdminPageRoutes(app, deps) {
     if (!questionnaire) {
       return jsonError(c, 404, 'Questionnaire tidak ditemukan.');
     }
-    return servePublicAsset(c, '/admin/questionnaire-builder.html');
+    return serveAdminPageAsset(c, '/admin/questionnaire-builder.html');
   });
 
   app.get('/forms/:tenantSlug/admin/questionnaires/:questionnaireSlug/dashboard', tenantMiddleware, (c) =>
@@ -75,6 +82,6 @@ export function registerAdminPageRoutes(app, deps) {
     if (!questionnaire) {
       return jsonError(c, 404, 'Questionnaire tidak ditemukan.');
     }
-    return servePublicAsset(c, '/admin/questionnaire-dashboard.html');
+    return serveAdminPageAsset(c, '/admin/questionnaire-dashboard.html');
   });
 }

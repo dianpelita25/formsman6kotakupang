@@ -8,6 +8,8 @@ binding = "ASSETS"
 html_handling = "none"
 not_found_handling = "none"
 run_worker_first = [
+  "/robots.txt",
+  "/sitemap.xml",
   "/forms",
   "/forms/*",
   "/forms-static/*",
@@ -37,6 +39,8 @@ ENABLE_LEGACY_ADMIN_ALIAS = "true"
 [env.production]
 name = "aiti-forms-multischool"
 routes = [
+  { pattern = "aitiglobal.link/robots.txt", zone_name = "aitiglobal.link" },
+  { pattern = "aitiglobal.link/sitemap.xml", zone_name = "aitiglobal.link" },
   { pattern = "aitiglobal.link/forms*", zone_name = "aitiglobal.link" },
   { pattern = "aitiglobal.link/formsman6kotakupang*", zone_name = "aitiglobal.link" },
 ]

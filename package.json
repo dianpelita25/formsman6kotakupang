@@ -15,6 +15,7 @@
     "report:module-deps": "node scripts/report-module-deps.js",
     "check:cycles": "node scripts/check-module-cycles.js",
     "check:file-budgets": "node scripts/check-file-budgets.js",
+    "check:static-versioning": "node scripts/check-static-versioning.js",
     "check:frontend-boundary": "node scripts/check-frontend-boundaries.js",
     "check:legacy-boundary": "node scripts/check-legacy-boundary.js",
     "check:duplication": "node scripts/check-duplication-canonicals.js",
@@ -32,7 +33,10 @@
     "smoke:ux:language-id": "node scripts/smoke-ux-language-id.js",
     "smoke:ux:contrast-aa": "node scripts/smoke-ux-contrast-aa.js",
     "smoke:ux:perf-public": "node scripts/smoke-ux-perf-public.js",
+    "smoke:ux:css-payload": "node scripts/smoke-ux-css-payload.js",
     "smoke:public-dashboard": "node scripts/smoke-public-dashboard.js",
+    "smoke:seo:baseline": "node scripts/smoke-seo-baseline.js",
+    "smoke:lighthouse:forms": "node scripts/smoke-lighthouse-forms.js",
     "smoke:dashboard:pdf": "node scripts/smoke-dashboard-pdf-playwright.js",
     "visual:legacy-dashboard:diff": "node scripts/visual-legacy-dashboard-diff.js",
     "visual:questionnaire-dashboard:diff": "node scripts/visual-questionnaire-dashboard-diff.js",
@@ -51,6 +55,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "lighthouse": "^12.8.2",
     "pixelmatch": "^7.1.0",
     "playwright": "^1.55.0",
     "pngjs": "^7.0.0",

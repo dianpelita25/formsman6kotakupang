@@ -210,6 +210,7 @@ export function createPromptManagerService({
     refs.promptScopeEl.value = 'tenant';
     syncPromptScopeUi();
     refs.promptTenantSelectEl.value = tenantId;
+    window.dispatchEvent(new CustomEvent('superadmin:open-section', { detail: { sectionId: 'sec-prompt-manager' } }));
     refs.promptPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     loadPromptManager();
   }
