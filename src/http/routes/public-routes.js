@@ -1,3 +1,34 @@
+const NOINDEX_ROBOTS_HEADER = 'noindex, nofollow, noarchive';
+const ASSET_CACHE_SHORT = 'public, max-age=300, stale-while-revalidate=60';
+const ASSET_CACHE_IMMUTABLE = 'public, max-age=31536000, immutable';
+
+function xmlEscape(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function buildSitemapXml(origin, entries) {
+  const normalizedOrigin = String(origin || '').replace(/\/+$/, '');
+  const rows = entries
+    .map((entry) => {
+      const loc = `${normalizedOrigin}${entry.path}`;
+      return [
+        '  <url>',
+        `    <loc>${xmlEscape(loc)}</loc>`,
+        `    <changefreq>${xmlEscape(entry.changefreq || 'weekly')}</changefreq>`,
+        `    <priority>${xmlEscape(entry.priority || '0.7')}</priority>`,
+        '  </url>',
+      ].join('\n');
+    })
+    .join('\n');
+
+  return ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', rows, '</urlset>'].join('\n');
+}
+
 export function registerPublicRoutes(app, deps) {
   const {
     ensurePlatformSchema,
@@ -11,7 +42,15 @@ export function registerPublicRoutes(app, deps) {
     listPublicSchools,
     listPublicTenants,
     listPublicQuestionnairesByTenant,
+    findDefaultQuestionnaireByTenantId,
   } = deps;
+
+  const serveAdminPageAsset = (c, internalPath) =>
+    servePublicAsset(c, internalPath, {
+      responseHeaders: {
+        'X-Robots-Tag': NOINDEX_ROBOTS_HEADER,
+      },
+    });
 
   app.get('/health', (c) => c.json({ ok: true, runtime: 'cloudflare-worker-hono' }));
   app.get('/health/db', async (c) => {
@@ -29,6 +68,73 @@ export function registerPublicRoutes(app, deps) {
     return c.redirect(`/forms/${LEGACY_SCHOOL_SLUG}${rest}`, 301);
   });
 
+  app.get('/robots.txt', (c) => {
+    const origin = new URL(c.req.url).origin;
+    const lines = [
+      'User-agent: *',
+      'Allow: /forms',
+      'Disallow: /forms/admin/',
+      'Disallow: /forms/*/admin/',
+      'Disallow: /forms/*/*/dashboard/',
+      '',
+      `Sitemap: ${origin}/sitemap.xml`,
+    ];
+
+    return new Response(lines.join('\n'), {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': ASSET_CACHE_SHORT,
+      },
+    });
+  });
+
+  app.get('/sitemap.xml', requireDbReady, async (c) => {
+    const origin = new URL(c.req.url).origin;
+    const tenants = await listPublicTenants(c.env);
+    const sitemapEntries = new Map();
+
+    sitemapEntries.set('/forms', {
+      path: '/forms',
+      changefreq: 'daily',
+      priority: '0.9',
+    });
+
+    for (const tenant of tenants) {
+      const tenantId = String(tenant?.id || '').trim();
+      const tenantSlug = String(tenant?.slug || '').trim();
+      if (!tenantId || !tenantSlug) continue;
+
+      let questionnaireSlug = '';
+      const defaultQuestionnaire = await findDefaultQuestionnaireByTenantId(c.env, tenantId);
+      questionnaireSlug = String(defaultQuestionnaire?.slug || '').trim();
+
+      if (!questionnaireSlug) {
+        const questionnaires = await listPublicQuestionnairesByTenant(c.env, tenantId);
+        const fallback = questionnaires.find((item) => item.isDefault) || questionnaires[0];
+        questionnaireSlug = String(fallback?.slug || '').trim();
+      }
+
+      if (!questionnaireSlug) continue;
+
+      const path = `/forms/${tenantSlug}/${questionnaireSlug}/`;
+      sitemapEntries.set(path, {
+        path,
+        changefreq: 'daily',
+        priority: '0.8',
+      });
+    }
+
+    const xml = buildSitemapXml(origin, Array.from(sitemapEntries.values()));
+    return new Response(xml, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=600, stale-while-revalidate=300',
+      },
+    });
+  });
+
   app.get('/forms-static/*', async (c) => {
     const prefix = '/forms-static/';
     const requestPath = c.req.path;
@@ -36,16 +142,24 @@ export function registerPublicRoutes(app, deps) {
     if (!relativePath) {
       return jsonError(c, 404, 'Asset tidak ditemukan.');
     }
-    return servePublicAsset(c, `/${relativePath}`);
+    const versionTag = String(c.req.query('v') || '').trim();
+    const cacheControl = versionTag
+      ? ASSET_CACHE_IMMUTABLE
+      : ASSET_CACHE_SHORT;
+    return servePublicAsset(c, `/${relativePath}`, {
+      responseHeaders: {
+        'Cache-Control': cacheControl,
+      },
+    });
   });
 
-  app.get('/forms/admin/login', (c) => servePublicAsset(c, '/admin/login.html'));
-  app.get('/forms/admin/login/', (c) => servePublicAsset(c, '/admin/login.html'));
-  app.get('/forms/admin/select-school', (c) => servePublicAsset(c, '/admin/select-school.html'));
-  app.get('/forms/admin/select-school/', (c) => servePublicAsset(c, '/admin/select-school.html'));
+  app.get('/forms/admin/login', (c) => serveAdminPageAsset(c, '/admin/login.html'));
+  app.get('/forms/admin/login/', (c) => serveAdminPageAsset(c, '/admin/login.html'));
+  app.get('/forms/admin/select-school', (c) => serveAdminPageAsset(c, '/admin/select-school.html'));
+  app.get('/forms/admin/select-school/', (c) => serveAdminPageAsset(c, '/admin/select-school.html'));
 
   app.get('/forms/admin', (c) => c.redirect('/forms/admin/', 301));
-  app.get('/forms/admin/', (c) => servePublicAsset(c, '/admin/superadmin.html'));
+  app.get('/forms/admin/', (c) => serveAdminPageAsset(c, '/admin/superadmin.html'));
   app.get('/admin', (c) => {
     if (!isLegacyAdminAliasEnabled(c.env)) return jsonError(c, 404, 'Not found');
     return c.redirect('/forms/admin/login', 301);

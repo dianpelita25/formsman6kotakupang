@@ -13,7 +13,25 @@ export function jsonError(c, status, message, extra = {}) {
   );
 }
 
-export async function servePublicAsset(c, internalPath) {
+function applyPublicAssetResponseOverrides(response, options = {}) {
+  const headerEntries = Object.entries(options?.responseHeaders || {}).filter(([key]) => String(key || '').trim());
+  if (!headerEntries.length) {
+    return response;
+  }
+
+  const nextHeaders = new Headers(response.headers);
+  headerEntries.forEach(([key, value]) => {
+    nextHeaders.set(String(key), String(value));
+  });
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: nextHeaders,
+  });
+}
+
+export async function servePublicAsset(c, internalPath, options = {}) {
   const assets = c.env.ASSETS;
   if (!assets?.fetch) {
     return jsonError(c, 500, 'Assets binding belum terpasang.');
@@ -23,17 +41,17 @@ export async function servePublicAsset(c, internalPath) {
 
   for (let index = 0; index < 5; index += 1) {
     if (![301, 302, 303, 307, 308].includes(response.status)) {
-      return response;
+      return applyPublicAssetResponseOverrides(response, options);
     }
     const location = response.headers.get('location');
     if (!location) {
-      return response;
+      return applyPublicAssetResponseOverrides(response, options);
     }
     target = new URL(location, target);
     response = await assets.fetch(new Request(target.toString(), c.req.raw));
   }
 
-  return response;
+  return applyPublicAssetResponseOverrides(response, options);
 }
 
 function parseBooleanFlag(input, fallback = false) {
