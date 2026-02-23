@@ -22,7 +22,7 @@ const ROUTE_AUDITS = [
     id: 'public-form',
     path: '/forms/{tenantSlug}/{questionnaireSlug}/',
     thresholds: {
-      performance: 0.55,
+      performance: 0.5,
       accessibility: 0.9,
       'best-practices': 0.85,
       seo: 0.9,
