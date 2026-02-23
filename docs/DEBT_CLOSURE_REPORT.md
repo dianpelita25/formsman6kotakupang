@@ -231,3 +231,59 @@ Jika ada temuan baru saat implementasi:
    - `smoke-admin-ui`
    - `visual-regression-legacy-dashboard`
 3. Gate arsitektur tetap PASS setelah penguncian rule branch protection.
+
+## Update D38-D41 (2026-02-23)
+
+1. Implementasi teknis cycle D38-D41:
+   - Commit utama: `9f8f675d6417a0ccca5f2e17dce8854f3c0f6e93`
+   - Patch produksi SEO route-domain: `db6e50d75f112ea810f47e08b548634efe8f6ba4`
+2. Savepoint pre-live:
+   - `savepoint-d41-prelive-20260223-1035` -> `9f8f675d6417a0ccca5f2e17dce8854f3c0f6e93`
+3. Bukti gate lokal full PASS:
+   - `pnpm check:modularity`
+   - `pnpm check:debt-register`
+   - `pnpm check:architecture`
+   - `pnpm check:static-versioning`
+   - `pnpm smoke:e2e`
+   - `pnpm smoke:admin:ui`
+   - `pnpm smoke:ux:mobile`
+   - `pnpm smoke:ux:theme`
+   - `pnpm smoke:ux:contrast-nav`
+   - `pnpm smoke:ux:perf-public`
+   - `pnpm smoke:ux:css-payload`
+   - `pnpm smoke:public-dashboard`
+   - `pnpm smoke:seo:baseline`
+   - `pnpm smoke:lighthouse:forms`
+   - `pnpm smoke:ux:language-id`
+   - `pnpm smoke:ux:contrast-aa`
+   - `pnpm visual:legacy-dashboard:diff`
+   - `pnpm visual:questionnaire-dashboard:diff`
+   - `pnpm visual:public-dashboard:diff`
+4. Deploy staging:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env staging`
+   - Version ID final: `7145fce4-c770-4bd6-98f6-090ab1c8fa19`
+   - Smoke staging PASS:
+     - `pnpm smoke:seo:baseline -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev`
+     - `pnpm smoke:ux:mobile -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev`
+     - `pnpm smoke:ux:contrast-nav -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev`
+     - `pnpm smoke:ux:perf-public -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev`
+     - `pnpm smoke:public-dashboard -- --base-url https://aiti-forms-multischool-staging.aiti.workers.dev`
+5. Deploy production:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env production`
+   - Version ID final: `391c7484-5b7b-438f-b654-19adf4bb7069`
+   - Routes aktif:
+     - `aitiglobal.link/robots.txt`
+     - `aitiglobal.link/sitemap.xml`
+     - `aitiglobal.link/forms*`
+     - `aitiglobal.link/formsman6kotakupang*`
+6. Smoke external produksi PASS:
+   - `pnpm smoke:seo:baseline -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:contrast-nav -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:perf-public -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:language-id -- --base-url https://aitiglobal.link`
+7. Catatan operasional:
+   - Untuk environment non-interaktif Windows, deploy script `run-wrangler-deploy.js` sempat gagal `spawn EINVAL`; deploy dieksekusi langsung via `wrangler` dengan `CLOUDFLARE_API_TOKEN` dari `.env`.
+   - SEO production membutuhkan route root (`/robots.txt`, `/sitemap.xml`) di `wrangler.toml` agar baseline smoke valid pada domain custom `aitiglobal.link`.
