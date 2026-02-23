@@ -2,10 +2,10 @@ import 'dotenv/config';
 import { getRequiredEnv, launchBrowser, startLocalServer } from './_playwright-worker-local.js';
 
 const LOCAL_PORT = Number(process.env.SMOKE_UX_PERF_PUBLIC_PORT || 8906);
-const SETTLE_THRESHOLD_MS = Number(process.env.SMOKE_UX_PERF_PUBLIC_SETTLE_MAX_MS || 450);
+const SETTLE_THRESHOLD_MS = Number(process.env.SMOKE_UX_PERF_PUBLIC_SETTLE_MAX_MS || 420);
 const FRAME_GAP_THRESHOLD_MS = 50;
 const MAX_LONG_FRAME_GAPS = Number(process.env.SMOKE_UX_PERF_PUBLIC_MAX_LONG_GAPS || 2);
-const SAMPLE_COUNT = Math.max(2, Number(process.env.SMOKE_UX_PERF_PUBLIC_SAMPLES || 3));
+const SAMPLE_COUNT = Math.max(3, Number(process.env.SMOKE_UX_PERF_PUBLIC_SAMPLES || 5));
 const MAX_SETTLE_WAIT_MS = 2000;
 
 function getArgValue(flag) {
@@ -244,6 +244,11 @@ async function run() {
         name: 'public form',
         path: `/forms/${target.tenantSlug}/${target.questionnaireSlug}/`,
         readySelector: '#feedback-form',
+      },
+      {
+        name: 'public dashboard',
+        path: `/forms/${target.tenantSlug}/${target.questionnaireSlug}/dashboard/`,
+        readySelector: '.public-dashboard-page',
       },
     ];
 

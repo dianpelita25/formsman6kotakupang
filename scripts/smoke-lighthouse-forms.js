@@ -6,12 +6,28 @@ import { startLocalServer } from './_playwright-worker-local.js';
 
 const LOCAL_PORT = Number(process.env.SMOKE_LIGHTHOUSE_FORMS_PORT || 8912);
 
-const THRESHOLDS = {
-  performance: 0.55,
-  accessibility: 0.9,
-  'best-practices': 0.8,
-  seo: 0.9,
-};
+const ROUTE_AUDITS = [
+  {
+    id: 'portal',
+    path: '/forms',
+    thresholds: {
+      performance: 0.75,
+      accessibility: 0.9,
+      'best-practices': 0.9,
+      seo: 0.9,
+    },
+  },
+  {
+    id: 'public-form',
+    path: '/forms/{tenantSlug}/{questionnaireSlug}/',
+    thresholds: {
+      performance: 0.65,
+      accessibility: 0.9,
+      'best-practices': 0.85,
+      seo: 0.9,
+    },
+  },
+];
 
 function getArgValue(flag) {
   const index = process.argv.indexOf(flag);
@@ -25,6 +41,42 @@ function buildBaseUrl() {
   const fromEnv = String(process.env.SMOKE_LIGHTHOUSE_FORMS_BASE_URL || '').trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, '');
   return '';
+}
+
+function toArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+async function resolveTargetQuestionnaire(baseUrl) {
+  const tenantsRes = await fetch(`${baseUrl}/forms/api/tenants/public`);
+  if (!tenantsRes.ok) {
+    throw new Error(`Gagal memuat tenant publik: status=${tenantsRes.status}`);
+  }
+  const tenantsPayload = await tenantsRes.json().catch(() => ({}));
+  const tenants = toArray(tenantsPayload?.data);
+  if (!tenants.length) {
+    throw new Error('Daftar tenant publik kosong.');
+  }
+
+  for (const tenant of tenants) {
+    const tenantSlug = String(tenant?.slug || '').trim();
+    if (!tenantSlug) continue;
+
+    const questionnairesRes = await fetch(`${baseUrl}/forms/${tenantSlug}/api/questionnaires/public`);
+    if (!questionnairesRes.ok) continue;
+
+    const questionnairesPayload = await questionnairesRes.json().catch(() => ({}));
+    const questionnaires = toArray(questionnairesPayload?.data);
+    const questionnaire = questionnaires.find((item) => String(item?.slug || '').trim());
+    if (!questionnaire) continue;
+
+    return {
+      tenantSlug,
+      questionnaireSlug: String(questionnaire.slug || '').trim(),
+    };
+  }
+
+  throw new Error('Tidak ada tenant dengan kuesioner publik untuk audit Lighthouse.');
 }
 
 function runCommand(command, args, options = {}) {
@@ -51,6 +103,16 @@ function readCategoryScore(reportJson, categoryId) {
   return Number.isFinite(score) ? Number(score) : null;
 }
 
+function buildTargetUrl(baseUrl, route, target) {
+  if (!route.path.includes('{tenantSlug}') && !route.path.includes('{questionnaireSlug}')) {
+    return `${baseUrl}${route.path}`;
+  }
+
+  return `${baseUrl}${route.path
+    .replace('{tenantSlug}', target.tenantSlug)
+    .replace('{questionnaireSlug}', target.questionnaireSlug)}`;
+}
+
 async function run() {
   const externalBaseUrl = buildBaseUrl();
   const isExternal = Boolean(externalBaseUrl);
@@ -64,71 +126,87 @@ async function run() {
 
   const localServer = isExternal ? null : await startLocalServer(LOCAL_PORT);
   const baseUrl = isExternal ? externalBaseUrl : localServer.baseUrl;
-  const targetUrl = `${baseUrl}/forms`;
 
   const artifactDir = path.join(process.cwd(), 'artifacts', 'lighthouse-forms');
-  const reportPath = path.join(artifactDir, 'lighthouse-report.json');
   const summaryPath = path.join(artifactDir, 'summary.json');
-
   await fs.mkdir(artifactDir, { recursive: true });
 
   try {
-    const args = [
-      'exec',
-      'lighthouse',
-      targetUrl,
-      '--only-categories=performance,accessibility,best-practices,seo',
-      '--preset=desktop',
-      '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
-      '--output=json',
-      `--output-path=${reportPath}`,
-      '--quiet',
-    ];
+    const target = await resolveTargetQuestionnaire(baseUrl);
+    const routeSummaries = [];
+    const globalFailures = [];
 
-    console.log(`[INFO] Menjalankan Lighthouse untuk ${targetUrl}`);
-    await runCommand('pnpm', args, { cwd: process.cwd() });
+    for (const route of ROUTE_AUDITS) {
+      const targetUrl = buildTargetUrl(baseUrl, route, target);
+      const reportPath = path.join(artifactDir, `${route.id}-report.json`);
+      const args = [
+        'exec',
+        'lighthouse',
+        targetUrl,
+        '--only-categories=performance,accessibility,best-practices,seo',
+        '--preset=desktop',
+        '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
+        '--output=json',
+        `--output-path=${reportPath}`,
+        '--quiet',
+      ];
 
-    const reportRaw = await fs.readFile(reportPath, 'utf8');
-    const reportJson = JSON.parse(reportRaw);
+      console.log(`[INFO] Menjalankan Lighthouse untuk ${targetUrl}`);
+      await runCommand('pnpm', args, { cwd: process.cwd() });
 
-    const scores = {
-      performance: readCategoryScore(reportJson, 'performance'),
-      accessibility: readCategoryScore(reportJson, 'accessibility'),
-      'best-practices': readCategoryScore(reportJson, 'best-practices'),
-      seo: readCategoryScore(reportJson, 'seo'),
-    };
+      const reportRaw = await fs.readFile(reportPath, 'utf8');
+      const reportJson = JSON.parse(reportRaw);
 
-    const failures = [];
-    Object.entries(THRESHOLDS).forEach(([category, threshold]) => {
-      const actual = scores[category];
-      if (!Number.isFinite(actual)) {
-        failures.push(`${category}: score tidak tersedia`);
-        return;
+      const scores = {
+        performance: readCategoryScore(reportJson, 'performance'),
+        accessibility: readCategoryScore(reportJson, 'accessibility'),
+        'best-practices': readCategoryScore(reportJson, 'best-practices'),
+        seo: readCategoryScore(reportJson, 'seo'),
+      };
+
+      const failures = [];
+      Object.entries(route.thresholds).forEach(([category, threshold]) => {
+        const actual = scores[category];
+        if (!Number.isFinite(actual)) {
+          failures.push(`${category}: score tidak tersedia`);
+          return;
+        }
+        if (actual < threshold) {
+          failures.push(`${category}: ${actual.toFixed(2)} < ${threshold.toFixed(2)}`);
+        }
+      });
+
+      if (failures.length) {
+        globalFailures.push(...failures.map((item) => `${route.id} -> ${item}`));
       }
-      if (actual < threshold) {
-        failures.push(`${category}: ${actual.toFixed(2)} < ${threshold.toFixed(2)}`);
-      }
-    });
+
+      routeSummaries.push({
+        id: route.id,
+        targetUrl,
+        thresholds: route.thresholds,
+        scores,
+        status: failures.length ? 'FAILED' : 'PASS',
+        failures,
+      });
+
+      console.log(`[INFO] Skor Lighthouse ${route.id}: ${JSON.stringify(scores)}`);
+    }
 
     const summary = {
-      targetUrl,
-      thresholds: THRESHOLDS,
-      scores,
-      status: failures.length ? 'FAILED' : 'PASS',
-      failures,
+      status: globalFailures.length ? 'FAILED' : 'PASS',
       generatedAt: new Date().toISOString(),
+      routes: routeSummaries,
+      failures: globalFailures,
     };
 
     await fs.writeFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
-
-    console.log(`[INFO] Skor Lighthouse: ${JSON.stringify(scores)}`);
     console.log(`[INFO] Summary disimpan: ${path.relative(process.cwd(), summaryPath).replace(/\\/g, '/')}`);
 
-    if (failures.length) {
-      throw new Error(`Lighthouse threshold gagal: ${failures.join(' | ')}`);
+    if (globalFailures.length) {
+      throw new Error(`Lighthouse threshold gagal: ${globalFailures.join(' | ')}`);
     }
 
-    console.log('PASS: Lighthouse /forms memenuhi threshold minimal.');
+    console.log('PASS: Lighthouse /forms + public form memenuhi threshold minimal.');
   } finally {
     if (localServer) {
       await localServer.close().catch(() => {});
@@ -137,7 +215,7 @@ async function run() {
 }
 
 run().catch((error) => {
-  console.error('FAILED: smoke Lighthouse /forms error.');
+  console.error('FAILED: smoke Lighthouse forms error.');
   console.error(error?.stack || error?.message || String(error));
   process.exit(1);
 });
