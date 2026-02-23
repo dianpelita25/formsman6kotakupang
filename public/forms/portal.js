@@ -45,6 +45,27 @@ function tenantTypeLabel(type) {
 }
 
 function resolveDefaultQuestionnaire(tenant) {
+  const defaultFromPayload = tenant?.defaultQuestionnaire;
+  if (defaultFromPayload && defaultFromPayload.slug) {
+    return defaultFromPayload;
+  }
+
+  const legacyDefaultSlug =
+    String(tenant?.defaultQuestionnaireSlug || tenant?.default_questionnaire_slug || '').trim();
+  if (legacyDefaultSlug) {
+    return {
+      id: tenant?.defaultQuestionnaireId || tenant?.default_questionnaire_id || '',
+      slug: legacyDefaultSlug,
+      name:
+        String(
+          tenant?.defaultQuestionnaireName ||
+            tenant?.default_questionnaire_name ||
+            'Kuesioner Utama'
+        ).trim() || 'Kuesioner Utama',
+      isDefault: true,
+    };
+  }
+
   const questionnaires = Array.isArray(tenant.questionnaires) ? tenant.questionnaires : [];
   if (!questionnaires.length) return null;
   return questionnaires.find((item) => item.isDefault) || questionnaires[0];
@@ -98,20 +119,15 @@ function applyFilter() {
 
   const filtered = tenantCache.filter((tenant) => {
     const questionnaires = Array.isArray(tenant.questionnaires) ? tenant.questionnaires : [];
-    const questionnaireText = questionnaires.map((item) => `${item.name} ${item.slug}`).join(' ');
+    const questionnaireTextFromList = questionnaires.map((item) => `${item.name} ${item.slug}`).join(' ');
+    const questionnaireTextFromDefault = tenant.defaultQuestionnaire
+      ? `${tenant.defaultQuestionnaire.name} ${tenant.defaultQuestionnaire.slug}`
+      : '';
+    const questionnaireText = `${questionnaireTextFromList} ${questionnaireTextFromDefault}`.trim();
     const haystack = `${tenant.name} ${tenant.slug} ${tenant.tenant_type || ''} ${questionnaireText}`.toLowerCase();
     return haystack.includes(keyword);
   });
   renderTenants(filtered);
-}
-
-async function loadTenantQuestionnaires(tenantSlug) {
-  try {
-    const payload = await requestJson(`/forms/${tenantSlug}/api/questionnaires/public`);
-    return Array.isArray(payload.data) ? payload.data : [];
-  } catch {
-    return [];
-  }
 }
 
 async function loadTenants() {
@@ -119,10 +135,9 @@ async function loadTenants() {
   try {
     const payload = await requestJson('/forms/api/tenants/public');
     const tenants = Array.isArray(payload.data) ? payload.data : [];
-    const questionnaireLists = await Promise.all(tenants.map((tenant) => loadTenantQuestionnaires(tenant.slug)));
-    tenantCache = tenants.map((tenant, index) => ({
+    tenantCache = tenants.map((tenant) => ({
       ...tenant,
-      questionnaires: questionnaireLists[index] || [],
+      defaultQuestionnaire: resolveDefaultQuestionnaire(tenant),
     }));
     renderTenants(tenantCache);
     setStatus(`Menampilkan ${tenantCache.length} organisasi aktif.`, 'success');

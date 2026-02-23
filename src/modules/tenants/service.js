@@ -34,7 +34,21 @@ export async function listAllTenants(env) {
 }
 
 export async function listPublicTenants(env) {
-  return listActiveTenants(env);
+  const rows = await listActiveTenants(env);
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    tenant_type: row.tenant_type,
+    defaultQuestionnaire: row.default_questionnaire_slug
+      ? {
+          id: row.default_questionnaire_id,
+          slug: row.default_questionnaire_slug,
+          name: row.default_questionnaire_name,
+          isDefault: true,
+        }
+      : null,
+  }));
 }
 
 export async function getTenantById(env, tenantId) {
