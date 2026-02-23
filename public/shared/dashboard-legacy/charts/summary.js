@@ -7,7 +7,11 @@ export function renderQ10Breakdown(q10Breakdown, items, totalResponses) {
   items.forEach((item) => {
     const percent = total ? (item.total / total) * 100 : 0;
     const row = document.createElement('li');
-    row.innerHTML = `<span>${item.label}</span><span>${item.total} (${percent.toFixed(1)}%)</span>`;
+    const label = document.createElement('span');
+    label.textContent = String(item.label || '-');
+    const value = document.createElement('span');
+    value.textContent = `${item.total} (${percent.toFixed(1)}%)`;
+    row.append(label, value);
     q10Breakdown.append(row);
   });
 }

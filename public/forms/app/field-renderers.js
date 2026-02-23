@@ -11,7 +11,13 @@ function createQuestionShell(field, index) {
 
   const title = document.createElement('div');
   title.className = 'question-title';
-  title.innerHTML = `${field.label}${field.required !== false ? '<span class="required">*</span>' : ''}`;
+  title.textContent = String(field.label || '');
+  if (field.required !== false) {
+    const requiredMark = document.createElement('span');
+    requiredMark.className = 'required';
+    requiredMark.textContent = '*';
+    title.append(requiredMark);
+  }
 
   header.append(badge, title);
   wrapper.append(header);

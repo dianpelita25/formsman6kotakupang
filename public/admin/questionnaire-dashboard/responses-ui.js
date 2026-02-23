@@ -1,3 +1,5 @@
+import { appendCell, clearChildren } from '/forms-static/shared/safe-dom.js';
+
 export function createResponsesController({
   state,
   responsesBodyEl,
@@ -22,19 +24,19 @@ export function createResponsesController({
   }
 
   function renderResponsesTable() {
-    responsesBodyEl.innerHTML = '';
+    clearChildren(responsesBodyEl);
     if (!state.responses.length) {
       const row = document.createElement('tr');
-      row.innerHTML = '<td colspan="3" class="small">Belum ada respons untuk filter ini.</td>';
+      const cell = appendCell(row, 'Belum ada respons untuk filter ini.');
+      cell.colSpan = 3;
+      cell.className = 'small';
       responsesBodyEl.append(row);
     } else {
       state.responses.forEach((item) => {
         const row = document.createElement('tr');
-        row.innerHTML = `
-        <td>${formatDateTime(item.submittedAt)}</td>
-        <td>${summarizeObject(item.respondent)}</td>
-        <td>${summarizeObject(item.answers)}</td>
-      `;
+        appendCell(row, formatDateTime(item.submittedAt));
+        appendCell(row, summarizeObject(item.respondent));
+        appendCell(row, summarizeObject(item.answers));
         responsesBodyEl.append(row);
       });
     }

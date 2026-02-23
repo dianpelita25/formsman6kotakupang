@@ -155,11 +155,19 @@ export function createActivityFeed(listElement, maxItems = 30) {
     entries.forEach((entry) => {
       const li = document.createElement('li');
       li.className = `activity-item activity-item--${entry.level}`;
-      li.innerHTML = `
-        <span class="activity-time">${entry.time}</span>
-        <span class="activity-action">${entry.action}</span>
-        <span class="activity-detail">${entry.detail}</span>
-      `;
+      const time = document.createElement('span');
+      time.className = 'activity-time';
+      time.textContent = entry.time;
+
+      const action = document.createElement('span');
+      action.className = 'activity-action';
+      action.textContent = entry.action;
+
+      const detail = document.createElement('span');
+      detail.className = 'activity-detail';
+      detail.textContent = entry.detail;
+
+      li.append(time, action, detail);
       listElement.append(li);
     });
   }

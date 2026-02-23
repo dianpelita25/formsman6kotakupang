@@ -1,7 +1,8 @@
 import { questionnaireBuilderLink, questionnaireDashboardLink, questionnairePublicLink } from './api-client.js';
+import { clearChildren, createElement } from '/forms-static/shared/safe-dom.js';
 
 export function renderQuestionnairePromptOptions({ state, tenantPromptQuestionnaireEl } = {}) {
-  tenantPromptQuestionnaireEl.innerHTML = '';
+  clearChildren(tenantPromptQuestionnaireEl);
   if (!state.questionnaireItems.length) {
     const option = document.createElement('option');
     option.value = '';
@@ -23,7 +24,7 @@ export function renderQuestionnaireList({
   questionnaireListBodyEl,
   questionnaireEmptyEl,
 } = {}) {
-  questionnaireListBodyEl.innerHTML = '';
+  clearChildren(questionnaireListBodyEl);
   if (!state.questionnaireItems.length) {
     questionnaireEmptyEl.style.display = 'block';
     return;
@@ -32,21 +33,73 @@ export function renderQuestionnaireList({
   questionnaireEmptyEl.style.display = 'none';
   state.questionnaireItems.forEach((item) => {
     const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.name}${item.isDefault ? ' <span class="small">[utama]</span>' : ''}</td>
-      <td><code>${item.slug}</code></td>
-      <td>${item.category}</td>
-      <td>${item.isActive ? 'Aktif' : 'Nonaktif'}</td>
-      <td>${Number(item.totalResponses || 0).toLocaleString('id-ID')}</td>
-      <td>
-        <div class="row" style="gap:8px">
-          <a class="ghost" style="padding:8px 10px;border-radius:9px;text-decoration:none" href="${questionnaireBuilderLink(state, item.slug)}">Builder Visual</a>
-          <a class="ghost" style="padding:8px 10px;border-radius:9px;text-decoration:none" href="${questionnaireDashboardLink(state, item.slug)}">Dashboard</a>
-          <a class="ghost" style="padding:8px 10px;border-radius:9px;text-decoration:none" href="${questionnairePublicLink(state, item.slug)}" target="_blank" rel="noopener">Form Publik</a>
-          <button class="ghost" type="button" data-action="prompt" data-id="${item.id}" style="padding:8px 10px;border-radius:9px">Kelola Prompt</button>
-        </div>
-      </td>
-    `;
+
+    const nameCell = document.createElement('td');
+    nameCell.append(createElement('span', { text: item.name }));
+    if (item.isDefault) {
+      nameCell.append(document.createTextNode(' '));
+      nameCell.append(createElement('span', { className: 'small', text: '[utama]' }));
+    }
+    row.append(nameCell);
+
+    const slugCell = document.createElement('td');
+    slugCell.append(createElement('code', { text: item.slug }));
+    row.append(slugCell);
+
+    row.append(createElement('td', { text: item.category }));
+    row.append(createElement('td', { text: item.isActive ? 'Aktif' : 'Nonaktif' }));
+    row.append(createElement('td', { text: Number(item.totalResponses || 0).toLocaleString('id-ID') }));
+
+    const actionsCell = document.createElement('td');
+    const actionRow = createElement('div', { className: 'row' });
+    actionRow.style.gap = '8px';
+
+    const builderLink = createElement('a', {
+      className: 'ghost',
+      text: 'Builder Visual',
+      attrs: { href: questionnaireBuilderLink(state, item.slug) },
+    });
+    builderLink.style.padding = '8px 10px';
+    builderLink.style.borderRadius = '9px';
+    builderLink.style.textDecoration = 'none';
+
+    const dashboardLink = createElement('a', {
+      className: 'ghost',
+      text: 'Dashboard',
+      attrs: { href: questionnaireDashboardLink(state, item.slug) },
+    });
+    dashboardLink.style.padding = '8px 10px';
+    dashboardLink.style.borderRadius = '9px';
+    dashboardLink.style.textDecoration = 'none';
+
+    const publicLink = createElement('a', {
+      className: 'ghost',
+      text: 'Form Publik',
+      attrs: {
+        href: questionnairePublicLink(state, item.slug),
+        target: '_blank',
+        rel: 'noopener',
+      },
+    });
+    publicLink.style.padding = '8px 10px';
+    publicLink.style.borderRadius = '9px';
+    publicLink.style.textDecoration = 'none';
+
+    const promptButton = createElement('button', {
+      className: 'ghost',
+      text: 'Kelola Prompt',
+      attrs: {
+        type: 'button',
+        'data-action': 'prompt',
+        'data-id': item.id,
+      },
+    });
+    promptButton.style.padding = '8px 10px';
+    promptButton.style.borderRadius = '9px';
+
+    actionRow.append(builderLink, dashboardLink, publicLink, promptButton);
+    actionsCell.append(actionRow);
+    row.append(actionsCell);
     questionnaireListBodyEl.append(row);
   });
 }
