@@ -37,11 +37,23 @@ export function renderBuilderPreview(state, refs) {
       detail = `Skala 1-5 (${field.fromLabel || '-'} -> ${field.toLabel || '-'})`;
     }
 
-    item.innerHTML = `<strong>${index + 1}. ${field.label}</strong> <span class="small">[${field.name}] ${detail} | ${
-      field.criterion ? `Kriteria ${field.criterion} | ` : ''
-    }${field.required === false ? 'Opsional' : 'Wajib'} | Segment: ${String(field.segmentRole || 'auto')}${
-      field.isSensitive ? ' (sensitive)' : ''
-    }</span>`;
+    const title = document.createElement('strong');
+    title.textContent = `${index + 1}. ${field.label}`;
+
+    const detailText = [
+      `[${field.name}]`,
+      detail,
+      field.criterion ? `Kriteria ${field.criterion}` : '',
+      field.required === false ? 'Opsional' : 'Wajib',
+      `Segment: ${String(field.segmentRole || 'auto')}${field.isSensitive ? ' (sensitive)' : ''}`,
+    ]
+      .filter(Boolean)
+      .join(' | ');
+    const detailEl = document.createElement('span');
+    detailEl.className = 'small';
+    detailEl.textContent = detailText;
+
+    item.append(title, document.createTextNode(' '), detailEl);
     refs.previewFieldsEl.append(item);
   });
 }

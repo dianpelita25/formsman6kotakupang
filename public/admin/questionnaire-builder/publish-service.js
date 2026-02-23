@@ -66,11 +66,21 @@ export function createBuilderPublishService({
       if (typeChanged.length) warnings.push(`Tipe diubah: ${typeChanged.join(', ')}`);
 
       refs.publishWarningEl.hidden = false;
-      refs.publishWarningEl.innerHTML = `
-        <strong>Peringatan perubahan berisiko</strong>
-        <p>Kuesioner ini sudah memiliki respons. Publikasikan akan membuat versi baru. Pastikan perubahan ini memang final.</p>
-        <ul>${warnings.map((item) => `<li>${item}</li>`).join('')}</ul>
-      `;
+      while (refs.publishWarningEl.firstChild) {
+        refs.publishWarningEl.removeChild(refs.publishWarningEl.firstChild);
+      }
+      const title = document.createElement('strong');
+      title.textContent = 'Peringatan perubahan berisiko';
+      const description = document.createElement('p');
+      description.textContent =
+        'Kuesioner ini sudah memiliki respons. Publikasikan akan membuat versi baru. Pastikan perubahan ini memang final.';
+      const list = document.createElement('ul');
+      warnings.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        list.append(li);
+      });
+      refs.publishWarningEl.append(title, description, list);
 
       const confirmed = window.confirm(
         'Kuesioner sudah memiliki respons. Perubahan breaking terdeteksi dan akan dipublikasikan sebagai versi baru. Lanjutkan?'
@@ -82,7 +92,9 @@ export function createBuilderPublishService({
       }
     } else {
       refs.publishWarningEl.hidden = true;
-      refs.publishWarningEl.innerHTML = '';
+      while (refs.publishWarningEl.firstChild) {
+        refs.publishWarningEl.removeChild(refs.publishWarningEl.firstChild);
+      }
     }
 
     setPublishProcessing(true);

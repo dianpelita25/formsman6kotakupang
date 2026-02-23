@@ -1,3 +1,5 @@
+import { appendCell, clearChildren } from '/forms-static/shared/safe-dom.js';
+
 function buildDistributionRows(distribution = {}) {
   const rows = [];
   const questions = Array.isArray(distribution?.questions) ? distribution.questions : [];
@@ -23,20 +25,21 @@ function buildDistributionRows(distribution = {}) {
 
 export function renderDistributionTable(distributionTableBody, distribution = {}) {
   const rows = buildDistributionRows(distribution);
-  distributionTableBody.innerHTML = '';
+  clearChildren(distributionTableBody);
 
   if (!rows.length) {
-    distributionTableBody.innerHTML = '<tr><td colspan="3">Belum ada distribusi yang memenuhi batas publik.</td></tr>';
+    const emptyRow = document.createElement('tr');
+    const cell = appendCell(emptyRow, 'Belum ada distribusi yang memenuhi batas publik.');
+    cell.colSpan = 3;
+    distributionTableBody.append(emptyRow);
     return;
   }
 
   rows.forEach((row) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${row.question}</td>
-      <td>${row.bucket}</td>
-      <td>${row.total}</td>
-    `;
+    appendCell(tr, row.question);
+    appendCell(tr, row.bucket);
+    appendCell(tr, row.total);
     distributionTableBody.append(tr);
   });
 }

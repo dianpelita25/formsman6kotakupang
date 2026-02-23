@@ -5,6 +5,7 @@ import {
   setErrorDebugPanel,
   setInlineStatus,
 } from '/forms-static/shared/ux.js';
+import { clearChildren, createElement } from '/forms-static/shared/safe-dom.js';
 
 const schoolGrid = document.getElementById('school-grid');
 const schoolSearch = document.getElementById('school-search');
@@ -72,9 +73,11 @@ function resolveDefaultQuestionnaire(tenant) {
 }
 
 function renderTenants(items) {
-  schoolGrid.innerHTML = '';
+  clearChildren(schoolGrid);
   if (!items.length) {
-    schoolGrid.innerHTML = `<div class="school-card"><p>Tidak ada organisasi aktif yang cocok.</p></div>`;
+    const emptyCard = createElement('div', { className: 'school-card' });
+    emptyCard.append(createElement('p', { text: 'Tidak ada organisasi aktif yang cocok.' }));
+    schoolGrid.append(emptyCard);
     return;
   }
 
@@ -87,23 +90,44 @@ function renderTenants(items) {
 
     const card = document.createElement('article');
     card.className = 'school-card';
-    const publicAction = defaultQuestionnaire
-      ? `<a href="${publicFormLink}">Buka Form Publik</a>`
-      : '<span class="action-disabled">Form publik belum tersedia</span>';
-    const dashboardAction = defaultQuestionnaire
-      ? `<a href="${publicDashboardLink}">Dashboard Publik</a>`
-      : '<span class="action-disabled">Dashboard publik belum tersedia</span>';
-    card.innerHTML = `
-      <h3>${tenant.name}</h3>
-      <p class="school-meta">Slug: ${tenant.slug}</p>
-      <p class="school-meta">Tipe: ${tenantTypeLabel(tenant.tenant_type || tenant.tenantType)}</p>
-      <p class="school-meta">Kuesioner: ${defaultQuestionnaire ? defaultQuestionnaire.name : 'Belum tersedia'}</p>
-      <div class="school-actions">
-        ${publicAction}
-        ${dashboardAction}
-        <a href="/forms/${tenant.slug}/admin/">Panel Organisasi</a>
-      </div>
-    `;
+    card.append(createElement('h3', { text: tenant.name }));
+    card.append(createElement('p', { className: 'school-meta', text: `Slug: ${tenant.slug}` }));
+    card.append(
+      createElement('p', {
+        className: 'school-meta',
+        text: `Tipe: ${tenantTypeLabel(tenant.tenant_type || tenant.tenantType)}`,
+      })
+    );
+    card.append(
+      createElement('p', {
+        className: 'school-meta',
+        text: `Kuesioner: ${defaultQuestionnaire ? defaultQuestionnaire.name : 'Belum tersedia'}`,
+      })
+    );
+
+    const actions = createElement('div', { className: 'school-actions' });
+
+    if (defaultQuestionnaire) {
+      actions.append(createElement('a', { text: 'Buka Form Publik', attrs: { href: publicFormLink } }));
+    } else {
+      actions.append(createElement('span', { className: 'action-disabled', text: 'Form publik belum tersedia' }));
+    }
+
+    if (defaultQuestionnaire) {
+      actions.append(createElement('a', { text: 'Dashboard Publik', attrs: { href: publicDashboardLink } }));
+    } else {
+      actions.append(
+        createElement('span', { className: 'action-disabled', text: 'Dashboard publik belum tersedia' })
+      );
+    }
+
+    actions.append(
+      createElement('a', {
+        text: 'Panel Organisasi',
+        attrs: { href: `/forms/${tenant.slug}/admin/` },
+      })
+    );
+    card.append(actions);
     schoolGrid.append(card);
   });
 }
