@@ -25,6 +25,7 @@ initThemeRuntime();
 mountThemeToggleSlots('[data-theme-toggle]');
 const mobileMediaQuery =
   typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 720px)') : null;
+let resizeGuardTimer = 0;
 
 function escapeSelectorName(name) {
   if (window.CSS?.escape) return window.CSS.escape(name);
@@ -83,6 +84,15 @@ function syncMobileSubmitBarVisibility() {
   mobileSubmitBar.hidden = !mobileActive;
 }
 
+function markViewportResizing() {
+  document.documentElement.dataset.viewportResizing = 'true';
+  if (resizeGuardTimer) window.clearTimeout(resizeGuardTimer);
+  resizeGuardTimer = window.setTimeout(() => {
+    delete document.documentElement.dataset.viewportResizing;
+    resizeGuardTimer = 0;
+  }, 180);
+}
+
 if (mobileSubmitBtn) {
   mobileSubmitBtn.addEventListener('click', () => {
     feedbackForm.requestSubmit();
@@ -93,6 +103,13 @@ if (mobileMediaQuery && typeof mobileMediaQuery.addEventListener === 'function')
   mobileMediaQuery.addEventListener('change', syncMobileSubmitBarVisibility);
 }
 window.addEventListener('resize', syncMobileSubmitBarVisibility, { passive: true });
+window.addEventListener(
+  'resize',
+  () => {
+    markViewportResizing();
+  },
+  { passive: true }
+);
 
 bindRuntimeErrorHandlers((normalized, originalError) => {
   setStatus(normalized.message, 'error', originalError);

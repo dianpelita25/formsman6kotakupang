@@ -365,7 +365,9 @@ input[type='text'] {
   color: var(--text);
   border-radius: 10px;
   padding: 12px 14px;
-  font-size: 15px;
+  font-size: 16px;
+  min-height: 44px;
+  line-height: 1.35;
   outline: none;
   transition:
     border-color 0.2s ease,
@@ -680,6 +682,14 @@ input[type='checkbox'] {
 :root[data-theme-switching='true'] *::before,
 :root[data-theme-switching='true'] *::after {
   transition: none !important;
+}
+
+/* Reduce visual jitter when viewport changes rapidly (desktop <-> mobile). */
+:root[data-viewport-resizing='true'] *,
+:root[data-viewport-resizing='true'] *::before,
+:root[data-viewport-resizing='true'] *::after {
+  transition: none !important;
+  animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
