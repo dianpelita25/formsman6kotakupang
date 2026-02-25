@@ -58,13 +58,52 @@ function extractDetails(payload) {
 
 export async function requestJson(path, options = {}) {
   const method = safeText(options.method || 'GET').toUpperCase();
+  const requestOptions = { ...options };
+  const rawTimeout = Number(requestOptions.timeoutMs || 0);
+  const timeoutMs = Number.isFinite(rawTimeout) ? Math.max(0, Math.floor(rawTimeout)) : 0;
+  delete requestOptions.timeoutMs;
+
+  let timeoutId = null;
+  let timeoutController = null;
+  let timeoutDetected = false;
+  if (timeoutMs > 0 && typeof AbortController === 'function' && !requestOptions.signal) {
+    timeoutController = new AbortController();
+    requestOptions.signal = timeoutController.signal;
+  }
+
   try {
-    const response = await fetch(path, options);
+    const responsePromise = fetch(path, requestOptions);
+    const response =
+      timeoutMs > 0
+        ? await Promise.race([
+            responsePromise,
+            new Promise((_, reject) => {
+              timeoutId = setTimeout(() => {
+                timeoutDetected = true;
+                if (timeoutController) {
+                  try {
+                    timeoutController.abort();
+                  } catch {
+                    // no-op
+                  }
+                }
+                reject(
+                  new ApiError(defaultMessageForStatus(0), {
+                    status: 0,
+                    path,
+                    method,
+                    details: ['Request timeout.'],
+                  })
+                );
+              }, timeoutMs);
+            }),
+          ])
+        : await responsePromise;
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       const status = Number(response.status || 0);
-      const message = safeText(payload?.message) || defaultMessageForStatus(status);
+      const message = safeText(payload && payload.message) || defaultMessageForStatus(status);
       const requestId =
         safeText(response.headers.get('x-request-id')) ||
         safeText(response.headers.get('cf-ray'));
@@ -73,7 +112,7 @@ export async function requestJson(path, options = {}) {
         status,
         path,
         method,
-        code: payload?.code,
+        code: payload && payload.code,
         requestId,
         details: extractDetails(payload),
         payload,
@@ -83,12 +122,17 @@ export async function requestJson(path, options = {}) {
     return payload;
   } catch (error) {
     if (error instanceof ApiError) throw error;
+    const timeoutByAbort = Boolean(timeoutController) && error && error.name === 'AbortError';
     throw new ApiError(defaultMessageForStatus(0), {
       status: 0,
       path,
       method,
-      details: [safeText(error?.message)],
+      details: [safeText(timeoutDetected || timeoutByAbort ? 'Request timeout.' : error && error.message)],
     });
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
@@ -106,7 +150,7 @@ export function normalizeUiError(error, fallback = 'Terjadi kesalahan.') {
   }
 
   return {
-    message: safeText(error?.message, fallback),
+    message: safeText(error && error.message, fallback),
     status: 0,
     method: '-',
     path: '-',
@@ -199,11 +243,13 @@ export function bindRuntimeErrorHandlers(onError) {
   };
 
   const onWindowError = (event) => {
-    handleError(event?.error || event?.message || event, 'Terjadi error runtime di browser.');
+    const nextError = (event && event.error) || (event && event.message) || event;
+    handleError(nextError, 'Terjadi error runtime di browser.');
   };
 
   const onUnhandledRejection = (event) => {
-    handleError(event?.reason || event, 'Terjadi error async yang tidak tertangani.');
+    const nextReason = (event && event.reason) || event;
+    handleError(nextReason, 'Terjadi error async yang tidak tertangani.');
   };
 
   window.addEventListener('error', onWindowError);

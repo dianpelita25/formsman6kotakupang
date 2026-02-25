@@ -2,7 +2,7 @@ import { bindRuntimeErrorHandlers, normalizeUiError } from '/forms-static/shared
 import { initThemeRuntime, mountThemeToggleSlots } from '/forms-static/shared/theme/theme-runtime.js';
 import { createFormStatusController } from './status.js';
 import { bindFormSubmit } from './form-submit.js';
-import { loadSchema } from './schema-loader.js';
+import { applySchemaFallbackMeta, loadSchema } from './schema-loader.js';
 
 const formTitle = document.getElementById('form-title');
 const greetingTitle = document.getElementById('greeting-title');
@@ -28,7 +28,7 @@ const mobileMediaQuery =
 let resizeGuardTimer = 0;
 
 function escapeSelectorName(name) {
-  if (window.CSS?.escape) return window.CSS.escape(name);
+  if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(name);
   return String(name || '').replace(/["\\]/g, '\\$&');
 }
 
@@ -47,7 +47,7 @@ function resolvePublicDashboardPath() {
 }
 
 function isFieldAnswered(field, form) {
-  const fieldName = String(field?.name || '').trim();
+  const fieldName = String((field && field.name) || '').trim();
   if (!fieldName) return false;
   const selectorName = escapeSelectorName(fieldName);
 
@@ -61,7 +61,7 @@ function isFieldAnswered(field, form) {
 
   if (field.type === 'text') {
     const input = form.querySelector(`[name="${selectorName}"]`);
-    return Boolean(String(input?.value || '').trim());
+    return Boolean(String((input && input.value) || '').trim());
   }
 
   return false;
@@ -95,7 +95,16 @@ function markViewportResizing() {
 
 if (mobileSubmitBtn) {
   mobileSubmitBtn.addEventListener('click', () => {
-    feedbackForm.requestSubmit();
+    if (typeof feedbackForm.requestSubmit === 'function') {
+      feedbackForm.requestSubmit();
+      return;
+    }
+    // Fallback for older mobile browsers that do not support requestSubmit().
+    if (submitBtn && typeof submitBtn.click === 'function') {
+      submitBtn.click();
+      return;
+    }
+    feedbackForm.submit();
   });
 }
 
@@ -141,6 +150,11 @@ loadSchema({
     updateProgress();
   },
 }).catch((error) => {
+  applySchemaFallbackMeta({
+    formTitle,
+    greetingTitle,
+    greetingText,
+  });
   const normalized = normalizeUiError(error, 'Gagal memuat form.');
   setStatus(normalized.message, 'error', error);
 });

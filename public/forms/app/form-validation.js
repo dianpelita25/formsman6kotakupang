@@ -1,10 +1,12 @@
 function escapeSelectorName(name) {
-  if (window.CSS?.escape) return window.CSS.escape(name);
+  if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(name);
   return String(name || '').replace(/["\\]/g, '\\$&');
 }
 
 export function validateRequiredCheckboxGroups(fields, form) {
-  const requiredCheckboxFields = (fields || []).filter((field) => field?.type === 'checkbox' && field?.required !== false);
+  const requiredCheckboxFields = (fields || []).filter(
+    (field) => field && field.type === 'checkbox' && field.required !== false
+  );
   for (const field of requiredCheckboxFields) {
     const selector = `input[type="checkbox"][name="${escapeSelectorName(field.name)}"]:checked`;
     const checkedTotal = form.querySelectorAll(selector).length;
@@ -18,7 +20,9 @@ export function collectFormData(form, activeFields = []) {
   const data = new FormData(form);
   const output = {};
   const checkboxFieldNames = new Set(
-    (activeFields || []).filter((field) => field?.type === 'checkbox').map((field) => field.name)
+    (activeFields || [])
+      .filter((field) => field && field.type === 'checkbox')
+      .map((field) => field.name)
   );
   for (const [key, value] of data.entries()) {
     if (checkboxFieldNames.has(key)) {

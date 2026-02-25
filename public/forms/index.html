@@ -15,8 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
-    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260220-1" />
+    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260225-2" />
+    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260225-2" />
   </head>
   <body>
     <main class="page">
@@ -40,7 +40,7 @@
             </a>
           </div>
         </div>
-        <h1 id="form-title">Memuat judul form...</h1>
+        <h1 id="form-title">Form Feedback</h1>
         <div class="greeting-block">
           <h2 id="greeting-title">Salam Hormat,</h2>
           <p id="greeting-text"></p>
@@ -49,6 +49,11 @@
 
       <form id="feedback-form" class="form-card" novalidate>
         <div id="fields-container" class="fields-stack"></div>
+        <noscript>
+          <p class="status-message error">
+            Form ini membutuhkan JavaScript aktif. Gunakan browser terbaru lalu muat ulang halaman.
+          </p>
+        </noscript>
         <div class="submit-row">
           <p id="form-progress" class="form-progress" aria-live="polite">0/0 pertanyaan terisi</p>
           <button id="submit-btn" type="submit">Kirim</button>
@@ -65,7 +70,8 @@
       </div>
     </main>
 
-    <script type="module" src="/forms-static/forms/app.js?v=20260220-1"></script>
+    <script nomodule src="/forms-static/forms/legacy-browser-warning.js?v=20260225-2"></script>
+    <script type="module" src="/forms-static/forms/app.js?v=20260225-2"></script>
   </body>
 </html>
 

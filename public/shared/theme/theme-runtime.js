@@ -15,7 +15,8 @@ function normalizeThemePreference(value) {
 
 function isThemeEnabledForPage() {
   const root = document.documentElement;
-  return String(root?.dataset?.themeScope || '').trim() === THEME_SCOPE;
+  const scope = root && root.dataset ? root.dataset.themeScope : '';
+  return String(scope || '').trim() === THEME_SCOPE;
 }
 
 function getSystemTheme() {
