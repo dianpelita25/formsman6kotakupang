@@ -13,6 +13,7 @@ function createCommonOptions(colors, extraY = {}) {
   return {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 180,
     plugins: {
       legend: {
         labels: { color: colors.text },

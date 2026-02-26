@@ -334,3 +334,36 @@ Jika ada temuan baru saat implementasi:
 7. Catatan operasional D42-D47:
    - Live/staging smoke sempat mengalami flake network/perf pada Lighthouse dan Playwright navigation timeout; stabilisasi dilakukan di D47 (`median multi-sample`, `warmup`, `retry`) dan seluruh gate final lulus.
    - Push langsung ke `origin/main` ditolak branch protection (`required status checks are expected`); tag savepoint berhasil dipush dan evidence closure tetap tercatat lokal.
+
+## Update D49 (2026-02-26, READY_FOR_CLOSE)
+
+1. Temuan bug tervalidasi pada route publik:
+   - Jalur: `/forms/sma-negeri-5-kota-kupang/feedback-utama/` -> klik `Dashboard`.
+   - Gejala sebelum patch: tinggi halaman terus bertambah karena canvas chart (`criteria-chart`, `scale-chart`) mengalami growth berulang.
+2. Scope patch D49:
+   - Hardening layout chart dashboard publik dengan wrapper tinggi tetap (`.chart-canvas-wrap`).
+   - Pin dependency `Chart.js` ke `4.5.1` pada halaman dashboard publik/admin/legacy.
+   - Tambah guardrail smoke `smoke-public-dashboard` untuk deteksi runaway layout.
+3. Gate lokal PASS:
+   - `pnpm check:modularity`
+   - `pnpm check:architecture`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:e2e`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:public-dashboard`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:ux:mobile`
+   - `DB_BOOTSTRAP_MODE=check pnpm visual:public-dashboard:diff`
+4. Deploy production D49:
+   - Command: `pnpm exec wrangler deploy src/worker.js --env production`
+   - Worker Version ID: `e205e61f-f9fc-463a-b998-d82298119c49`
+5. Smoke live PASS:
+   - `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`
+6. Bukti before/after khusus route insiden:
+   - Before deploy: `artifacts/d49/live-predeploy-layout-metrics.json` menunjukkan range naik (`scrollHeight=2944px`, `criteria=1472px`, `scale=1472px`) dengan max canvas `5546px`.
+   - After deploy: `artifacts/d49/live-postdeploy-layout-metrics.json` menunjukkan stabil (`scrollHeight=0px`, `criteria=0px`, `scale=0px`) dengan max canvas `200px`.
+   - Screenshot:
+     - `artifacts/d49/live-predeploy-dashboard-after-click-mobile.png`
+     - `artifacts/d49/live-postdeploy-dashboard-after-click-mobile.png`
+     - `artifacts/d49/local-dashboard-after-click-mobile.png`
+7. Status governance saat ini:
+   - Debt register D49 dinaikkan ke `READY_FOR_CLOSE`.
+   - Menunggu proof commit merge untuk transisi final `CLOSED` sesuai protokol anti-loop.

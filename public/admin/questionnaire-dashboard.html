@@ -8,8 +8,8 @@
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css?v=20260220-3" />
-    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260222-1" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/forms-static/admin/admin.css?v=20260226-3" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   </head>
@@ -132,6 +132,24 @@
         <p class="small dashboard-context-note">
           Grafik hanya ditampilkan untuk pertanyaan tipe <strong>Skala</strong>, <strong>Pilihan</strong>, dan <strong>Pilihan Ganda</strong>. Pertanyaan teks masuk ke tabel respons dan analisis AI.
         </p>
+        <div id="dashboard-analysis-tabs" class="dashboard-analysis-tabs" role="tablist" aria-label="Mode analisis utama">
+          <button type="button" class="dashboard-analysis-tab is-active" data-analysis-view="overview" role="tab" aria-selected="true">
+            Overview
+          </button>
+          <button type="button" class="dashboard-analysis-tab" data-analysis-view="question" role="tab" aria-selected="false">
+            Per Pertanyaan
+          </button>
+          <button type="button" class="dashboard-analysis-tab" data-analysis-view="criteria" role="tab" aria-selected="false">
+            Per Kriteria
+          </button>
+          <button type="button" class="dashboard-analysis-tab" data-analysis-view="trend" role="tab" aria-selected="false">
+            Tren
+          </button>
+          <button type="button" class="dashboard-analysis-tab" data-analysis-view="benchmark" role="tab" aria-selected="false">
+            Benchmark Sekolah
+          </button>
+        </div>
+        <p id="dashboard-analysis-note" class="small dashboard-analysis-note"></p>
         <details id="visual-visibility-settings" class="dashboard-visibility-settings">
           <summary>Atur Visual yang Ditampilkan</summary>
           <div class="dashboard-visibility-settings__body">
@@ -218,6 +236,9 @@
                 </button>
                 <button type="button" class="dashboard-viz-tab" data-viz-mode="segment" role="tab" aria-selected="false">
                   Segmentasi
+                </button>
+                <button type="button" class="dashboard-viz-tab" data-viz-mode="benchmark" role="tab" aria-selected="false">
+                  Benchmark Sekolah
                 </button>
               </div>
             </div>
@@ -316,6 +337,10 @@
           <p id="ai-progress-note" class="small">Estimasi 10-45 detik, tergantung jumlah data dan mode analisis.</p>
           <div class="ai-progress__bar" aria-hidden="true"></div>
         </div>
+        <div id="ai-grounding" class="ai-grounding" hidden>
+          <p id="ai-grounding-summary" class="small"></p>
+          <ul id="ai-grounding-facts"></ul>
+        </div>
         <div class="ai-output-stack">
           <p id="ai-output-summary" class="small ai-output-summary">
             Belum ada analisis. Klik "Jalankan Analisis" untuk membuat ringkasan.
@@ -340,11 +365,6 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260220-3"></script>
-    <script type="module" src="/forms-static/admin/questionnaire-dashboard/index.js?v=20260218-16"></script>
+    <script type="module" src="/forms-static/admin/questionnaire-dashboard/index.js?v=20260226-18"></script>
   </body>
 </html>
-
-
-
-
-

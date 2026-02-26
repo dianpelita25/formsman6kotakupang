@@ -17,8 +17,8 @@
     />
     <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260220-1" />
     <link rel="stylesheet" href="/forms-static/shared/top-nav.css?v=20260220-3" />
-    <link rel="stylesheet" href="/forms-static/forms/public-dashboard.css?v=20260220-1" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/forms-static/forms/public-dashboard.css?v=20260226-2" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <nav class="global-nav" data-auth-state="guest" data-nav-open="false">
@@ -98,17 +98,23 @@
         </section>
 
         <section class="panel chart-grid">
-          <article class="chart-card chart-card--wide">
+          <article id="public-trend-card" class="chart-card chart-card--wide">
             <h3>Tren Respons Harian</h3>
-            <canvas id="trend-chart" height="170"></canvas>
+            <div class="chart-canvas-wrap chart-canvas-wrap--trend">
+              <canvas id="trend-chart" height="170"></canvas>
+            </div>
           </article>
           <article class="chart-card">
             <h3>Rata-rata Kriteria</h3>
-            <canvas id="criteria-chart" height="170"></canvas>
+            <div class="chart-canvas-wrap">
+              <canvas id="criteria-chart" height="170"></canvas>
+            </div>
           </article>
           <article class="chart-card">
             <h3>Pertanyaan Skala Teratas</h3>
-            <canvas id="scale-chart" height="170"></canvas>
+            <div class="chart-canvas-wrap">
+              <canvas id="scale-chart" height="170"></canvas>
+            </div>
           </article>
         </section>
 
@@ -133,7 +139,7 @@
     </main>
 
     <script type="module" src="/forms-static/shared/top-nav.js?v=20260220-3"></script>
-    <script type="module" src="/forms-static/forms/public-dashboard.js?v=20260220-1"></script>
+    <script type="module" src="/forms-static/forms/public-dashboard.js?v=20260226-2"></script>
   </body>
 </html>
 

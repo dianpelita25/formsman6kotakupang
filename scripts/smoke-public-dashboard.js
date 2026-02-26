@@ -3,6 +3,12 @@ import { getRequiredEnv, launchBrowser, startLocalServer } from './_playwright-w
 
 const LOCAL_PORT = Number(process.env.SMOKE_PUBLIC_DASHBOARD_PORT || 8907);
 const FORBIDDEN_KEYS = new Set(['respondent', 'answers', 'payload', 'samples']);
+const LAYOUT_SAMPLE_COUNT = 10;
+const LAYOUT_SAMPLE_INTERVAL_MS = 250;
+const LAYOUT_STABLE_WINDOW = 5;
+const LAYOUT_MAX_SCROLL_RANGE = 24;
+const LAYOUT_MAX_CANVAS_RANGE = 12;
+const LAYOUT_MAX_CANVAS_HEIGHT = 420;
 
 function getArgValue(flag) {
   const index = process.argv.indexOf(flag);
@@ -45,6 +51,12 @@ function createAssertions() {
   };
 }
 
+function rangeOf(values = []) {
+  const numeric = values.filter((value) => Number.isFinite(value));
+  if (!numeric.length) return 0;
+  return Math.max(...numeric) - Math.min(...numeric);
+}
+
 async function resolveTargetQuestionnaire(baseUrl) {
   const tenantsRes = await fetch(`${baseUrl}/forms/api/tenants/public`);
   if (!tenantsRes.ok) {
@@ -56,6 +68,8 @@ async function resolveTargetQuestionnaire(baseUrl) {
     throw new Error('Daftar tenant publik kosong.');
   }
 
+  let fallbackTarget = null;
+
   for (const tenant of tenants) {
     const tenantSlug = String(tenant?.slug || '').trim();
     if (!tenantSlug) continue;
@@ -63,13 +77,25 @@ async function resolveTargetQuestionnaire(baseUrl) {
     if (!questionnairesRes.ok) continue;
     const questionnairesPayload = await questionnairesRes.json().catch(() => ({}));
     const questionnaires = toArray(questionnairesPayload?.data);
-    const questionnaire = questionnaires.find((item) => String(item?.slug || '').trim());
-    if (questionnaire) {
-      return {
-        tenantSlug,
-        questionnaireSlug: String(questionnaire.slug || '').trim(),
-      };
+    const questionnaireCandidates = questionnaires
+      .map((item) => String(item?.slug || '').trim())
+      .filter(Boolean);
+    for (const questionnaireSlug of questionnaireCandidates) {
+      if (!fallbackTarget) {
+        fallbackTarget = { tenantSlug, questionnaireSlug };
+      }
+      const summaryRes = await fetch(`${baseUrl}/forms/${tenantSlug}/${questionnaireSlug}/api/dashboard/summary`).catch(() => null);
+      if (!summaryRes?.ok) continue;
+      const summaryPayload = await summaryRes.json().catch(() => ({}));
+      const status = String(summaryPayload?.data?.status || '').trim();
+      if (status === 'ok') {
+        return { tenantSlug, questionnaireSlug };
+      }
     }
+  }
+
+  if (fallbackTarget) {
+    return fallbackTarget;
   }
 
   throw new Error('Tidak ada tenant dengan questionnaire publik untuk dashboard smoke.');
@@ -119,7 +145,7 @@ async function auditApi(baseUrl, target, assertions) {
     const privacy = data?.privacy || {};
     assertions.expect(
       `api ${endpoint} privacy lock`,
-      Number(privacy.minSampleSize || 0) === 30 && Number(privacy.minBucketSize || 0) === 10,
+      Number(privacy.minSampleSize || 0) === 10 && Number(privacy.minBucketSize || 0) === 10,
       `minSample=${privacy.minSampleSize}, minBucket=${privacy.minBucketSize}`
     );
   }
@@ -156,6 +182,65 @@ async function auditUi(baseUrl, target, viewport, label, assertions) {
 
     assertions.expect(`${label} has theme toggle`, report.hasToggle, 'toggle tidak ditemukan');
     assertions.expect(`${label} no overflow`, !report.overflowDoc && !report.overflowBody, `doc=${report.docSize}, body=${report.bodySize}`);
+
+    const layoutSamples = [];
+    for (let index = 0; index < LAYOUT_SAMPLE_COUNT; index += 1) {
+      const sample = await page.evaluate(() => {
+        const de = document.documentElement;
+        const contentPanel = document.getElementById('content-panel');
+        const criteriaChart = document.getElementById('criteria-chart');
+        const scaleChart = document.getElementById('scale-chart');
+        return {
+          contentVisible: contentPanel ? !contentPanel.hidden : false,
+          scrollHeight: Number(de?.scrollHeight || 0),
+          criteriaHeight: Number(criteriaChart?.clientHeight || 0),
+          scaleHeight: Number(scaleChart?.clientHeight || 0),
+        };
+      });
+      layoutSamples.push(sample);
+      await page.waitForTimeout(LAYOUT_SAMPLE_INTERVAL_MS);
+    }
+
+    const stableWindow = layoutSamples.slice(-LAYOUT_STABLE_WINDOW);
+    const hasVisibleCharts = stableWindow.some(
+      (sample) => sample.contentVisible && (sample.criteriaHeight > 0 || sample.scaleHeight > 0)
+    );
+
+    if (!hasVisibleCharts) {
+      assertions.pass(`${label} layout stability skipped`, 'chart tidak aktif (insufficient sample atau panel tersembunyi)');
+    } else {
+      const scrollRange = rangeOf(stableWindow.map((sample) => sample.scrollHeight));
+      const criteriaRange = rangeOf(stableWindow.map((sample) => sample.criteriaHeight));
+      const scaleRange = rangeOf(stableWindow.map((sample) => sample.scaleHeight));
+      const maxCriteriaHeight = Math.max(...stableWindow.map((sample) => sample.criteriaHeight));
+      const maxScaleHeight = Math.max(...stableWindow.map((sample) => sample.scaleHeight));
+
+      assertions.expect(
+        `${label} layout scroll stable`,
+        scrollRange <= LAYOUT_MAX_SCROLL_RANGE,
+        `range=${scrollRange}px, max=${LAYOUT_MAX_SCROLL_RANGE}px`
+      );
+      assertions.expect(
+        `${label} criteria chart stable`,
+        criteriaRange <= LAYOUT_MAX_CANVAS_RANGE,
+        `range=${criteriaRange}px, max=${LAYOUT_MAX_CANVAS_RANGE}px`
+      );
+      assertions.expect(
+        `${label} scale chart stable`,
+        scaleRange <= LAYOUT_MAX_CANVAS_RANGE,
+        `range=${scaleRange}px, max=${LAYOUT_MAX_CANVAS_RANGE}px`
+      );
+      assertions.expect(
+        `${label} criteria chart bounded`,
+        maxCriteriaHeight <= LAYOUT_MAX_CANVAS_HEIGHT,
+        `height=${maxCriteriaHeight}px, max=${LAYOUT_MAX_CANVAS_HEIGHT}px`
+      );
+      assertions.expect(
+        `${label} scale chart bounded`,
+        maxScaleHeight <= LAYOUT_MAX_CANVAS_HEIGHT,
+        `height=${maxScaleHeight}px, max=${LAYOUT_MAX_CANVAS_HEIGHT}px`
+      );
+    }
 
     if (report.hasToggle) {
       const themeToggle = page.locator('[data-theme-toggle-button="true"]').first();

@@ -196,6 +196,22 @@ body {
   grid-column: 1 / -1;
 }
 
+.chart-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: clamp(200px, 26vw, 260px);
+}
+
+.chart-canvas-wrap--trend {
+  height: clamp(220px, 30vw, 300px);
+}
+
+.chart-canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .table-wrap {
   border: 1px solid rgba(106, 164, 255, 0.3);
   border-radius: 14px;
@@ -240,6 +256,14 @@ body {
   .chart-grid {
     grid-template-columns: 1fr;
   }
+
+  .chart-canvas-wrap {
+    height: 220px;
+  }
+
+  .chart-canvas-wrap--trend {
+    height: 240px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -253,6 +277,14 @@ body {
 
   .metrics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chart-canvas-wrap {
+    height: 200px;
+  }
+
+  .chart-canvas-wrap--trend {
+    height: 220px;
   }
 }
 
