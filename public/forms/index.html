@@ -15,8 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260225-2" />
-    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260225-2" />
+    <link rel="stylesheet" href="/forms-static/shared/theme/theme-tokens.css?v=20260226-3" />
+    <link rel="stylesheet" href="/forms-static/forms/styles.css?v=20260226-3" />
   </head>
   <body>
     <main class="page">
@@ -48,6 +48,7 @@
       </section>
 
       <form id="feedback-form" class="form-card" novalidate>
+        <p id="form-loading-note" class="form-loading-note" aria-live="polite">Memuat pertanyaan...</p>
         <div id="fields-container" class="fields-stack"></div>
         <noscript>
           <p class="status-message error">
@@ -55,8 +56,8 @@
           </p>
         </noscript>
         <div class="submit-row">
-          <p id="form-progress" class="form-progress" aria-live="polite">0/0 pertanyaan terisi</p>
-          <button id="submit-btn" type="submit">Kirim</button>
+          <p id="form-progress" class="form-progress" aria-live="polite">Memuat pertanyaan...</p>
+          <button id="submit-btn" type="submit" disabled>Memuat...</button>
           <p id="status-message" class="status-message" aria-live="polite"></p>
           <details id="status-debug-wrap" class="status-debug-wrap" hidden>
             <summary>Detail error teknis</summary>
@@ -65,13 +66,29 @@
         </div>
       </form>
       <div id="mobile-submit-bar" class="mobile-submit-bar" hidden>
-        <p id="mobile-submit-progress" class="mobile-submit-bar__progress">0/0 terisi</p>
-        <button id="mobile-submit-btn" type="button">Kirim</button>
+        <p id="mobile-submit-progress" class="mobile-submit-bar__progress">Memuat...</p>
+        <button id="mobile-submit-btn" type="button" disabled>Memuat...</button>
+      </div>
+      <div id="submit-success-modal" class="submit-success-modal" hidden>
+        <div class="submit-success-modal__backdrop" data-submit-success-close></div>
+        <section
+          class="submit-success-modal__dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="submit-success-title"
+          aria-describedby="submit-success-message"
+        >
+          <h2 id="submit-success-title">Feedback Berhasil Dikirim</h2>
+          <p id="submit-success-message" class="submit-success-modal__message">
+            Terima kasih, jawaban Anda sudah masuk ke sistem.
+          </p>
+          <button id="submit-success-close-btn" type="button">Tutup</button>
+        </section>
       </div>
     </main>
 
-    <script nomodule src="/forms-static/forms/legacy-browser-warning.js?v=20260225-2"></script>
-    <script type="module" src="/forms-static/forms/app.js?v=20260225-2"></script>
+    <script nomodule src="/forms-static/forms/legacy-browser-warning.js?v=20260226-3"></script>
+    <script type="module" src="/forms-static/forms/app.js?v=20260226-3"></script>
   </body>
 </html>
 

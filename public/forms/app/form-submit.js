@@ -1,9 +1,23 @@
 import { normalizeUiError, requestJson } from '/forms-static/shared/ux.js';
 import { collectFormData, focusFirstCheckboxByField, validateRequiredCheckboxGroups } from './form-validation.js';
 
-export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFields, setSubmitting, onAfterSubmit } = {}) {
+export function bindFormSubmit({
+  feedbackForm,
+  submitBtn,
+  setStatus,
+  canSubmit,
+  getActiveFields,
+  setSubmitting,
+  onAfterSubmit,
+  onSubmitSuccess,
+} = {}) {
   feedbackForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+
+    if (typeof canSubmit === 'function' && !canSubmit()) {
+      setStatus('Pertanyaan masih dimuat. Mohon tunggu beberapa detik.');
+      return;
+    }
 
     if (!feedbackForm.reportValidity()) {
       setStatus('Mohon lengkapi semua field wajib.', 'error');
@@ -29,9 +43,11 @@ export function bindFormSubmit({ feedbackForm, submitBtn, setStatus, getActiveFi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      setStatus(result.message || 'Terima kasih, feedback berhasil dikirim.', 'success');
+      const successMessage = result.message || 'Terima kasih, feedback berhasil dikirim.';
+      setStatus(successMessage, 'success');
       feedbackForm.reset();
       if (typeof onAfterSubmit === 'function') onAfterSubmit();
+      if (typeof onSubmitSuccess === 'function') onSubmitSuccess(successMessage);
     } catch (error) {
       const normalized = normalizeUiError(error, 'Gagal mengirim feedback.');
       setStatus(normalized.message, 'error', error);

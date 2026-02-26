@@ -3,11 +3,14 @@ import { initThemeRuntime, mountThemeToggleSlots } from '/forms-static/shared/th
 import { createFormStatusController } from './status.js';
 import { bindFormSubmit } from './form-submit.js';
 import { applySchemaFallbackMeta, loadSchema } from './schema-loader.js';
+import { createSubmitSuccessModal } from './success-modal.js';
+import { createFormViewState } from './view-state.js';
 
 const formTitle = document.getElementById('form-title');
 const greetingTitle = document.getElementById('greeting-title');
 const greetingText = document.getElementById('greeting-text');
 const fieldsContainer = document.getElementById('fields-container');
+const formLoadingNote = document.getElementById('form-loading-note');
 const feedbackForm = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');
 const statusMessage = document.getElementById('status-message');
@@ -18,19 +21,32 @@ const mobileSubmitBar = document.getElementById('mobile-submit-bar');
 const mobileSubmitProgress = document.getElementById('mobile-submit-progress');
 const mobileSubmitBtn = document.getElementById('mobile-submit-btn');
 const publicDashboardLink = document.getElementById('public-dashboard-link');
+const submitSuccessModalRoot = document.getElementById('submit-success-modal');
+const submitSuccessModalCloseBtn = document.getElementById('submit-success-close-btn');
+const submitSuccessModalMessage = document.getElementById('submit-success-message');
 
 let activeFields = [];
+let schemaReady = false;
+let submitting = false;
 const { setStatus } = createFormStatusController(statusMessage, statusDebugWrap, statusDebug);
+const submitSuccessModal = createSubmitSuccessModal({
+  root: submitSuccessModalRoot,
+  closeButton: submitSuccessModalCloseBtn,
+  messageNode: submitSuccessModalMessage,
+});
+const viewState = createFormViewState({
+  feedbackForm,
+  submitBtn,
+  mobileSubmitBtn,
+  formProgress,
+  mobileSubmitProgress,
+  formLoadingNote,
+});
 initThemeRuntime();
 mountThemeToggleSlots('[data-theme-toggle]');
 const mobileMediaQuery =
   typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 720px)') : null;
 let resizeGuardTimer = 0;
-
-function escapeSelectorName(name) {
-  if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(name);
-  return String(name || '').replace(/["\\]/g, '\\$&');
-}
 
 function resolvePublicDashboardPath() {
   const parts = String(window.location.pathname || '')
@@ -46,36 +62,12 @@ function resolvePublicDashboardPath() {
   return `/forms/${tenantSlug}/${questionnaireSlug}/dashboard/`;
 }
 
-function isFieldAnswered(field, form) {
-  const fieldName = String((field && field.name) || '').trim();
-  if (!fieldName) return false;
-  const selectorName = escapeSelectorName(fieldName);
-
-  if (field.type === 'checkbox') {
-    return form.querySelectorAll(`input[type="checkbox"][name="${selectorName}"]:checked`).length > 0;
-  }
-
-  if (field.type === 'radio' || field.type === 'scale') {
-    return Boolean(form.querySelector(`input[type="radio"][name="${selectorName}"]:checked`));
-  }
-
-  if (field.type === 'text') {
-    const input = form.querySelector(`[name="${selectorName}"]`);
-    return Boolean(String((input && input.value) || '').trim());
-  }
-
-  return false;
+function updateProgress() {
+  viewState.updateProgress({ schemaReady, activeFields });
 }
 
-function updateProgress() {
-  const total = Array.isArray(activeFields) ? activeFields.length : 0;
-  const answered = (Array.isArray(activeFields) ? activeFields : []).reduce((count, field) => {
-    return count + (isFieldAnswered(field, feedbackForm) ? 1 : 0);
-  }, 0);
-
-  const progressLabel = `${answered}/${total} pertanyaan terisi`;
-  if (formProgress) formProgress.textContent = progressLabel;
-  if (mobileSubmitProgress) mobileSubmitProgress.textContent = `${answered}/${total} terisi`;
+function syncSubmitControls() {
+  viewState.syncSubmitControls({ schemaReady, activeFields, submitting });
 }
 
 function syncMobileSubmitBarVisibility() {
@@ -95,6 +87,10 @@ function markViewportResizing() {
 
 if (mobileSubmitBtn) {
   mobileSubmitBtn.addEventListener('click', () => {
+    if (!schemaReady) {
+      setStatus('Pertanyaan masih dimuat. Mohon tunggu sebentar.');
+      return;
+    }
     if (typeof feedbackForm.requestSubmit === 'function') {
       feedbackForm.requestSubmit();
       return;
@@ -128,13 +124,16 @@ bindFormSubmit({
   feedbackForm,
   submitBtn,
   setStatus,
+  canSubmit: () => schemaReady && activeFields.length > 0,
   getActiveFields: () => activeFields,
-  setSubmitting: (submitting) => {
-    if (!mobileSubmitBtn) return;
-    mobileSubmitBtn.disabled = Boolean(submitting);
-    mobileSubmitBtn.textContent = submitting ? 'Mengirim...' : 'Kirim';
+  setSubmitting: (isSubmitting) => {
+    submitting = Boolean(isSubmitting);
+    syncSubmitControls();
   },
   onAfterSubmit: updateProgress,
+  onSubmitSuccess: (message) => {
+    submitSuccessModal.open(message);
+  },
 });
 
 feedbackForm.addEventListener('input', updateProgress);
@@ -146,18 +145,30 @@ loadSchema({
   greetingText,
   fieldsContainer,
   setActiveFields: (fields) => {
-    activeFields = fields;
-    updateProgress();
+    activeFields = Array.isArray(fields) ? fields : [];
+    syncSubmitControls();
   },
-}).catch((error) => {
-  applySchemaFallbackMeta({
-    formTitle,
-    greetingTitle,
-    greetingText,
+})
+  .then(() => {
+    schemaReady = true;
+    viewState.setLoadingNote('', false);
+    syncSubmitControls();
+    updateProgress();
+  })
+  .catch((error) => {
+    applySchemaFallbackMeta({
+      formTitle,
+      greetingTitle,
+      greetingText,
+    });
+    schemaReady = false;
+    activeFields = [];
+    viewState.setLoadingNote('Form belum siap dimuat. Coba muat ulang halaman ini.', true);
+    syncSubmitControls();
+    updateProgress();
+    const normalized = normalizeUiError(error, 'Gagal memuat form.');
+    setStatus(normalized.message, 'error', error);
   });
-  const normalized = normalizeUiError(error, 'Gagal memuat form.');
-  setStatus(normalized.message, 'error', error);
-});
 
 if (publicDashboardLink) {
   const dashboardPath = resolvePublicDashboardPath();
@@ -170,4 +181,6 @@ if (publicDashboardLink) {
 }
 
 syncMobileSubmitBarVisibility();
+viewState.setLoadingNote('Memuat pertanyaan...', true);
+syncSubmitControls();
 updateProgress();
