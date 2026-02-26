@@ -16,6 +16,12 @@ import { enforceAdminOrigin, monitorAdminOrigin, requireJsonMutationPayload } fr
 import { buildSafeErrorExtra, INTERNAL_SERVER_ERROR_MESSAGE, logServerError } from './lib/http/error-response.js';
 import { buildSessionCookieOptions, SESSION_COOKIE_NAME } from './lib/http/session-cookie.js';
 import { applySecurityHeaders } from './lib/http/security-headers.js';
+import {
+  buildOpenTrackingCookieOptions,
+  captureFormOpenBestEffort,
+  DEVICE_COOKIE_NAME,
+  resolveOpenDeviceSummary,
+} from './modules/form-open-tracking/service.js';
 import { getAnalyticsDistribution, getAnalyticsSummary, getAnalyticsTrend } from './modules/analytics/service.js';
 import {
   analyzeSchoolAi,
@@ -227,6 +233,10 @@ registerHttpRoutes(app, {
   getTenantQuestionnairePublicDashboardSummary,
   getTenantQuestionnairePublicDashboardDistribution,
   getTenantQuestionnairePublicDashboardTrend,
+  captureFormOpenBestEffort,
+  buildOpenTrackingCookieOptions,
+  DEVICE_COOKIE_NAME,
+  resolveOpenDeviceSummary,
   getPublishedFormSchema,
   submitResponse,
   submitQuestionnaireResponse,

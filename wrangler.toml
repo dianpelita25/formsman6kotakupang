@@ -26,6 +26,8 @@ GEMINI_MODEL = "gemini-2.5-flash"
 APP_ENV = "local"
 DB_BOOTSTRAP_MODE = "full"
 ENABLE_LEGACY_ADMIN_ALIAS = "true"
+ENABLE_FORM_OPEN_TRACKING = "true"
+OPEN_TRACKING_SALT = "CHANGE_ME_OPEN_TRACKING_SALT"
 
 [env.staging]
 name = "aiti-forms-multischool-staging"
@@ -35,6 +37,8 @@ GEMINI_MODEL = "gemini-2.5-flash"
 APP_ENV = "staging"
 DB_BOOTSTRAP_MODE = "check"
 ENABLE_LEGACY_ADMIN_ALIAS = "true"
+ENABLE_FORM_OPEN_TRACKING = "true"
+OPEN_TRACKING_SALT = "CHANGE_ME_OPEN_TRACKING_SALT"
 
 [env.production]
 name = "aiti-forms-multischool"
@@ -50,3 +54,5 @@ GEMINI_MODEL = "gemini-2.5-flash"
 APP_ENV = "production"
 DB_BOOTSTRAP_MODE = "check"
 ENABLE_LEGACY_ADMIN_ALIAS = "false"
+ENABLE_FORM_OPEN_TRACKING = "false"
+OPEN_TRACKING_SALT = "CHANGE_ME_OPEN_TRACKING_SALT"

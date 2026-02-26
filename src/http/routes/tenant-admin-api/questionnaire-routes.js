@@ -14,6 +14,9 @@ export function registerTenantAdminQuestionnaireRoutes(app, deps) {
     publishTenantQuestionnaireDraft,
     getTenantQuestionnaireResponses,
     exportTenantQuestionnaireResponsesCsv,
+    resolveOpenDeviceSummary,
+    getPublishedQuestionnaireSchemaBySlug,
+    getTenantQuestionnaireAnalyticsSummary,
   } = deps;
 
   app.get(
@@ -124,6 +127,37 @@ export function registerTenantAdminQuestionnaireRoutes(app, deps) {
       const result = await publishTenantQuestionnaireDraft(c.env, tenant.id, questionnaireSlug, auth.userId);
       if (!result.ok) return jsonError(c, result.status, result.message);
       return c.json({ data: result.data }, result.status);
+    }
+  );
+
+  app.get(
+    '/forms/:tenantSlug/admin/api/questionnaires/:questionnaireSlug/open-devices/summary',
+    tenantMiddleware,
+    requireAuth(),
+    requireTenantAccessFromParam(),
+    async (c) => {
+      const tenant = c.get('tenant');
+      const questionnaireSlug = c.req.param('questionnaireSlug');
+
+      const schemaResult = await getPublishedQuestionnaireSchemaBySlug(c.env, tenant.id, questionnaireSlug);
+      if (!schemaResult.ok) return jsonError(c, schemaResult.status, schemaResult.message);
+
+      const questionnaireId = String(schemaResult.data?.questionnaire?.id || '').trim();
+      const openSummary = await resolveOpenDeviceSummary(c.env, {
+        tenantId: tenant.id,
+        questionnaireId,
+      });
+
+      const submittedSummary = await getTenantQuestionnaireAnalyticsSummary(c.env, tenant.id, questionnaireSlug, {});
+      if (!submittedSummary.ok) return jsonError(c, submittedSummary.status, submittedSummary.message);
+
+      return c.json({
+        data: {
+          uniqueOpenDevices: Number(openSummary.uniqueOpenDevices || 0),
+          totalOpens: Number(openSummary.totalOpens || 0),
+          submitted: Number(submittedSummary.data?.totalResponses || 0),
+        },
+      });
     }
   );
 

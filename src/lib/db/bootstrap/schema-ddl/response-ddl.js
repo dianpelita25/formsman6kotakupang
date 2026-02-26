@@ -39,4 +39,16 @@ export async function createResponseTables(sql) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS form_open_devices (
+      tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      questionnaire_id UUID NOT NULL REFERENCES questionnaires(id) ON DELETE CASCADE,
+      device_hash TEXT NOT NULL,
+      first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      open_count INT NOT NULL DEFAULT 1,
+      PRIMARY KEY (tenant_id, questionnaire_id, device_hash)
+    );
+  `;
 }

@@ -18,6 +18,7 @@ import {
 } from './bootstrap/questionnaire-sync.js';
 import {
   createAiIndexes,
+  createFormOpenDeviceIndexes,
   createFormVersionLookupIndex,
   createFormVersionStatusUniqueIndexes,
   createMembershipIndexes,
@@ -109,6 +110,7 @@ async function initializeSchema(env) {
 
   await createResponseTables(sql);
   await createResponseIndexes(sql);
+  await createFormOpenDeviceIndexes(sql);
 
   await createSessionAndAiTables(sql);
   await createSessionIndex(sql);

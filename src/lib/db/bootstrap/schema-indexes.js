@@ -96,6 +96,13 @@ export async function createResponseIndexes(sql) {
   `;
 }
 
+export async function createFormOpenDeviceIndexes(sql) {
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_form_open_devices_tenant_questionnaire_last_seen
+    ON form_open_devices (tenant_id, questionnaire_id, last_seen_at DESC);
+  `;
+}
+
 export async function createSessionIndex(sql) {
   await sql`
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id

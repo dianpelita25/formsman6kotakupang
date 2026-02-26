@@ -16,6 +16,10 @@ export function registerPublicFormDomainRoutes(app, deps) {
     getPublishedFormSchema,
     submitResponse,
     submitQuestionnaireResponse,
+    captureFormOpenBestEffort,
+    getCookie,
+    buildOpenTrackingCookieOptions,
+    DEVICE_COOKIE_NAME,
   } = deps;
 
   registerPublicFormRoutes(app, {
@@ -33,5 +37,9 @@ export function registerPublicFormDomainRoutes(app, deps) {
     getPublishedFormSchema,
     submitResponse,
     submitQuestionnaireResponse,
+    captureFormOpenBestEffort,
+    getCookie,
+    buildOpenTrackingCookieOptions,
+    DEVICE_COOKIE_NAME,
   });
 }
