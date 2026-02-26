@@ -368,18 +368,41 @@ Jika ada temuan baru saat implementasi:
 7. Status governance saat ini:
    - Debt register D49 sudah ditutup ke `CLOSED` dengan proof commit, proof commands, dan tanggal tutup.
 
-## Kickoff D50 (2026-02-26)
+## Update D50 (2026-02-26, CLOSED)
 
-1. Debt baru D50 diregistrasi di `docs/DEBT_REGISTER_LOCKED.md` dengan status awal `IN_PROGRESS`.
-2. Scope D50 mengunci sinkronisasi drift live-vs-git untuk dashboard dinamis:
-   - Data integrity snapshot (`totals.integrityOk`, `benchmarkSummary`).
-   - Adaptive analysis mode + dynamic tabs pada dashboard admin.
-   - Trust indicators + benchmark availability runtime-aware.
-   - AI grounded soft guard (`Bukti Data`) untuk output analyze/latest.
-   - Policy dashboard publik final (`minSampleSize=10`, `minBucketSize=10`).
-3. Gate lock D50 mengikuti urutan:
+1. Proof commit sinkronisasi D50:
+   - `96db2209c4ce6e04b2dded9af62e0e298116fcd7`
+2. Scope final D50 yang terkunci:
+   - Snapshot analytics sebagai source-of-truth lintas kartu/chart (`totals.integrityOk`, `benchmarkSummary`).
+   - Adaptive analysis mode + dynamic tabs (`Overview`, `Per Pertanyaan`, `Per Kriteria`, `Tren`, `Benchmark Sekolah`) sesuai capability runtime.
+   - Trust indicators dashboard (N, confidence, warning, coverage, relevansi tren/benchmark).
+   - AI grounded soft guard: output `analyze`/`latest` otomatis append blok `Bukti Data` bila output AI belum grounded.
+   - Policy dashboard publik final: `minSampleSize=10`, `minBucketSize=10`.
+   - Local smoke helper default `DB_BOOTSTRAP_MODE=check` (override manual tetap bisa).
+3. Gate lokal D50 PASS:
    - `pnpm check:modularity`
    - `pnpm check:architecture`
-   - `DB_BOOTSTRAP_MODE=check` untuk smoke/visual lokal
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:e2e`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:dashboard:parity`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:ux:mobile`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:public-dashboard`
+   - `DB_BOOTSTRAP_MODE=check pnpm smoke:dashboard:pdf`
+   - `DB_BOOTSTRAP_MODE=check pnpm visual:questionnaire-dashboard:diff`
+   - `DB_BOOTSTRAP_MODE=check pnpm visual:public-dashboard:diff`
    - `pnpm check:debt-register`
-4. Closure D50 hanya sah setelah deploy production + smoke live PASS tercatat pada section update berikutnya.
+4. Savepoint dan deploy production:
+   - Savepoint predeploy: `savepoint-d50-predeploy-20260226-190614`
+   - Command deploy: `pnpm exec wrangler deploy src/worker.js --env production`
+   - Worker Version ID: `aede1ad0-6032-4520-897e-0b58facca44b`
+5. Smoke live PASS (`https://aitiglobal.link`):
+   - `pnpm smoke:dashboard:parity -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:ux:mobile -- --base-url https://aitiglobal.link`
+   - `pnpm smoke:public-dashboard -- --base-url https://aitiglobal.link`
+6. Manual proof wajib flow publik:
+   - Flow: `/forms/sma-negeri-5-kota-kupang/feedback-utama/` -> klik `Dashboard` -> `/dashboard/`.
+   - Metrik stabilitas: `scrollHeight=1854` stabil, `criteria-chart=200`, `scale-chart=200`, range sampel akhir = `0`.
+   - Artifact:
+     - `artifacts/d50/live-d50-form-before-dashboard-mobile.png`
+     - `artifacts/d50/live-d50-dashboard-after-click-mobile.png`
+     - `artifacts/d50/live-d50-dashboard-fullpage-mobile.png`
+     - `artifacts/d50/live-d50-form-to-dashboard-layout-metrics.json`

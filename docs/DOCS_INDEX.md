@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 As of: 2026-02-26
-Status dashboard completion: D11-D49 CLOSED, D50 IN_PROGRESS (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
+Status dashboard completion: D11-D50 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
 
 Dokumen ini adalah pintu masuk utama agar status proyek tidak membingungkan.
 
