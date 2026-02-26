@@ -84,6 +84,11 @@ export function wireDashboardCharts({
     advancedVizController.renderAdvancedVizChart();
   }
 
+  function applyAdvancedVizModeAvailability(availability = {}) {
+    if (!advancedVizController || typeof advancedVizController.applyAdvancedVizModeAvailability !== 'function') return;
+    advancedVizController.applyAdvancedVizModeAvailability(availability);
+  }
+
   return {
     findQuestionByCode,
     renderQuestionDetail,
@@ -98,5 +103,6 @@ export function wireDashboardCharts({
     renderSegmentFilterChip,
     getSelectedCompareBuckets,
     renderAdvancedVizChart,
+    applyAdvancedVizModeAvailability,
   };
 }

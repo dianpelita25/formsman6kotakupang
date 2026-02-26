@@ -89,6 +89,7 @@ async function auditRoute(page, baseUrl, route, assertions) {
     checkLegacyTapTargets = false,
     checkBuilderTapTargets = false,
     checkCheckboxProxyTargets = false,
+    checkFormHydration = false,
     debugWrapId = '',
     debugPreId = '',
   } = route;
@@ -201,6 +202,34 @@ async function auditRoute(page, baseUrl, route, assertions) {
       }
     }
 
+    if (input.checkFormHydration) {
+      const fieldsContainer = document.getElementById('fields-container');
+      const formProgress = document.getElementById('form-progress');
+      const statusMessage = document.getElementById('status-message');
+
+      const renderedFieldCount = fieldsContainer ? fieldsContainer.children.length : 0;
+      if (renderedFieldCount <= 0) {
+        result.issues.push('form publik belum ter-render (fields-container kosong)');
+      }
+
+      const progressText = String((formProgress && formProgress.textContent) || '').trim();
+      const match = progressText.match(/(\d+)\s*\/\s*(\d+)/);
+      const totalFromProgress = match ? Number(match[2]) : 0;
+      if (!totalFromProgress) {
+        result.issues.push(`progress form invalid (${progressText || '-'})`);
+      }
+
+      const statusText = String((statusMessage && statusMessage.textContent) || '').trim().toLowerCase();
+      if (
+        statusText &&
+        (statusText.includes('gagal memuat form') ||
+          statusText.includes('browser ini belum mendukung') ||
+          statusText.includes('tidak dapat terhubung ke server'))
+      ) {
+        result.issues.push(`status form error (${statusText})`);
+      }
+    }
+
     if (input.debugWrapId) {
       const wrap = document.getElementById(input.debugWrapId);
       if (!wrap) {
@@ -223,6 +252,7 @@ async function auditRoute(page, baseUrl, route, assertions) {
     checkLegacyTapTargets,
     checkBuilderTapTargets,
     checkCheckboxProxyTargets,
+    checkFormHydration,
     debugWrapId,
     debugPreId,
   });
@@ -325,6 +355,7 @@ async function run() {
         path: `/forms/${target.tenantSlug}/${target.questionnaireSlug}/`,
         checkOverflow: true,
         checkCheckboxProxyTargets: true,
+        checkFormHydration: true,
         debugWrapId: 'status-debug-wrap',
         debugPreId: 'status-debug',
       },

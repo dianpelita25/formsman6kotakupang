@@ -1,6 +1,6 @@
 import { createDashboardAnalyticsLoader } from './dashboard-analytics-loader.js';
 import { createDashboardContextRenderer } from './dashboard-context-renderer.js';
-
+import { resolveDashboardTotalsIntegrity } from './data-integrity.js';
 export function createDashboardDataController({
   state,
   filterVersionEl,
@@ -37,7 +37,9 @@ export function createDashboardDataController({
   renderCriteriaSummary,
   renderTrendChart,
   renderAdvancedVizChart,
+  applyAdvancedVizModeAvailability,
   updateCsvLink,
+  syncVisualVisibilityInputs,
   applyVisualCardVisibility,
   loadResponses,
   loadAiLatest,
@@ -80,7 +82,9 @@ export function createDashboardDataController({
     renderCriteriaSummary,
     renderTrendChart,
     renderAdvancedVizChart,
+    applyAdvancedVizModeAvailability,
     updateCsvLink,
+    syncVisualVisibilityInputs,
     applyVisualCardVisibility,
     renderSummary,
     renderContextInfo,
@@ -111,7 +115,11 @@ export function createDashboardDataController({
         await loadResponses();
         await loadAiLatest();
       });
-      setStatus(successMessage, 'success');
+      const integrity = resolveDashboardTotalsIntegrity(state);
+      const integrityMessage = integrity.ok
+        ? ''
+        : `Peringatan integritas data: Summary=${integrity.summaryTotal}, Distribution=${integrity.distributionTotal}, Responses=${integrity.responsesTotal}.`;
+      setStatus(integrityMessage || successMessage, integrityMessage ? 'warning' : 'success');
       setError(null);
       return true;
     } catch (error) {
@@ -119,7 +127,6 @@ export function createDashboardDataController({
       return false;
     }
   }
-
   async function applySegmentDrilldown(dimensionId, bucketLabel) {
     const nextDimensionId = String(dimensionId || '').trim();
     const nextBucket = String(bucketLabel || '').trim();

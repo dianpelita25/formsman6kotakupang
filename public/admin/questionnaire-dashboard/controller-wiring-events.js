@@ -27,6 +27,7 @@ export function buildDashboardEventBinderOptions({
   syncVisualVisibilityInputs,
   renderVisualOrderList,
   applyVisualCardOrder,
+  loadSchoolBenchmark,
   aiApi,
 } = {}) {
   return {
@@ -47,6 +48,7 @@ export function buildDashboardEventBinderOptions({
     segmentCompareBtn: domRefs.segmentCompareBtn,
     segmentApplyFilterBtn: domRefs.segmentApplyFilterBtn,
     segmentClearFilterBtn: domRefs.segmentClearFilterBtn,
+    analysisViewTabsContainerEl: domRefs.analysisViewTabsContainerEl,
     advancedVizTabsContainerEl: domRefs.advancedVizTabsContainerEl,
     visualVisibilityInputEls: domRefs.visualVisibilityInputEls,
     visualLayoutApplyBtnEl: domRefs.visualLayoutApplyBtnEl,
@@ -67,6 +69,7 @@ export function buildDashboardEventBinderOptions({
     applySegmentDrilldown: dataApi.applySegmentDrilldown,
     clearSegmentDrilldown: dataApi.clearSegmentDrilldown,
     runSegmentCompare: dataApi.runSegmentCompare,
+    loadSchoolBenchmark,
     loadResponses: dataApi.loadResponses,
     presentError,
     setStatus,

@@ -4,7 +4,7 @@ import {
   getTenantQuestionnaireAnalyticsTrend,
 } from './analytics-service.js';
 
-export const PUBLIC_DASHBOARD_MIN_SAMPLE_SIZE = 30;
+export const PUBLIC_DASHBOARD_MIN_SAMPLE_SIZE = 10;
 export const PUBLIC_DASHBOARD_MIN_BUCKET_SIZE = 10;
 
 function toNumber(value, fallback = 0) {

@@ -2,8 +2,14 @@ import { buildCriteriaVizRows, buildLikertTotals, buildPeriodComparison, buildWe
 import { renderCriteriaMode } from '../advanced-viz-modes/criteria.js';
 import { renderLikertMode } from '../advanced-viz-modes/likert.js';
 import { renderPeriodMode } from '../advanced-viz-modes/period.js';
+import { renderBenchmarkMode } from '../advanced-viz-modes/benchmark.js';
 import { renderSegmentMode } from '../advanced-viz-modes/segment.js';
 import { renderWeeklyMode } from '../advanced-viz-modes/weekly.js';
+
+function resolveFallbackMode(availability = {}) {
+  const preferredOrder = ['criteria', 'likert', 'segment', 'benchmark', 'weekly', 'period'];
+  return preferredOrder.find((mode) => availability?.[mode] !== false) || 'likert';
+}
 
 export function createAdvancedVizRenderDispatcher({
   state,
@@ -19,7 +25,12 @@ export function createAdvancedVizRenderDispatcher({
     const canvas = document.getElementById('advanced-viz-chart');
     if (!canvas) return;
 
-    const mode = String(state.advancedVizMode || 'criteria').trim();
+    const availability = state.advancedVizModeAvailability || {};
+    let mode = String(state.advancedVizMode || 'criteria').trim();
+    if (availability?.[mode] === false) {
+      mode = resolveFallbackMode(availability);
+      state.advancedVizMode = mode;
+    }
     ui.setAdvancedVizTabs(mode);
     segmentControls.setSegmentControlsVisibility(mode === 'segment');
 
@@ -102,6 +113,21 @@ export function createAdvancedVizRenderDispatcher({
       });
       if (!rendered) {
         ui.renderEmptyAdvancedVizChart(canvas, 'Dimensi segmentasi belum punya data bucket.');
+      }
+      return;
+    }
+
+    if (mode === 'benchmark') {
+      const rendered = renderBenchmarkMode({
+        state,
+        canvas,
+        formatNumber,
+        truncateText,
+        advancedVizHelpEl,
+        renderAdvancedVizInsights: ui.renderAdvancedVizInsights,
+      });
+      if (!rendered) {
+        ui.renderEmptyAdvancedVizChart(canvas, 'Benchmark sekolah belum tersedia untuk filter ini.');
       }
       return;
     }

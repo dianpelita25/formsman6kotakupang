@@ -21,6 +21,9 @@ export function wireDashboardAi({
     aiOutputSummaryEl: domRefs.aiOutputSummaryEl,
     aiOutputDetailsEl: domRefs.aiOutputDetailsEl,
     aiOutputEl: domRefs.aiOutputEl,
+    aiGroundingEl: domRefs.aiGroundingEl,
+    aiGroundingSummaryEl: domRefs.aiGroundingSummaryEl,
+    aiGroundingFactsEl: domRefs.aiGroundingFactsEl,
     aiLoadBtn: domRefs.aiLoadBtn,
     aiRunBtn: domRefs.aiRunBtn,
     aiPdfBtn: domRefs.aiPdfBtn,
@@ -35,6 +38,8 @@ export function wireDashboardAi({
     runWithButtonLoading,
     setStatus,
     setError,
+    formatNumber,
+    formatDateTime,
   });
 
   const { getActiveMode, getModeLabel, setAiOutput, stopAiProgressIndicator, loadAiLatest, runAiAnalysis } =

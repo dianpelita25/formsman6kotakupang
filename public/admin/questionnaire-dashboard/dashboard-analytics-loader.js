@@ -1,3 +1,6 @@
+import { buildDashboardAnalyticsCapabilities, resolvePreferredAdvancedVizMode } from './analytics-capabilities.js';
+import { applyAnalysisViewFromCapabilities, syncAnalysisViewUi } from './analysis-tabs.js';
+
 export function createDashboardAnalyticsLoader({
   state,
   scaleQuestionHelpEl,
@@ -18,39 +21,39 @@ export function createDashboardAnalyticsLoader({
   renderCriteriaSummary,
   renderTrendChart,
   renderAdvancedVizChart,
+  applyAdvancedVizModeAvailability,
   updateCsvLink,
+  syncVisualVisibilityInputs,
   applyVisualCardVisibility,
   renderSummary,
   renderContextInfo,
 } = {}) {
   async function loadSummaryAndCharts() {
     state.segmentCompareResult = null;
-    const baseQuery = buildCommonQuery().toString();
-    const [summaryPayload, distributionPayload, trendPayload] = await Promise.all([
-      api(
-        `${baseApiPath()}/analytics/summary${baseQuery ? `?${baseQuery}` : ''}`,
-        undefined,
-        'Gagal memuat summary analytics.'
-      ),
-      api(
-        `${baseApiPath()}/analytics/distribution${baseQuery ? `?${baseQuery}` : ''}`,
-        undefined,
-        'Gagal memuat distribusi analytics.'
-      ),
-      api(
-        `${baseApiPath()}/analytics/trend?${buildCommonQuery({ includeDays: true }).toString()}`,
-        undefined,
-        'Gagal memuat trend analytics.'
-      ),
-    ]);
+    state.schoolBenchmarkResult = null;
+    const snapshotQuery = buildCommonQuery({ includeDays: true }).toString();
+    const snapshotPayload = await api(
+      `${baseApiPath()}/analytics/snapshot${snapshotQuery ? `?${snapshotQuery}` : ''}`,
+      undefined,
+      'Gagal memuat snapshot analytics.'
+    );
+    const snapshotData = snapshotPayload?.data && typeof snapshotPayload.data === 'object' ? snapshotPayload.data : {};
+    const summaryData = snapshotData.summary && typeof snapshotData.summary === 'object' ? snapshotData.summary : {};
+    const distributionData =
+      snapshotData.distribution && typeof snapshotData.distribution === 'object' ? snapshotData.distribution : {};
+    const trendData = snapshotData.trend && typeof snapshotData.trend === 'object' ? snapshotData.trend : {};
 
-    state.summary = summaryPayload.data;
-    state.distribution = distributionPayload.data;
-    state.trend = trendPayload.data;
-    state.dataQuality = summaryPayload.data?.dataQuality || distributionPayload.data?.dataQuality || null;
-    state.questionnaireVersionId = summaryPayload.data?.questionnaireVersionId || state.questionnaireVersionId;
+    state.summary = summaryData;
+    state.distribution = distributionData;
+    state.trend = trendData;
+    state.benchmarkSummary =
+      snapshotData?.benchmarkSummary && typeof snapshotData.benchmarkSummary === 'object'
+        ? snapshotData.benchmarkSummary
+        : null;
+    state.dataQuality = summaryData?.dataQuality || distributionData?.dataQuality || null;
+    state.questionnaireVersionId = snapshotData?.questionnaireVersionId || state.questionnaireVersionId;
 
-    const allQuestions = Array.isArray(distributionPayload.data?.questions) ? distributionPayload.data.questions : [];
+    const allQuestions = Array.isArray(distributionData?.questions) ? distributionData.questions : [];
     const normalizedQuestions = allQuestions.map((question, index) => ({
       ...question,
       questionCode: normalizeQuestionCode(question, index),
@@ -64,29 +67,48 @@ export function createDashboardAnalyticsLoader({
     state.radioQuestions = [...radioQuestions, ...checkboxQuestions];
     const textQuestions = normalizedQuestions.filter((question) => question.type === 'text');
 
-    const scaleAveragesFromSummary = Array.isArray(summaryPayload.data?.scaleAverages) ? summaryPayload.data.scaleAverages : [];
-    const scaleAveragesFromDistribution = Array.isArray(distributionPayload.data?.scaleAverages)
-      ? distributionPayload.data.scaleAverages
+    const scaleAveragesFromSummary = Array.isArray(summaryData?.scaleAverages) ? summaryData.scaleAverages : [];
+    const scaleAveragesFromDistribution = Array.isArray(distributionData?.scaleAverages)
+      ? distributionData.scaleAverages
       : [];
     const scaleAverages =
       scaleAveragesFromSummary.length > 0
         ? scaleAveragesFromSummary
         : scaleAveragesFromDistribution.length > 0
           ? scaleAveragesFromDistribution
-          : buildScaleAveragesFallback(summaryPayload.data?.questionAverages || {}, normalizedQuestions);
+          : buildScaleAveragesFallback(summaryData?.questionAverages || {}, normalizedQuestions);
     state.scaleAverages = scaleAverages;
 
-    state.criteriaSummary = Array.isArray(distributionPayload.data?.criteriaSummary)
-      ? distributionPayload.data.criteriaSummary
-      : Array.isArray(summaryPayload.data?.criteriaSummary)
-        ? summaryPayload.data.criteriaSummary
+    state.criteriaSummary = Array.isArray(distributionData?.criteriaSummary)
+      ? distributionData.criteriaSummary
+      : Array.isArray(summaryData?.criteriaSummary)
+        ? summaryData.criteriaSummary
         : [];
     state.segmentSummary =
-      distributionPayload.data?.segmentSummary && typeof distributionPayload.data.segmentSummary === 'object'
-        ? distributionPayload.data.segmentSummary
-        : summaryPayload.data?.segmentSummary && typeof summaryPayload.data.segmentSummary === 'object'
-          ? summaryPayload.data.segmentSummary
+      distributionData?.segmentSummary && typeof distributionData.segmentSummary === 'object'
+        ? distributionData.segmentSummary
+        : summaryData?.segmentSummary && typeof summaryData.segmentSummary === 'object'
+          ? summaryData.segmentSummary
           : { totalDimensions: 0, dimensions: [] };
+    const capabilities = buildDashboardAnalyticsCapabilities({
+      questions: normalizedQuestions,
+      totalQuestionsWithCriterion:
+        distributionData?.totalQuestionsWithCriterion ?? summaryData?.totalQuestionsWithCriterion,
+      trendPoints: trendData?.points || [],
+      segmentSummary: state.segmentSummary,
+      benchmarkSummary: state.benchmarkSummary,
+    });
+    state.analyticsCapabilities = capabilities;
+    state.visualCardAvailability = capabilities.visualCardAvailability;
+    state.advancedVizModeAvailability = capabilities.advancedVizModeAvailability;
+    const analysisViewState = applyAnalysisViewFromCapabilities(state, capabilities);
+    state.advancedVizMode = resolvePreferredAdvancedVizMode(state.advancedVizMode, capabilities);
+    if (analysisViewState.analysisView === 'trend' && state.advancedVizModeAvailability?.period !== false) {
+      state.advancedVizMode = 'period';
+    }
+    applyAdvancedVizModeAvailability(state.advancedVizModeAvailability);
+    syncAnalysisViewUi(state);
+
     const availableSegmentDimensions = resolveSegmentDimensions();
     if (
       !state.selectedSegmentDimension ||
@@ -116,10 +138,11 @@ export function createDashboardAnalyticsLoader({
     renderRadioQuestionOptions();
     renderRadioDistributionChart();
     renderCriteriaSummary();
-    renderTrendChart(trendPayload.data?.points || []);
+    renderTrendChart(capabilities.trendRelevant ? trendData?.points || [] : []);
     renderAdvancedVizChart();
     renderContextInfo();
     updateCsvLink();
+    syncVisualVisibilityInputs();
     applyVisualCardVisibility();
   }
 

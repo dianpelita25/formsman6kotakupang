@@ -1,3 +1,5 @@
+import { selectAnalysisView, syncAnalysisViewUi } from './analysis-tabs.js';
+
 export function createVisualModeEventBinder({
   state,
   VISUAL_CARD_CONFIG,
@@ -9,11 +11,13 @@ export function createVisualModeEventBinder({
   segmentCompareBtn,
   segmentApplyFilterBtn,
   segmentClearFilterBtn,
+  analysisViewTabsContainerEl,
   advancedVizTabsContainerEl,
   refreshDashboardData,
   applySegmentDrilldown,
   clearSegmentDrilldown,
   runSegmentCompare,
+  loadSchoolBenchmark,
   validateDateRange,
   visualVisibilityInputEls,
   visualLayoutApplyBtnEl,
@@ -84,12 +88,33 @@ export function createVisualModeEventBinder({
       await runSegmentCompare();
     });
 
-    advancedVizTabsContainerEl?.addEventListener('click', (event) => {
+    analysisViewTabsContainerEl?.addEventListener('click', async (event) => {
+      const tab = event.target.closest('.dashboard-analysis-tab');
+      if (!tab || tab.hidden || tab.disabled) return;
+      const nextView = String(tab.dataset.analysisView || '').trim();
+      if (!nextView || nextView === state.analysisView) return;
+      const changed = selectAnalysisView(state, nextView, state.analyticsCapabilities);
+      if (!changed) return;
+      syncAnalysisViewUi(state);
+      applyVisualCardVisibility();
+      if (state.advancedVizMode === 'benchmark' && typeof loadSchoolBenchmark === 'function') {
+        await loadSchoolBenchmark();
+      }
+      renderAdvancedVizChart();
+      const label = String(tab.textContent || '').trim() || nextView;
+      setStatus(`Mode analisis aktif: ${label}.`, 'success');
+    });
+
+    advancedVizTabsContainerEl?.addEventListener('click', async (event) => {
       const tab = event.target.closest('.dashboard-viz-tab');
       if (!tab) return;
+      if (tab.hidden || tab.disabled) return;
       const mode = String(tab.dataset.vizMode || '').trim();
       if (!mode || mode === state.advancedVizMode) return;
       state.advancedVizMode = mode;
+      if (mode === 'benchmark' && typeof loadSchoolBenchmark === 'function') {
+        await loadSchoolBenchmark();
+      }
       renderAdvancedVizChart();
       if (mode !== 'segment') {
         return;

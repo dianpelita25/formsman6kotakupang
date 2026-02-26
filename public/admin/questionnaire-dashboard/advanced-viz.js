@@ -44,6 +44,7 @@ export function createAdvancedVizController({
 
   return {
     renderAdvancedVizChart: dispatcher.renderAdvancedVizChart,
+    applyAdvancedVizModeAvailability: ui.applyModeAvailability,
     renderSegmentDimensionOptions: segmentControls.renderSegmentDimensionOptions,
     renderSegmentBucketOptions: segmentControls.renderSegmentBucketOptions,
     renderSegmentFilterChip: segmentControls.renderSegmentFilterChip,

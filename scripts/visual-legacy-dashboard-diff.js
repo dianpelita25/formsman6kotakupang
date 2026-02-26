@@ -70,8 +70,10 @@ async function readPublicAsset(pathname) {
 }
 
 function createEnv() {
+  const configuredBootstrapMode = String(process.env.DB_BOOTSTRAP_MODE || '').trim();
   return {
     ...process.env,
+    DB_BOOTSTRAP_MODE: configuredBootstrapMode || 'check',
     ASSETS: {
       async fetch(requestLike) {
         const request = requestLike instanceof Request ? requestLike : new Request(String(requestLike));

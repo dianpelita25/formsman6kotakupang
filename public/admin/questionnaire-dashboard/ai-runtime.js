@@ -1,16 +1,19 @@
+import { createAiGroundingRenderer } from './ai-grounding-view.js';
 const AI_MODE_LABELS = Object.freeze({
   internal: 'Internal',
   external_pemerintah: 'Eksternal Pemerintah',
   external_mitra: 'Eksternal Mitra',
   live_guru: 'Live Guru',
 });
-
 export function createAiRuntimeController({
   state,
   aiModeEl,
   aiOutputSummaryEl,
   aiOutputDetailsEl,
   aiOutputEl,
+  aiGroundingEl,
+  aiGroundingSummaryEl,
+  aiGroundingFactsEl,
   aiLoadBtn,
   aiRunBtn,
   aiPdfBtn,
@@ -25,20 +28,27 @@ export function createAiRuntimeController({
   runWithButtonLoading,
   setStatus,
   setError,
+  formatNumber,
+  formatDateTime,
 } = {}) {
   const aiProgressState = {
     startedAt: 0,
     timerId: null,
   };
-
+  const groundingRenderer = createAiGroundingRenderer({
+    state,
+    aiGroundingEl,
+    aiGroundingSummaryEl,
+    aiGroundingFactsEl,
+    formatNumber,
+    formatDateTime,
+  });
   function getActiveMode() {
     return String(aiModeEl?.value || 'internal').trim();
   }
-
   function getModeLabel(mode) {
     return AI_MODE_LABELS[String(mode || '').trim()] || String(mode || 'Internal').trim();
   }
-
   function stripAiMarkup(text) {
     return String(text || '')
       .replace(/`([^`]+)`/g, '$1')
@@ -51,7 +61,6 @@ export function createAiRuntimeController({
       .replace(/\s+/g, ' ')
       .trim();
   }
-
   function summarizeAiOutput(message) {
     const normalized = stripAiMarkup(message);
     if (!normalized) {
@@ -60,13 +69,11 @@ export function createAiRuntimeController({
     if (normalized.length <= 260) return normalized;
     return `${normalized.slice(0, 257)}...`;
   }
-
   function setAiOutput(message, options = {}) {
     const { showDetails = true } = options || {};
     const normalized = String(message || '').trim();
     const finalText = normalized || 'Belum ada analisis.';
     const hasRealAnalysis = Boolean(normalized) && !normalized.toLowerCase().startsWith('belum ada analisis');
-
     if (!aiOutputEl) return;
     aiOutputEl.textContent = finalText;
     if (aiOutputSummaryEl) {
@@ -79,7 +86,6 @@ export function createAiRuntimeController({
       }
     }
   }
-
   function formatElapsedLabel(totalSeconds) {
     const safeSeconds = Number.isFinite(totalSeconds) ? Math.max(0, Math.floor(totalSeconds)) : 0;
     if (safeSeconds < 60) return `${safeSeconds} dtk`;
@@ -87,19 +93,16 @@ export function createAiRuntimeController({
     const seconds = safeSeconds % 60;
     return `${minutes}m ${seconds} dtk`;
   }
-
   function resolveAiProgressNote(elapsedSeconds) {
     if (elapsedSeconds < 8) return 'Mengumpulkan respons sesuai mode dan filter...';
     if (elapsedSeconds < 18) return 'Menyusun ringkasan KPI dan temuan utama...';
     if (elapsedSeconds < 30) return 'Merapikan rekomendasi agar siap dibaca admin...';
     return 'Proses masih berjalan. Jika melewati 60 detik, cek koneksi lalu coba lagi.';
   }
-
   function setAiProgressVisibility(visible = false) {
     if (!aiProgressEl) return;
     aiProgressEl.hidden = !visible;
   }
-
   function stopAiProgressIndicator() {
     if (aiProgressState.timerId) {
       window.clearInterval(aiProgressState.timerId);
@@ -109,14 +112,12 @@ export function createAiRuntimeController({
     aiOutputEl?.removeAttribute('aria-busy');
     setAiProgressVisibility(false);
   }
-
   function updateAiProgressIndicator() {
     if (!aiProgressElapsedEl || !aiProgressNoteEl || !aiProgressState.startedAt) return;
     const elapsedSeconds = Math.max(0, Math.floor((Date.now() - aiProgressState.startedAt) / 1000));
     aiProgressElapsedEl.textContent = `Berjalan ${formatElapsedLabel(elapsedSeconds)}`;
     aiProgressNoteEl.textContent = resolveAiProgressNote(elapsedSeconds);
   }
-
   function startAiProgressIndicator() {
     stopAiProgressIndicator();
     aiProgressState.startedAt = Date.now();
@@ -128,7 +129,6 @@ export function createAiRuntimeController({
     updateAiProgressIndicator();
     aiProgressState.timerId = window.setInterval(updateAiProgressIndicator, 1000);
   }
-
   async function loadAiLatest() {
     stopAiProgressIndicator();
     const params = new URLSearchParams();
@@ -141,17 +141,19 @@ export function createAiRuntimeController({
     const payload = await api(`${baseApiPath()}/ai/latest?${params.toString()}`, undefined, 'Gagal memuat analisis AI.');
     state.latestAi = payload.data || null;
     setAiOutput(payload.data?.analysis || 'Belum ada analisis untuk mode ini.');
+    groundingRenderer.renderAiGrounding(payload.data?.grounding, { useFallback: true });
     if (aiPdfBtn) aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
   }
-
   async function runAiAnalysis() {
     await runWithButtonLoading(
       aiRunBtn,
       'Menganalisis...',
       async () => {
+        const previousAiState = state.latestAi;
         const previousAnalysisText = String(state.latestAi?.analysis || '').trim();
         if (aiPdfBtn) aiPdfBtn.disabled = true;
         startAiProgressIndicator();
+        groundingRenderer.clearAiGrounding();
         setAiOutput('Sedang memproses analisis AI. Mohon tunggu...', { showDetails: false });
         setStatus('Analisis AI dimulai. Estimasi 10-45 detik.', 'warning');
         try {
@@ -173,6 +175,7 @@ export function createAiRuntimeController({
           );
           state.latestAi = payload.data || null;
           setAiOutput(payload.data?.analysis || 'Analisis kosong.');
+          groundingRenderer.renderAiGrounding(payload.data?.grounding, { useFallback: true });
           if (aiPdfBtn) aiPdfBtn.disabled = !String(payload.data?.analysis || '').trim();
           if (payload.data?.reused) {
             const remaining = Number(payload.data?.cooldownSeconds || 0);
@@ -183,10 +186,14 @@ export function createAiRuntimeController({
           setError(null);
         } catch (error) {
           if (previousAnalysisText) {
+            state.latestAi = previousAiState || null;
             setAiOutput(previousAnalysisText);
+            groundingRenderer.renderAiGrounding(previousAiState?.grounding, { useFallback: true });
             if (aiPdfBtn) aiPdfBtn.disabled = false;
           } else {
+            state.latestAi = previousAiState || null;
             setAiOutput('Analisis gagal dijalankan. Periksa status error lalu coba lagi.');
+            groundingRenderer.clearAiGrounding();
             if (aiPdfBtn) aiPdfBtn.disabled = true;
           }
           throw error;
@@ -197,7 +204,6 @@ export function createAiRuntimeController({
       [aiLoadBtn]
     );
   }
-
   return {
     getActiveMode,
     getModeLabel,

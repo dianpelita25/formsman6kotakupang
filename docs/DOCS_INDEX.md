@@ -1,8 +1,8 @@
 # DOCS Index (Single Source of Truth)
 
 Status: ACTIVE
-As of: 2026-02-23
-Status dashboard completion: D11-D41 CLOSED (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
+As of: 2026-02-26
+Status dashboard completion: D11-D49 CLOSED, D50 IN_PROGRESS (lihat `docs/DEBT_REGISTER_LOCKED.md` dan `docs/DEBT_CLOSURE_REPORT.md`)
 
 Dokumen ini adalah pintu masuk utama agar status proyek tidak membingungkan.
 
@@ -31,7 +31,7 @@ Mode susunan docs saat ini:
 7. `docs/BLUEPRINT_D16_POST_DASHBOARD_HARDENING.md`  
    Blueprint siklus berikutnya (post-dashboard) dengan scope sempit anti-loop.
 8. `docs/PUBLIC_DASHBOARD_CONTRACT_D30.md`  
-   Contract lock dashboard publik read-only + privacy threshold (`minSampleSize=30`, `minBucketSize=10`).
+   Contract lock dashboard publik read-only + privacy threshold (`minSampleSize=10`, `minBucketSize=10`).
 9. `docs/UI_UX_LANGUAGE_READABILITY_CONTRACT_D32.md`  
    Contract lock Bahasa Indonesia UI + readability light mode (WCAG AA) untuk cycle D32-D37.
 10. `docs/UI_UX_EVIDENCE_MANIFEST_D32_D37.md`  

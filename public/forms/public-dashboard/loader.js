@@ -30,7 +30,7 @@ export async function loadDashboard(refs, setStatus, showInsufficientState, show
 
   const title = String(questionnaire?.name || '').trim();
   refs.dashboardTitle.textContent = title ? `Dashboard Publik - ${title}` : 'Dashboard Publik';
-  refs.dashboardSubtitle.textContent = `Agregat saja | sampel minimum=${Number(privacy.minSampleSize || 30)} | bucket minimum=${Number(
+  refs.dashboardSubtitle.textContent = `Agregat saja | sampel minimum=${Number(privacy.minSampleSize || 10)} | bucket minimum=${Number(
     privacy.minBucketSize || 10
   )}`;
 

@@ -1444,6 +1444,45 @@ pre {
   font-size: 30px;
 }
 
+.questionnaire-dashboard-page .dashboard-analysis-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+
+.questionnaire-dashboard-page .dashboard-analysis-tab {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(106, 164, 255, 0.35);
+  background: rgba(13, 26, 53, 0.74);
+  color: #dce8ff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.questionnaire-dashboard-page .dashboard-analysis-tab:hover {
+  border-color: var(--line-strong);
+  background: rgba(16, 31, 63, 0.86);
+}
+
+.questionnaire-dashboard-page .dashboard-analysis-tab.is-active {
+  border-color: rgba(48, 228, 255, 0.9);
+  background: rgba(26, 62, 112, 0.86);
+  color: #ffffff;
+}
+
+.questionnaire-dashboard-page .dashboard-analysis-tab:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.questionnaire-dashboard-page .dashboard-analysis-note {
+  margin: 0 0 8px;
+}
+
 .questionnaire-dashboard-page .dashboard-visibility-settings {
   margin: 0 0 10px;
   border: 1px solid rgba(106, 164, 255, 0.28);
@@ -1939,6 +1978,36 @@ pre {
   margin: 6px 0 0;
 }
 
+.questionnaire-dashboard-page .ai-grounding {
+  margin: 0 0 10px;
+  border: 1px solid rgba(52, 227, 185, 0.36);
+  border-radius: 10px;
+  background: rgba(11, 65, 54, 0.2);
+  padding: 10px 12px;
+}
+
+.questionnaire-dashboard-page .ai-grounding[hidden] {
+  display: none !important;
+}
+
+.questionnaire-dashboard-page .ai-grounding p {
+  margin: 0 0 6px;
+  color: #d8f7ec;
+}
+
+.questionnaire-dashboard-page .ai-grounding ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.questionnaire-dashboard-page .ai-grounding li {
+  color: #c3ebde;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .questionnaire-dashboard-page #ai-output {
   margin: 0;
   min-height: 180px;
@@ -2252,6 +2321,16 @@ pre {
     width: 100%;
   }
 
+  .questionnaire-dashboard-page .dashboard-analysis-tabs {
+    width: 100%;
+  }
+
+  .questionnaire-dashboard-page .dashboard-analysis-tab {
+    flex: 1 1 160px;
+    min-height: 44px;
+    font-size: 13px;
+  }
+
   .questionnaire-dashboard-page .dashboard-viz-tab {
     flex: 1 1 140px;
     min-height: 44px;
@@ -2329,6 +2408,7 @@ pre {
 }
 
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-viz-tab,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-analysis-tab,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .criteria-question-chip,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .segment-filter-chip {
   color: var(--theme-button-ghost-text, var(--text-soft));
@@ -2337,6 +2417,7 @@ pre {
 }
 
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-viz-tab.is-active,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-analysis-tab.is-active,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .criteria-question-chip.is-active {
   background: rgba(27, 105, 193, 0.92);
   color: #ffffff;
@@ -2448,6 +2529,7 @@ pre {
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-chart-card,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .advanced-viz-insight-card,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .criteria-summary-item,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .ai-grounding,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .ai-output-summary,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .ai-output-details {
   background: var(--ui-surface-base, #ffffff);
@@ -2462,7 +2544,13 @@ pre {
   border-color: var(--ui-border-soft, rgba(83, 129, 204, 0.34));
 }
 
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .ai-grounding p,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .ai-grounding li {
+  color: #274f7b;
+}
+
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-viz-tab,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-analysis-tab,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .criteria-question-chip,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .segment-filter-chip {
   background: var(--ui-surface-muted, rgba(232, 242, 255, 0.9));
@@ -2471,6 +2559,7 @@ pre {
 }
 
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-viz-tab.is-active,
+:root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .dashboard-analysis-tab.is-active,
 :root[data-theme-scope='modern'][data-theme='light'] .questionnaire-dashboard-page .criteria-question-chip.is-active {
   border-color: rgba(14, 165, 233, 0.52);
   color: #ffffff;

@@ -12,6 +12,7 @@ export const refs = {
   metricResponsesToday: document.getElementById('metric-responses-today'),
   metricAvgScale: document.getElementById('metric-avg-scale'),
   metricLastSubmitted: document.getElementById('metric-last-submitted'),
+  trendCard: document.getElementById('public-trend-card'),
   distributionTableBody: document.getElementById('distribution-table-body'),
 };
 

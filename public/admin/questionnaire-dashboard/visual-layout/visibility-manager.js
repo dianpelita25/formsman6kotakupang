@@ -62,7 +62,10 @@ export function createVisibilityManager({
     visualVisibilityInputEls.forEach((input) => {
       const key = String(input.dataset.visualCard || '').trim();
       if (!key || !VISUAL_CARD_CONFIG[key]) return;
-      input.checked = Boolean(state.visualCardVisibility[key]);
+      const available = state.visualCardAvailability?.[key] !== false;
+      input.disabled = !available;
+      input.title = available ? '' : 'Panel tidak relevan untuk data/filter aktif.';
+      input.checked = available ? Boolean(state.visualCardVisibility[key]) : false;
     });
   }
 
@@ -71,7 +74,9 @@ export function createVisibilityManager({
       const config = VISUAL_CARD_CONFIG[key];
       const card = document.getElementById(config.cardId);
       if (!card) return;
-      card.hidden = !Boolean(state.visualCardVisibility[key]);
+      const available = state.visualCardAvailability?.[key] !== false;
+      const visibleInView = state.analysisViewCardVisibility?.[key] !== false;
+      card.hidden = !available || !visibleInView || !Boolean(state.visualCardVisibility[key]);
     });
     onAfterVisibilityApplied?.();
   }

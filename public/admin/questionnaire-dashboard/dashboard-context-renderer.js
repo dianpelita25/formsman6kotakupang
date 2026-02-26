@@ -20,6 +20,55 @@ export function createDashboardContextRenderer({
     return `${confidence} (${warnings} peringatan)`;
   }
 
+  function formatDataQualityWarnings(dataQuality = null) {
+    const warnings = Array.isArray(dataQuality?.warnings) ? dataQuality.warnings : [];
+    if (!warnings.length) return 'tanpa peringatan';
+    const labelMap = {
+      low_sample_size: 'sampel kecil',
+      segment_filtered: 'filter segment aktif',
+      date_range_narrow: 'rentang tanggal sempit',
+      stale_last_submission: 'data tidak baru',
+    };
+    const labels = warnings.map((code) => labelMap[String(code || '').trim()] || String(code || '').trim()).filter(Boolean);
+    return labels.length ? labels.join(', ') : 'tanpa peringatan';
+  }
+
+  function formatCriteriaContext(capabilities = null) {
+    if (!capabilities || capabilities.totalQuestions <= 0) return 'belum ada pertanyaan.';
+    if (!capabilities.hasCriteria) return 'tidak ada kriteria, gunakan mode per pertanyaan.';
+    if (capabilities.criteriaMode === 'full') {
+      return `lengkap (${capabilities.criteriaCount}/${capabilities.totalQuestions} soal).`;
+    }
+    return `campuran (${capabilities.criteriaCount}/${capabilities.totalQuestions} soal, ${capabilities.criteriaCoveragePercent}%).`;
+  }
+
+  function formatTrendContext(capabilities = null) {
+    if (!capabilities) return '-';
+    if (capabilities.trendRelevant) {
+      return `aktif (${capabilities.trendActiveDays} hari berisi data).`;
+    }
+    return `disembunyikan otomatis (hanya ${capabilities.trendActiveDays} hari berisi data).`;
+  }
+
+  function formatSegmentContext(segmentSummary = null) {
+    const dimensions = Array.isArray(segmentSummary?.dimensions) ? segmentSummary.dimensions : [];
+    if (!dimensions.length) return 'tidak ada dimensi segmentasi aktif.';
+    const totalBuckets = dimensions.reduce((sum, dimension) => {
+      const buckets = Array.isArray(dimension?.buckets) ? dimension.buckets : [];
+      return sum + buckets.length;
+    }, 0);
+    return `${dimensions.length} dimensi, ${totalBuckets} bucket terlihat.`;
+  }
+
+  function formatBenchmarkContext(capabilities = null, benchmarkSummary = null) {
+    if (!capabilities?.hasBenchmark) {
+      return 'butuh minimal 2 sekolah dengan kuesioner sama.';
+    }
+    const totalSchools = Number(benchmarkSummary?.totalSchools || 0);
+    const schoolsWithResponses = Number(benchmarkSummary?.schoolsWithResponses || 0);
+    return `${schoolsWithResponses}/${totalSchools} sekolah sudah punya respons.`;
+  }
+
   function renderSummary() {
     const summary = state.summary || {};
     if (kpiTotalEl) kpiTotalEl.textContent = formatNumber(summary.totalResponses || 0);
@@ -53,10 +102,15 @@ export function createDashboardContextRenderer({
         'Belum ada respons pada versi aktif ini. Jika Anda baru memublikasikan versi baru, data versi sebelumnya tidak otomatis digabung.';
       return;
     }
-
-    contextNoteEl.textContent = `Dashboard ini membaca data spesifik untuk versi aktif (${formatVersionShort(
-      versionId
-    )}) | Kualitas data: ${formatDataQualitySummary(state.summary?.dataQuality || state.dataQuality)}.`;
+    const quality = state.summary?.dataQuality || state.dataQuality;
+    const capabilities = state.analyticsCapabilities;
+    contextNoteEl.textContent =
+      `Dashboard ini membaca data spesifik untuk versi aktif (${formatVersionShort(versionId)}) | ` +
+      `Kualitas data: ${formatDataQualitySummary(quality)} [${formatDataQualityWarnings(quality)}] | ` +
+      `Kriteria: ${formatCriteriaContext(capabilities)} | ` +
+      `Tren: ${formatTrendContext(capabilities)} | ` +
+      `Segmentasi: ${formatSegmentContext(state.segmentSummary)} | ` +
+      `Benchmark: ${formatBenchmarkContext(capabilities, state.benchmarkSummary)}`;
   }
 
   return {

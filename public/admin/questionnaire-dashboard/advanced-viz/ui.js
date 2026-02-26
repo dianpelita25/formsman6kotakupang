@@ -6,10 +6,28 @@ export function createAdvancedVizUi({
   advancedVizInsightsEl,
   advancedVizHelpEl,
 } = {}) {
+  function applyModeAvailability(availability = {}) {
+    advancedVizTabButtons.forEach((button) => {
+      const mode = String(button.dataset.vizMode || '').trim();
+      const available = availability?.[mode] !== false;
+      button.hidden = !available;
+      button.disabled = !available;
+      button.setAttribute('aria-disabled', available ? 'false' : 'true');
+      if (!available && state.advancedVizMode === mode) {
+        state.advancedVizMode = '';
+      }
+    });
+  }
+
   function setAdvancedVizTabs(mode) {
     const normalizedMode = String(mode || '').trim();
     advancedVizTabButtons.forEach((button) => {
       const buttonMode = String(button.dataset.vizMode || '').trim();
+      if (button.hidden) {
+        button.classList.remove('is-active');
+        button.setAttribute('aria-selected', 'false');
+        return;
+      }
       const isActive = buttonMode === normalizedMode;
       button.classList.toggle('is-active', isActive);
       button.setAttribute('aria-selected', isActive ? 'true' : 'false');
@@ -78,6 +96,7 @@ export function createAdvancedVizUi({
   }
 
   return {
+    applyModeAvailability,
     setAdvancedVizTabs,
     renderAdvancedVizInsights,
     renderEmptyAdvancedVizChart,

@@ -5,6 +5,7 @@ import { createVisualLayoutController } from './visual-layout.js';
 import { wireDashboardAi } from './controller-wiring-ai.js';
 import { wireDashboardCharts } from './controller-wiring-charts.js';
 import { wireDashboardData } from './controller-wiring-data.js';
+import { createSchoolBenchmarkLoader } from './school-benchmark-loader.js';
 
 export function wireDashboardControllers({
   state,
@@ -134,12 +135,21 @@ export function wireDashboardControllers({
     setError,
     presentError,
     applyVisualCardVisibility,
+    syncVisualVisibilityInputs,
     chartApi,
     aiApi,
   });
   state.onSegmentBucketClick = async (dimensionId, bucketLabel) => {
     await dataApi.applySegmentDrilldown(dimensionId, bucketLabel);
   };
+  const loadSchoolBenchmark = createSchoolBenchmarkLoader({
+    state,
+    api,
+    baseApiPath,
+    buildCommonQuery,
+    setStatus,
+    presentError,
+  });
 
   const { bindEvents } = createDashboardEventBinder(
     buildDashboardEventBinderOptions({
@@ -171,6 +181,7 @@ export function wireDashboardControllers({
       syncVisualVisibilityInputs,
       renderVisualOrderList,
       applyVisualCardOrder,
+      loadSchoolBenchmark,
       aiApi,
     })
   );

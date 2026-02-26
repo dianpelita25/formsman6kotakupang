@@ -184,6 +184,19 @@ async function run() {
 
     const analyticsBasePath = `/forms/${targetTenantSlug}/admin/api/questionnaires/${targetQuestionnaireSlug}/analytics`;
     const responsesBasePath = `/forms/${targetTenantSlug}/admin/api/questionnaires/${targetQuestionnaireSlug}/responses`;
+    const aiBasePath = `/forms/${targetTenantSlug}/admin/api/questionnaires/${targetQuestionnaireSlug}/ai`;
+
+    const snapshotRes = await requestWithSession(baseUrl, session, 'GET', `${analyticsBasePath}/snapshot`);
+    assertions.expect('GET analytics/snapshot status', snapshotRes.response.status === 200, `status=${snapshotRes.response.status}`);
+    const snapshotData = snapshotRes.payload?.data || null;
+    assertions.expect('snapshot.summary ada', Boolean(snapshotData?.summary), 'snapshot.summary hilang');
+    assertions.expect('snapshot.distribution ada', Boolean(snapshotData?.distribution), 'snapshot.distribution hilang');
+    assertions.expect('snapshot.trend ada', Boolean(snapshotData?.trend), 'snapshot.trend hilang');
+    assertions.expect(
+      'snapshot totals integrity field',
+      typeof snapshotData?.totals?.integrityOk === 'boolean',
+      `integrityOk=${String(snapshotData?.totals?.integrityOk)}`
+    );
 
     const summaryRes = await requestWithSession(baseUrl, session, 'GET', `${analyticsBasePath}/summary`);
     assertions.expect('GET analytics/summary status', summaryRes.response.status === 200, `status=${summaryRes.response.status}`);
@@ -206,6 +219,21 @@ async function run() {
       `warnings type=${typeof dataQuality?.warnings}`
     );
 
+    const aiLatestRes = await requestWithSession(baseUrl, session, 'GET', `${aiBasePath}/latest?mode=internal`);
+    assertions.expect('GET ai/latest status', aiLatestRes.response.status === 200, `status=${aiLatestRes.response.status}`);
+    const aiLatestData = aiLatestRes.payload?.data || null;
+    assertions.expect('ai/latest payload object', Boolean(aiLatestData && typeof aiLatestData === 'object'), 'payload data tidak valid');
+    assertions.expect(
+      'ai/latest grounding object',
+      Boolean(aiLatestData?.grounding && typeof aiLatestData.grounding === 'object'),
+      'grounding tidak tersedia'
+    );
+    assertions.expect(
+      'ai/latest grounding available flag',
+      typeof aiLatestData?.grounding?.available === 'boolean',
+      `available type=${typeof aiLatestData?.grounding?.available}`
+    );
+
     const segmentCompareMissingRes = await requestWithSession(baseUrl, session, 'GET', `${analyticsBasePath}/segment-compare`);
     assertions.expect(
       'GET analytics/segment-compare tidak 404',
@@ -213,7 +241,27 @@ async function run() {
       `status=${segmentCompareMissingRes.response.status}`
     );
 
+    const schoolBenchmarkRes = await requestWithSession(baseUrl, session, 'GET', `${analyticsBasePath}/school-benchmark`);
+    assertions.expect(
+      'GET analytics/school-benchmark tidak 404',
+      schoolBenchmarkRes.response.status !== 404,
+      `status=${schoolBenchmarkRes.response.status}`
+    );
+    if (schoolBenchmarkRes.response.status === 200) {
+      assertions.expect(
+        'school-benchmark payload summary object',
+        Boolean(schoolBenchmarkRes.payload?.data?.summary && typeof schoolBenchmarkRes.payload.data.summary === 'object'),
+        'summary benchmark tidak tersedia'
+      );
+      assertions.expect(
+        'school-benchmark payload schools array',
+        Array.isArray(schoolBenchmarkRes.payload?.data?.schools),
+        'array schools benchmark tidak tersedia'
+      );
+    }
+
     const pairValidationTargets = [
+      `${analyticsBasePath}/snapshot`,
       `${analyticsBasePath}/summary`,
       `${analyticsBasePath}/distribution`,
       `${analyticsBasePath}/trend`,
@@ -281,6 +329,12 @@ async function run() {
         'segment-compare buckets array',
         Array.isArray(compareRes.payload?.data?.buckets),
         'payload buckets tidak valid'
+      );
+      const firstBucket = Array.isArray(compareRes.payload?.data?.buckets) ? compareRes.payload.data.buckets[0] : null;
+      assertions.expect(
+        'segment-compare bucket dataQuality object',
+        Boolean(firstBucket?.dataQuality && typeof firstBucket.dataQuality === 'object'),
+        'dataQuality bucket compare tidak tersedia'
       );
     }
 

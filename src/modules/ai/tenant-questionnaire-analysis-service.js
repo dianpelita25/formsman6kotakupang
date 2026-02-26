@@ -5,6 +5,12 @@ import { AI_ANALYSIS_MODES, normalizeAiMode } from '../shared/ai-modes.js';
 import { callGemini } from './gemini-client.js';
 import { buildAiInputSignature, getAiAnalyzeCooldownSeconds, resolveReusableAnalysis } from './cooldown-policy.js';
 import { buildPromptLegacy } from './prompt-fallback.js';
+import {
+  applyAiGroundingSoftGuard,
+  buildAiGroundingPayload,
+  buildEmptyAiGroundingPayload,
+  buildGroundingPromptTail,
+} from './grounding.js';
 
 export async function analyzeTenantQuestionnaireAi(
   env,
@@ -36,6 +42,15 @@ export async function analyzeTenantQuestionnaireAi(
   const summary = analyticsBundle.data.summary || {};
   const distribution = analyticsBundle.data.distribution || {};
   const responses = analyticsBundle.data.responses || [];
+  const grounding = buildAiGroundingPayload({
+    summary,
+    distribution,
+    questionnaireVersionId: selectedVersionId,
+    filters: {
+      from: normalizedFromFilter,
+      to: normalizedToFilter,
+    },
+  });
   const inputSignature = buildAiInputSignature({
     mode: normalizedMode,
     questionnaireVersionId: selectedVersionId,
@@ -55,13 +70,23 @@ export async function analyzeTenantQuestionnaireAi(
   });
   const reuseState = resolveReusableAnalysis(latest, inputSignature, cooldownSeconds);
   if (reuseState.reused) {
+    const reusedGrounding = buildAiGroundingPayload({
+      meta: latest.meta,
+      questionnaireVersionId: selectedVersionId,
+      filters: {
+        from: normalizedFromFilter,
+        to: normalizedToFilter,
+      },
+    });
+    const guardedAnalysis = applyAiGroundingSoftGuard(latest.analysis, reusedGrounding);
     return {
       mode: latest.mode,
-      analysis: latest.analysis,
+      analysis: guardedAnalysis,
       meta: latest.meta || null,
       createdAt: latest.created_at || null,
       reused: true,
       cooldownSeconds: reuseState.cooldownSeconds,
+      grounding: reusedGrounding,
     };
   }
 
@@ -91,7 +116,8 @@ export async function analyzeTenantQuestionnaireAi(
     });
   }
 
-  const analysis = await callGemini(env, prompt);
+  const rawAnalysis = await callGemini(env, `${prompt}\n${buildGroundingPromptTail(grounding)}`);
+  const analysis = applyAiGroundingSoftGuard(rawAnalysis, grounding);
   const meta = {
     summary,
     distribution,
@@ -102,6 +128,7 @@ export async function analyzeTenantQuestionnaireAi(
       to: normalizedToFilter,
     },
     inputSignature,
+    grounding,
   };
 
   const saved = await insertAiAnalysisV2(env, {
@@ -120,6 +147,7 @@ export async function analyzeTenantQuestionnaireAi(
     createdAt: saved?.created_at || null,
     reused: false,
     cooldownSeconds: 0,
+    grounding,
   };
 }
 
@@ -149,13 +177,30 @@ export async function getLatestTenantQuestionnaireAi(
       analysis: '',
       meta: null,
       createdAt: null,
+      grounding: buildEmptyAiGroundingPayload({
+        questionnaireVersionId,
+        filters: {
+          from: normalizedFromFilter,
+          to: normalizedToFilter,
+        },
+      }),
     };
   }
 
+  const grounding = buildAiGroundingPayload({
+    meta: latest.meta,
+    questionnaireVersionId,
+    filters: {
+      from: normalizedFromFilter,
+      to: normalizedToFilter,
+    },
+  });
+
   return {
     mode: latest.mode,
-    analysis: latest.analysis,
+    analysis: applyAiGroundingSoftGuard(latest.analysis, grounding),
     meta: latest.meta,
     createdAt: latest.created_at,
+    grounding,
   };
 }

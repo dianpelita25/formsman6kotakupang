@@ -1,8 +1,10 @@
 export * from './services/index.js';
 export {
+  getTenantQuestionnaireAnalyticsSnapshot,
   getTenantQuestionnaireAnalyticsBundle,
   getTenantQuestionnaireAiSource,
   getTenantQuestionnaireAnalyticsSegmentCompare,
+  getTenantQuestionnaireAnalyticsSchoolBenchmark,
   getTenantQuestionnaireAnalyticsDistribution,
   getTenantQuestionnaireAnalyticsSummary,
   getTenantQuestionnaireAnalyticsTrend,

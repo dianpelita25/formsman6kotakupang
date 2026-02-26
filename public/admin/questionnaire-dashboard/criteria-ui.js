@@ -55,6 +55,7 @@ export function createCriteriaController({
     criteriaSummaryListEl.innerHTML = '';
 
     const totalQuestionsWithCriterion = Number(state.distribution?.totalQuestionsWithCriterion || 0);
+    const totalQuestions = Number(state.questionTypeStats?.total || 0);
     if (!summary.length) {
       criteriaSummaryHelpEl.textContent = 'Belum ada data kriteria untuk filter ini.';
       renderQuestionDetail(null);
@@ -65,6 +66,11 @@ export function createCriteriaController({
     if (onlyUncategorized && totalQuestionsWithCriterion === 0) {
       criteriaSummaryHelpEl.textContent =
         'Semua soal masih tanpa kriteria. Disarankan isi kriteria di Builder agar analisis lebih presisi. Klik chip Qx untuk lihat detail soal.';
+    } else if (totalQuestionsWithCriterion > 0 && totalQuestions > totalQuestionsWithCriterion) {
+      const coverage = Math.round((totalQuestionsWithCriterion / Math.max(1, totalQuestions)) * 100);
+      criteriaSummaryHelpEl.textContent = `Kriteria terisi ${totalQuestionsWithCriterion}/${totalQuestions} soal (${coverage}%). Dashboard menampilkan mode campuran (dengan + tanpa kriteria). Klik chip Qx untuk detail.`;
+    } else if (totalQuestionsWithCriterion > 0 && totalQuestions > 0) {
+      criteriaSummaryHelpEl.textContent = `Semua soal sudah berkriteria (${totalQuestionsWithCriterion}/${totalQuestions}). Klik chip Qx untuk melihat detail soal lengkap.`;
     } else {
       criteriaSummaryHelpEl.textContent = `${summary.length} kelompok kriteria terdeteksi. Klik chip Qx untuk melihat detail soal lengkap.`;
     }

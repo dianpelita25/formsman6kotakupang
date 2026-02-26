@@ -20,6 +20,7 @@ export function wireDashboardData({
   setError,
   presentError,
   applyVisualCardVisibility,
+  syncVisualVisibilityInputs,
   chartApi,
   aiApi,
 } = {}) {
@@ -74,7 +75,9 @@ export function wireDashboardData({
     renderCriteriaSummary: chartApi.renderCriteriaSummary,
     renderTrendChart: chartApi.renderTrendChart,
     renderAdvancedVizChart: chartApi.renderAdvancedVizChart,
+    applyAdvancedVizModeAvailability: chartApi.applyAdvancedVizModeAvailability,
     updateCsvLink,
+    syncVisualVisibilityInputs,
     applyVisualCardVisibility,
     loadResponses,
     loadAiLatest: aiApi.loadAiLatest,

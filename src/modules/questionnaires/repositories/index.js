@@ -26,4 +26,8 @@ export {
   listQuestionnaireResponsesV2,
 } from './response-repository.js';
 
-export { getQuestionnaireSummaryStatsV2, getQuestionnaireTrendRowsV2 } from './analytics-repository.js';
+export {
+  getQuestionnaireSummaryStatsV2,
+  getQuestionnaireTrendRowsV2,
+  listQuestionnaireSchoolBenchmarkRows,
+} from './analytics-repository.js';

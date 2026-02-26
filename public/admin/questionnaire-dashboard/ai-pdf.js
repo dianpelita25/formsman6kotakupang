@@ -37,11 +37,24 @@ export function createAiPdfHandlers({
   }
 
   function buildAiMetadataLines() {
+    const grounding = state.latestAi?.grounding && typeof state.latestAi.grounding === 'object' ? state.latestAi.grounding : null;
+    const sampleSize = Number(grounding?.sampleSize || state.summary?.totalResponses || 0);
+    const confidenceRaw = String(grounding?.confidence || state.summary?.dataQuality?.confidence || 'unknown').trim().toLowerCase();
+    const confidenceLabel =
+      confidenceRaw === 'high'
+        ? 'Tinggi'
+        : confidenceRaw === 'medium'
+          ? 'Sedang'
+          : confidenceRaw === 'low'
+            ? 'Rendah'
+            : 'Belum diketahui';
     return [
       `Organisasi: ${state.tenantSlug}`,
       `Kuesioner: ${state.questionnaireSlug}`,
       `Versi Data: ${resolveVersionLabel()}`,
       `Rentang Data: ${formatDateRangeLabel()}`,
+      `Sampel Analisis: ${formatNumber(sampleSize)}`,
+      `Confidence Data: ${confidenceLabel}`,
     ];
   }
 

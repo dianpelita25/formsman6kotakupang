@@ -367,3 +367,19 @@ Jika ada temuan baru saat implementasi:
      - `artifacts/d49/local-dashboard-after-click-mobile.png`
 7. Status governance saat ini:
    - Debt register D49 sudah ditutup ke `CLOSED` dengan proof commit, proof commands, dan tanggal tutup.
+
+## Kickoff D50 (2026-02-26)
+
+1. Debt baru D50 diregistrasi di `docs/DEBT_REGISTER_LOCKED.md` dengan status awal `IN_PROGRESS`.
+2. Scope D50 mengunci sinkronisasi drift live-vs-git untuk dashboard dinamis:
+   - Data integrity snapshot (`totals.integrityOk`, `benchmarkSummary`).
+   - Adaptive analysis mode + dynamic tabs pada dashboard admin.
+   - Trust indicators + benchmark availability runtime-aware.
+   - AI grounded soft guard (`Bukti Data`) untuk output analyze/latest.
+   - Policy dashboard publik final (`minSampleSize=10`, `minBucketSize=10`).
+3. Gate lock D50 mengikuti urutan:
+   - `pnpm check:modularity`
+   - `pnpm check:architecture`
+   - `DB_BOOTSTRAP_MODE=check` untuk smoke/visual lokal
+   - `pnpm check:debt-register`
+4. Closure D50 hanya sah setelah deploy production + smoke live PASS tercatat pada section update berikutnya.

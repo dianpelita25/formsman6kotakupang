@@ -34,3 +34,30 @@ export async function getQuestionnaireTrendRowsV2(env, filters) {
   `;
 }
 
+export async function listQuestionnaireSchoolBenchmarkRows(env, filters) {
+  const sql = getSqlClient(env);
+  return sql`
+    SELECT
+      t.id AS tenant_id,
+      t.slug AS tenant_slug,
+      t.name AS tenant_name,
+      q.id AS questionnaire_id,
+      q.slug AS questionnaire_slug,
+      COUNT(rv2.id)::int AS total_responses,
+      COUNT(*) FILTER (WHERE rv2.created_at >= date_trunc('day', NOW()))::int AS responses_today,
+      TO_CHAR(MAX(rv2.created_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_submitted_at
+    FROM questionnaires q
+    JOIN tenants t ON t.id = q.tenant_id
+    LEFT JOIN responses_v2 rv2
+      ON rv2.tenant_id = t.id
+      AND rv2.questionnaire_id = q.id
+      AND (${filters.from}::timestamptz IS NULL OR rv2.created_at >= ${filters.from})
+      AND (${filters.to}::timestamptz IS NULL OR rv2.created_at < ${filters.to})
+    WHERE q.slug = ${filters.questionnaireSlug}
+      AND q.is_active = TRUE
+      AND t.is_active = TRUE
+    GROUP BY t.id, t.slug, t.name, q.id, q.slug
+    ORDER BY t.name ASC;
+  `;
+}
+
