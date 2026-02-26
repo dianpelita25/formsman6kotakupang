@@ -335,7 +335,7 @@ Jika ada temuan baru saat implementasi:
    - Live/staging smoke sempat mengalami flake network/perf pada Lighthouse dan Playwright navigation timeout; stabilisasi dilakukan di D47 (`median multi-sample`, `warmup`, `retry`) dan seluruh gate final lulus.
    - Push langsung ke `origin/main` ditolak branch protection (`required status checks are expected`); tag savepoint berhasil dipush dan evidence closure tetap tercatat lokal.
 
-## Update D49 (2026-02-26, READY_FOR_CLOSE)
+## Update D49 (2026-02-26, CLOSED)
 
 1. Temuan bug tervalidasi pada route publik:
    - Jalur: `/forms/sma-negeri-5-kota-kupang/feedback-utama/` -> klik `Dashboard`.
@@ -344,6 +344,7 @@ Jika ada temuan baru saat implementasi:
    - Hardening layout chart dashboard publik dengan wrapper tinggi tetap (`.chart-canvas-wrap`).
    - Pin dependency `Chart.js` ke `4.5.1` pada halaman dashboard publik/admin/legacy.
    - Tambah guardrail smoke `smoke-public-dashboard` untuk deteksi runaway layout.
+   - Proof commit D49: `6c6fa9c9b47e97378f48ac862ae715902e89046d`.
 3. Gate lokal PASS:
    - `pnpm check:modularity`
    - `pnpm check:architecture`
@@ -365,5 +366,4 @@ Jika ada temuan baru saat implementasi:
      - `artifacts/d49/live-postdeploy-dashboard-after-click-mobile.png`
      - `artifacts/d49/local-dashboard-after-click-mobile.png`
 7. Status governance saat ini:
-   - Debt register D49 dinaikkan ke `READY_FOR_CLOSE`.
-   - Menunggu proof commit merge untuk transisi final `CLOSED` sesuai protokol anti-loop.
+   - Debt register D49 sudah ditutup ke `CLOSED` dengan proof commit, proof commands, dan tanggal tutup.
