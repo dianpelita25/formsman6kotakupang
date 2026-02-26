@@ -28,6 +28,41 @@ export function createDashboardAnalyticsLoader({
   renderSummary,
   renderContextInfo,
 } = {}) {
+  function toNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function normalizeOpenDeviceSummary(payload, fallbackSubmitted = 0) {
+    const raw = payload && typeof payload === 'object' ? payload : {};
+    return {
+      uniqueOpenDevices: Math.max(0, toNumber(raw.uniqueOpenDevices)),
+      totalOpens: Math.max(0, toNumber(raw.totalOpens)),
+      submitted: Math.max(0, toNumber(raw.submitted, fallbackSubmitted)),
+    };
+  }
+
+  async function loadOpenDeviceSummaryBestEffort(fallbackSubmitted = 0) {
+    const summaryPath = `${baseApiPath()}/open-devices/summary`;
+    try {
+      const response = await fetch(summaryPath, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+      if (!response.ok) {
+        return normalizeOpenDeviceSummary({ submitted: fallbackSubmitted }, fallbackSubmitted);
+      }
+      const payload = await response.json().catch(() => null);
+      return normalizeOpenDeviceSummary(payload?.data, fallbackSubmitted);
+    } catch (error) {
+      console.warn(`[OPEN_TRACKING_WARNING] gagal memuat open-device summary: ${String(error?.message || error)}`);
+      return normalizeOpenDeviceSummary({ submitted: fallbackSubmitted }, fallbackSubmitted);
+    }
+  }
+
   async function loadSummaryAndCharts() {
     state.segmentCompareResult = null;
     state.schoolBenchmarkResult = null;
@@ -44,6 +79,7 @@ export function createDashboardAnalyticsLoader({
     const trendData = snapshotData.trend && typeof snapshotData.trend === 'object' ? snapshotData.trend : {};
 
     state.summary = summaryData;
+    state.openDeviceSummary = await loadOpenDeviceSummaryBestEffort(Number(summaryData?.totalResponses || 0));
     state.distribution = distributionData;
     state.trend = trendData;
     state.benchmarkSummary =

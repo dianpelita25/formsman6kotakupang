@@ -77,6 +77,11 @@ export function createDashboardState() {
     totalResponses: 0,
     search: '',
     summary: null,
+    openDeviceSummary: {
+      uniqueOpenDevices: 0,
+      totalOpens: 0,
+      submitted: 0,
+    },
     distribution: null,
     trend: null,
     scaleAverages: [],

@@ -13,6 +13,9 @@ export function createDashboardDataController({
   kpiTodayEl,
   kpiScaleEl,
   kpiLastEl,
+  kpiOpenedDevicesEl,
+  kpiSubmittedEl,
+  kpiOpenGapEl,
   applyFilterBtn,
   formatNumber,
   formatDateTime,
@@ -57,11 +60,13 @@ export function createDashboardDataController({
     kpiTodayEl,
     kpiScaleEl,
     kpiLastEl,
+    kpiOpenedDevicesEl,
+    kpiSubmittedEl,
+    kpiOpenGapEl,
     formatNumber,
     formatDateTime,
     formatVersionShort,
   });
-
   const { loadSummaryAndCharts } = createDashboardAnalyticsLoader({
     state,
     scaleQuestionHelpEl,
@@ -89,7 +94,6 @@ export function createDashboardDataController({
     renderSummary,
     renderContextInfo,
   });
-
   function ensureSelectedVersionExists() {
     const selected = String(filterVersionEl?.value || '').trim();
     if (!selected) return;
@@ -99,7 +103,6 @@ export function createDashboardDataController({
     if (filterVersionEl) filterVersionEl.value = '';
     state.selectedVersionId = '';
   }
-
   async function refreshDashboardData({
     startMessage = 'Memuat data dashboard sesuai filter...',
     successMessage = 'Dashboard berhasil diperbarui.',
@@ -127,11 +130,11 @@ export function createDashboardDataController({
       return false;
     }
   }
+
   async function applySegmentDrilldown(dimensionId, bucketLabel) {
     const nextDimensionId = String(dimensionId || '').trim();
     const nextBucket = String(bucketLabel || '').trim();
     if (!nextDimensionId || !nextBucket) return false;
-
     state.selectedSegmentDimension = nextDimensionId;
     state.selectedSegmentBucket = nextBucket;
     state.activeSegmentFilter = {
@@ -149,17 +152,14 @@ export function createDashboardDataController({
     }
     return refreshed;
   }
-
   async function clearSegmentDrilldown() {
     const hadFilter = String(state.activeSegmentFilter?.dimensionId || '').trim() && String(state.activeSegmentFilter?.bucket || '').trim();
     state.activeSegmentFilter = { dimensionId: '', bucket: '' };
     state.segmentCompareResult = null;
-
     if (!hadFilter) {
       renderSegmentFilterChip();
       return true;
     }
-
     const refreshed = await refreshDashboardData({
       startMessage: 'Membersihkan filter segment...',
       successMessage: 'Filter segment dibersihkan.',
@@ -169,14 +169,12 @@ export function createDashboardDataController({
     }
     return refreshed;
   }
-
   async function runSegmentCompare() {
     const segmentDimensionId = String(state.selectedSegmentDimension || '').trim();
     if (!segmentDimensionId) {
       setStatus('Pilih dimensi segmentasi dulu.', 'warning');
       return null;
     }
-
     const compareBuckets = Array.isArray(getSelectedCompareBuckets?.()) ? getSelectedCompareBuckets() : [];
     state.selectedSegmentCompareBuckets = compareBuckets;
     const params = buildCommonQuery();

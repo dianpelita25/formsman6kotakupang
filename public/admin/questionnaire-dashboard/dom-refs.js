@@ -28,6 +28,9 @@ export function createDashboardDomRefs(documentRef = document) {
     kpiTodayEl: root.getElementById('kpi-today'),
     kpiScaleEl: root.getElementById('kpi-scale'),
     kpiLastEl: root.getElementById('kpi-last'),
+    kpiOpenedDevicesEl: root.getElementById('kpi-opened-devices'),
+    kpiSubmittedEl: root.getElementById('kpi-submitted'),
+    kpiOpenGapEl: root.getElementById('kpi-open-gap'),
 
     radioQuestionSelectEl: root.getElementById('radio-question-select'),
     scaleQuestionHelpEl: root.getElementById('scale-question-help'),

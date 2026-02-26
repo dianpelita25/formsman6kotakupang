@@ -8,6 +8,9 @@ export function createDashboardContextRenderer({
   kpiTodayEl,
   kpiScaleEl,
   kpiLastEl,
+  kpiOpenedDevicesEl,
+  kpiSubmittedEl,
+  kpiOpenGapEl,
   formatNumber,
   formatDateTime,
   formatVersionShort,
@@ -71,10 +74,18 @@ export function createDashboardContextRenderer({
 
   function renderSummary() {
     const summary = state.summary || {};
+    const openDeviceSummary =
+      state.openDeviceSummary && typeof state.openDeviceSummary === 'object' ? state.openDeviceSummary : {};
+    const openedDevices = Number(openDeviceSummary.uniqueOpenDevices || 0);
+    const submitted = Number(openDeviceSummary.submitted || summary.totalResponses || 0);
+    const gap = openedDevices - submitted;
     if (kpiTotalEl) kpiTotalEl.textContent = formatNumber(summary.totalResponses || 0);
     if (kpiTodayEl) kpiTodayEl.textContent = formatNumber(summary.responsesToday || 0);
     if (kpiScaleEl) kpiScaleEl.textContent = formatNumber(summary.avgScaleOverall || 0, 2);
     if (kpiLastEl) kpiLastEl.textContent = formatDateTime(summary.lastSubmittedAt);
+    if (kpiOpenedDevicesEl) kpiOpenedDevicesEl.textContent = formatNumber(openedDevices);
+    if (kpiSubmittedEl) kpiSubmittedEl.textContent = formatNumber(submitted);
+    if (kpiOpenGapEl) kpiOpenGapEl.textContent = formatNumber(gap);
   }
 
   function renderContextInfo() {
